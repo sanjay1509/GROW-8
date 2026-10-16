@@ -40,7 +40,10 @@ else
 fi
 
 "$VENV_PY" -m pip install --quiet --disable-pip-version-check --upgrade pip
+# shared/ is installed editable in setuptools' "compat" mode (a plain path in a .pth file).
+# The default mode uses an import hook that Pylance cannot follow (unresolved grow8_common).
 "$VENV_PY" -m pip install --quiet --disable-pip-version-check \
+    --config-settings editable_mode=compat \
     -e shared \
     -r api/requirements-dev.txt \
     -r services/creator_service/requirements-dev.txt \
