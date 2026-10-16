@@ -2,10 +2,10 @@ SHELL := sh
 COMPOSE := docker compose
 SERVICES := creator_service contributor_service admin_service
 
-.PHONY: help env config build up down restart logs ps reset-db test test-services postman lint fmt mysql
+.PHONY: help env config build up down restart logs ps reset-db test test-services postman lint fmt mysql venv
 
 help:
-	@echo "env | config | build | up | down | restart | logs | ps | reset-db | test | test-services | postman | lint | fmt | mysql"
+	@echo "env | config | build | up | down | restart | logs | ps | reset-db | test | test-services | postman | lint | fmt | mysql | venv"
 
 env:
 	@test -f .env && echo ".env already exists" || (cp .env.example .env && echo "created .env from .env.example")
@@ -59,3 +59,7 @@ fmt:
 
 mysql:
 	$(COMPOSE) exec mysql sh -c 'mysql -u"$$MYSQL_USER" -p"$$MYSQL_PASSWORD" "$$MYSQL_DATABASE"'
+
+# Editor-only venv for VS Code/Pylance/ruff (code still runs in Docker). See docs.md 4.
+venv:
+	sh scripts/setup-venv.sh
