@@ -1,0 +1,113 @@
+name: grow8
+
+x-app-env: &app-env
+  APP_ENV: ${APP_ENV}
+  LOG_LEVEL: ${LOG_LEVEL}
+  MYSQL_HOST: ${MYSQL_HOST}
+  MYSQL_PORT: ${MYSQL_PORT}
+  MYSQL_DATABASE: ${MYSQL_DATABASE}
+  MYSQL_USER: ${MYSQL_USER}
+  MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  RABBITMQ_HOST: ${RABBITMQ_HOST}
+  RABBITMQ_PORT: ${RABBITMQ_PORT}
+  RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+  RABBITMQ_USER: ${RABBITMQ_USER}
+  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+  RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE}
+
+x-app-depends: &app-depends
+  mysql:
+    condition: service_healthy
+  rabbitmq:
+    condition: service_healthy
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
+    ports:
+      - "${MYSQL_HOST_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # TCP (127.0.0.1) so the check only passes once the real server is up,
+      # not the socket-only temporary server used while init scripts run.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+    ports:
+      - "${RABBITMQ_MGMT_HOST_PORT}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    ports:
+      - "${API_HOST_PORT}:8000"
+    depends_on: *app-depends
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  creator_service:
+    build:
+      context: .
+      dockerfile: services/creator_service/Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+    depends_on: *app-depends
+
+  contributor_service:
+    build:
+      context: .
+      dockerfile: services/contributor_service/Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+    depends_on: *app-depends
+
+  admin_service:
+    build:
+      context: .
+      dockerfile: services/admin_service/Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+    depends_on: *app-depends
+
+volumes:
+  mysql_data:
+  rabbitmq_data:
