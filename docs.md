@@ -5,6 +5,8 @@ This file covers how to work on GROW8 day to day. For project goals, architectur
 ## Contents
 
 1. [Running the application](#1-running-the-application)
+2. [Database and seed data](#2-database-and-seed-data)
+3. [Using the API](#3-using-the-api)
 
 ---
 
@@ -84,6 +86,7 @@ Run these from `grow8-backend/`.
 | `make logs` | Follow logs from all containers (Ctrl+C to stop following) |
 | `make test` | Run the API tests |
 | `make test-services` | Run the tests of the three consumer services |
+| `make postman` | Run the Postman collection (report in `tests/reports/`). Adds a few rows to your dev database. |
 | `make lint` | Check code style with ruff |
 | `make fmt` | Auto-fix and format code with ruff |
 | `make mysql` | Open a MySQL shell on the GROW8 database |
@@ -150,4 +153,94 @@ Your data is kept in Docker volumes and will be there next time you run `make up
 | `/health` shows `"mysql":"unavailable"` right after startup | MySQL can take up to ~30 s on first start. Wait and refresh. |
 | Code changes aren't picked up | If you changed dependencies, a Dockerfile or `.env`, run `make up`. Otherwise check `make logs` for an error that stopped the reload. |
 | Database still has old tables after editing `db/init/*.sql` | The init scripts only run on an empty database. Run `make reset-db` (deletes local data). |
+| `Table 'grow8.opportunity' doesn't exist` (or another table) | Your database was created before the schema existed. Run `make reset-db`. See [2.2](#22-after-pulling-database-changes). |
 | A teammate's changes don't work for you after `git pull` | Run `make up` to rebuild, and compare your `.env` with `.env.example` for new settings. |
+
+---
+
+## 2. Database and seed data
+
+### 2.1 Everyone gets the same database
+
+The database is defined by three files in [`grow8-backend/db/init/`](grow8-backend/db/init/), which are committed to Git:
+
+| File | What it does |
+| --- | --- |
+| `001_schema.sql` | Creates all 17 tables (the single source of truth for the schema). |
+| `002_seed.sql` | Fills them with **development-only** placeholder data. It uses fixed IDs and dates, so every developer gets identical rows. |
+| `003_test_database.sh` | Creates an empty `grow8_test` database that `make test` uses, so tests never change your dev data. |
+
+MySQL runs these files automatically **the first time** it starts with an empty data volume. Anything you create later through Swagger, Postman or the frontend exists only on your machine.
+
+### 2.2 After pulling database changes
+
+MySQL does not re-run the files on an existing database. Whenever a pull changes anything in `grow8-backend/db/init/`, run:
+
+```bash
+cd grow8-backend
+make reset-db
+```
+
+⚠️ This deletes everything in **your** local database and recreates it from the files. It does not affect anyone else.
+
+You can see whether a pull touched the database files with `git diff --stat HEAD@{1} -- grow8-backend/db/init`.
+
+### 2.3 What is seeded
+
+| Data | Contents |
+| --- | --- |
+| Categories | `knowledge` (Knowledge-based), `community` (Community) |
+| Skills | 12, e.g. `data-entry`, `spreadsheets`, `photography`, `translation`, `event-setup` |
+| Badges | 4 badge definitions (for the rewards stretch goal) |
+| Organizations | Maple Street Bakery, Bow River Community Food Bank, YYC Neighbourhood Events |
+| Opportunities | 15: 12 open (#10 is past its deadline, so it is hidden from the public list), 1 closed (#11), 2 drafts (#14 incomplete, #15 ready to publish) |
+
+### 2.4 Dev accounts
+
+All seeded accounts use the password **`Grow8Dev!2026`**. Development only.
+
+| Email | Role | Notes |
+| --- | --- | --- |
+| `admin@grow8.dev` | admin | |
+| `maple.bakery@grow8.dev` | creator | Owns Maple Street Bakery (opportunities 1–4, draft 14) |
+| `foodbank@grow8.dev` | creator | Owns Bow River Community Food Bank (5–7, 10, 11) |
+| `yyc.events@grow8.dev` | creator | Owns YYC Neighbourhood Events (8, 9, 12, 13, draft 15) |
+| `alex.chen@grow8.dev` | contributor | |
+| `jordan.lee@grow8.dev` | contributor | |
+| `sam.patel@grow8.dev` | contributor | |
+
+### 2.5 Changing the schema or seed
+
+- Edit `001_schema.sql` **and** the matching ORM model in `grow8-backend/shared/grow8_common/models/` in the same commit. `make test` fails if they differ.
+- Keep seed data deterministic: explicit IDs, fixed dates, no `NOW()`.
+- Tell the team in chat, because everyone has to run `make reset-db` after pulling.
+
+Seeded application deadlines are fixed dates, so as the term goes on some opportunities drop out of the public list. Move the dates forward in `002_seed.sql` if that becomes a problem.
+
+---
+
+## 3. Using the API
+
+Full reference: [`grow8-backend/docs/api-contract.md`](grow8-backend/docs/api-contract.md). Try everything interactively at <http://localhost:8000/docs>.
+
+### 3.1 Signing in
+
+1. `POST /api/v1/auth/login` with `{"email": "maple.bakery@grow8.dev", "password": "Grow8Dev!2026"}`.
+2. Copy `access_token` from the response.
+3. Send it as `Authorization: Bearer <token>`. In Swagger, click **Authorize** and paste the token.
+
+### 3.2 Opportunities at a glance
+
+| Task | Request |
+| --- | --- |
+| Browse open opportunities | `GET /api/v1/opportunities` |
+| Search | `GET /api/v1/opportunities?q=food bank` |
+| Filter | `?category=community&skill=photography&work_mode=on_site&compensation_type=paid&min_hours=5&max_hours=20` |
+| Sort | `?sort=deadline` (also `-deadline`, `newest`, `oldest`, `hours`, `-hours`, `compensation`, `-compensation`, `title`) |
+| Page | `?limit=20&offset=40` |
+| Create a draft (creator) | `POST /api/v1/opportunities` |
+| Edit a draft (owner) | `PATCH /api/v1/opportunities/{id}` |
+| Publish (owner) | `POST /api/v1/opportunities/{id}/publish` |
+| My opportunities, incl. drafts (creator) | `GET /api/v1/opportunities/mine?status=draft` |
+
+Opportunities start as **drafts**, which can be incomplete. Publishing checks that every mandatory disclosure is filled in (requirements, dates, hours, compensation, applicant limit, deadline, working conditions, safety and accessibility information). If anything is missing, the response lists it.
