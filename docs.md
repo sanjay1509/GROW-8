@@ -7,6 +7,8 @@ This file covers how to work on GROW8 day to day. For project goals, architectur
 1. [Running the application](#1-running-the-application)
 2. [Database and seed data](#2-database-and-seed-data)
 3. [Using the API](#3-using-the-api)
+4. [Editor setup (VS Code)](#4-editor-setup-vs-code)
+5. [Adding a Python package](#5-adding-a-python-package)
 
 ---
 
@@ -91,6 +93,7 @@ Run these from `grow8-backend/`.
 | `make fmt` | Auto-fix and format code with ruff |
 | `make mysql` | Open a MySQL shell on the GROW8 database |
 | `make config` | Validate the Docker Compose files |
+| `make venv` | Create/update the editor-only `.venv` for VS Code (see [section 4](#4-editor-setup-vs-code)) |
 | `make reset-db` | ⚠️ **Deletes all database data** and recreates it from `db/init/*.sql` |
 
 `make test`, `make test-services`, `make lint`, `make fmt` and `make mysql` run inside the containers, so start the stack first with `make up`.
@@ -244,3 +247,107 @@ Full reference: [`grow8-backend/docs/api-contract.md`](grow8-backend/docs/api-co
 | My opportunities, incl. drafts (creator) | `GET /api/v1/opportunities/mine?status=draft` |
 
 Opportunities start as **drafts**, which can be incomplete. Publishing checks that every mandatory disclosure is filled in (requirements, dates, hours, compensation, applicant limit, deadline, working conditions, safety and accessibility information). If anything is missing, the response lists it.
+
+---
+
+## 4. Editor setup (VS Code)
+
+The code runs in Docker, but VS Code analyses it with a Python interpreter on your machine. Out of the box that interpreter doesn't have FastAPI, SQLAlchemy and the other packages, so the editor shows false "import could not be resolved" errors. The fix is an **editor-only** virtual environment plus a workspace file.
+
+> The `.venv` is only for autocomplete, type checking and linting. Keep running the app with `make up` and tests with `make test`.
+
+### 4.1 One-time setup
+
+1. Install **Python 3.12**, the same version as the containers.
+2. Create the venv from `grow8-backend/`:
+   ```bash
+   make venv
+   ```
+   Without make, in PowerShell: `.\scripts\setup-venv.ps1`. If scripts are blocked: `powershell -ExecutionPolicy Bypass -File .\scripts\setup-venv.ps1`.
+3. In VS Code: **File → Open Workspace from File…** → `grow8-backend/grow8.code-workspace`.
+4. Install the recommended extensions when prompted (Python, Pylance, Ruff).
+
+The workspace opens `api`, `shared` and each service as its **own folder**. That matters because the API and all three services each have a package called `app`; as separate folders, each `from app...` import resolves to the right one.
+
+The workspace also:
+- points every folder at `grow8-backend/.venv`;
+- formats with the same ruff version as `make fmt`;
+- turns off VS Code's test runner, because tests need MySQL and RabbitMQ and run with `make test`.
+
+### 4.2 Keeping it up to date
+
+Re-run `make venv` whenever a pull changes a `requirements*.txt` file or `shared/pyproject.toml`. The venv installs from the same pinned files as the Docker images, so the versions match.
+
+### 4.3 Troubleshooting
+
+| Problem | Fix |
+| --- | --- |
+| Imports still unresolved | Make sure you opened `grow8.code-workspace`, not the plain folder. Then run **Python: Select Interpreter** in each folder and pick `grow8-backend/.venv`. |
+| macOS / Linux: interpreter not found | The workspace uses the Windows path `.venv/Scripts/python.exe`. Run **Python: Select Interpreter** → `grow8-backend/.venv/bin/python`, or set `python.defaultInterpreterPath` in your user settings. |
+| `Python 3.12 not found` | Install 3.12, or point the script at it: `PYTHON=/path/to/python3.12 make venv`. |
+| Tests fail when run from the editor | Expected. Tests run inside Docker; use `make test`. |
+
+---
+
+## 5. Adding a Python package
+
+Packages are declared in requirement files and installed when the Docker images are built. **Don't `pip install` inside a running container:** the package goes into a temporary location, disappears when the container is recreated, and your teammates never get it.
+
+### 5.1 Pick the right file
+
+Where the package is used decides where it goes (paths relative to `grow8-backend/`):
+
+| Used by | File |
+| --- | --- |
+| API code only | `api/requirements.txt` |
+| API tests or tooling only (e.g. a pytest plugin) | `api/requirements-dev.txt` |
+| Shared code in `grow8_common` (used by the API and the services) | `dependencies` list in `shared/pyproject.toml` |
+| One consumer service only | `services/<service_name>/requirements.txt` |
+| A service's tests or tooling only | `services/<service_name>/requirements-dev.txt` |
+
+### 5.2 Pin an exact version and say why
+
+Always pin with `==`, and add a short comment explaining why the package is needed. To see the available versions:
+
+```bash
+docker compose exec api pip index versions <package>
+```
+
+Example entry in `api/requirements.txt`:
+
+```text
+# send transactional emails (notifications feature)
+some-package==1.2.3
+```
+
+In `shared/pyproject.toml`, the same goes into the `dependencies` list: `"some-package==1.2.3",`.
+
+### 5.3 Rebuild and check
+
+From `grow8-backend/`:
+
+```bash
+make up                              # rebuilds the images that use the changed file
+docker compose exec api pip check    # reports dependency conflicts, if any
+make test                            # and make test-services if a service changed
+make venv                            # so VS Code also knows the package
+```
+
+### 5.4 Commit and tell the team
+
+Commit the requirements change **together with the code that uses it**, and mention the new package in your PR. After pulling, teammates run:
+
+```bash
+make up      # rebuild the images
+make venv    # update the editor venv
+```
+
+### 5.5 Trying a package before adding it
+
+To experiment without changing anything, use a throwaway container that is deleted afterwards:
+
+```bash
+docker compose run --rm --no-deps api sh -c "pip install <package> && python -c 'import <package>'"
+```
+
+Once you decide to keep it, add it properly using steps 5.1–5.4.

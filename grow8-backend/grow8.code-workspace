@@ -1,0 +1,51 @@
+{
+  // Open with File > Open Workspace from File. Each Python package is its own root,
+  // so the four separate `app` packages (api + 3 services) never collide in Pylance.
+  // The interpreter is the editor-only venv from `make venv`; code still runs in Docker.
+  "folders": [
+    { "name": "grow8-backend", "path": "." },
+    { "name": "api", "path": "api" },
+    { "name": "shared", "path": "shared" },
+    { "name": "creator_service", "path": "services/creator_service" },
+    { "name": "contributor_service", "path": "services/contributor_service" },
+    { "name": "admin_service", "path": "services/admin_service" }
+  ],
+  "settings": {
+    // Windows path. On macOS/Linux use ".venv/bin/python" in your user settings,
+    // or run "Python: Select Interpreter" and pick grow8-backend/.venv.
+    "python.defaultInterpreterPath": "${workspaceFolder:grow8-backend}/.venv/Scripts/python.exe",
+
+    // The package folders are shown as their own roots; hide the duplicates under
+    // the grow8-backend root (patterns are relative to each root, so the roots
+    // themselves are unaffected).
+    "files.exclude": {
+      "api": true,
+      "shared": true,
+      "services": true
+    },
+    "python.analysis.exclude": ["api", "shared", "services", ".venv"],
+    "python.analysis.typeCheckingMode": "basic",
+
+    // Use the venv's pinned ruff (same version as the containers) and each
+    // package's pyproject.toml settings.
+    "ruff.importStrategy": "fromEnvironment",
+    "[python]": {
+      "editor.defaultFormatter": "charliermarsh.ruff",
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports.ruff": "explicit"
+      }
+    },
+
+    // Tests need MySQL/RabbitMQ and run inside Docker: use `make test`.
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": false
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "charliermarsh.ruff"
+    ]
+  }
+}
