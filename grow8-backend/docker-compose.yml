@@ -71,6 +71,8 @@ services:
     environment:
       <<: *app-env
       CORS_ORIGINS: ${CORS_ORIGINS}
+      JWT_SECRET: ${JWT_SECRET:-}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
     ports:
       - "${API_HOST_PORT}:8000"
     depends_on: *app-depends
