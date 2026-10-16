@@ -264,10 +264,10 @@ The code runs in Docker, but VS Code analyses it with a Python interpreter on yo
    make venv
    ```
    Without make, in PowerShell: `.\scripts\setup-venv.ps1`. If scripts are blocked: `powershell -ExecutionPolicy Bypass -File .\scripts\setup-venv.ps1`.
-3. In VS Code: **File → Open Workspace from File…** → `grow8-backend/grow8.code-workspace`.
+3. In VS Code: **File → Open Workspace from File…** → `grow8.code-workspace` at the **repository root**, next to `README.md`.
 4. Install the recommended extensions when prompted (Python, Pylance, Ruff).
 
-The workspace opens `api`, `shared` and each service as its **own folder**. That matters because the API and all three services each have a package called `app`; as separate folders, each `from app...` import resolves to the right one.
+The workspace's first folder is the repository root (`GROW-8`), so Source Control and git work as usual. It also opens `api`, `shared` and each service as its **own folder**. That matters because the API and all three services each have a package called `app`; as separate folders, each `from app...` import resolves to the right one.
 
 The workspace also:
 - points every folder at `grow8-backend/.venv`;
@@ -282,9 +282,10 @@ Re-run `make venv` whenever a pull changes a `requirements*.txt` file or `shared
 
 | Problem | Fix |
 | --- | --- |
-| Imports still unresolved | Make sure you opened `grow8.code-workspace`, not the plain folder. Then run **Python: Select Interpreter** in each folder and pick `grow8-backend/.venv`. |
+| Imports still unresolved | Make sure you opened `grow8.code-workspace` (repository root), not a plain folder. Then run **Python: Select Interpreter** in each folder and pick `grow8-backend/.venv`. |
 | macOS / Linux: interpreter not found | The workspace uses the Windows path `.venv/Scripts/python.exe`. Run **Python: Select Interpreter** → `grow8-backend/.venv/bin/python`, or set `python.defaultInterpreterPath` in your user settings. |
 | `Python 3.12 not found` | Install 3.12, or point the script at it: `PYTHON=/path/to/python3.12 make venv`. |
+| Source Control shows no repository | Open the workspace file from the repository root, not a copy elsewhere. If VS Code asks whether to open the repository in a parent folder, choose **Yes**. |
 | Tests fail when run from the editor | Expected. Tests run inside Docker; use `make test`. |
 
 ---

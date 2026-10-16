@@ -48,4 +48,4 @@ fi
     -r services/admin_service/requirements-dev.txt
 
 echo "Editor venv ready: $VENV_PY"
-echo "Open grow8-backend/grow8.code-workspace in VS Code (File > Open Workspace from File)."
+echo "Open grow8.code-workspace (repository root) in VS Code (File > Open Workspace from File)."
