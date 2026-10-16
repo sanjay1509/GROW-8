@@ -2,10 +2,10 @@ SHELL := sh
 COMPOSE := docker compose
 SERVICES := creator_service contributor_service admin_service
 
-.PHONY: help env config build up down restart logs ps reset-db test test-services lint fmt mysql
+.PHONY: help env config build up down restart logs ps reset-db test test-services postman lint fmt mysql
 
 help:
-	@echo "env | config | build | up | down | restart | logs | ps | reset-db | test | test-services | lint | fmt | mysql"
+	@echo "env | config | build | up | down | restart | logs | ps | reset-db | test | test-services | postman | lint | fmt | mysql"
 
 env:
 	@test -f .env && echo ".env already exists" || (cp .env.example .env && echo "created .env from .env.example")
@@ -41,6 +41,12 @@ test:
 
 test-services:
 	@for s in $(SERVICES); do echo "== $$s"; $(COMPOSE) exec -T $$s pytest || exit 1; done
+
+# Runs the Postman collection with Newman inside the compose network; report -> tests/reports/.
+# Writes a few 'Postman:' rows into the dev DB (`make reset-db` removes them).
+# MSYS_NO_PATHCONV stops Git Bash on Windows from rewriting the container paths.
+postman:
+	MSYS_NO_PATHCONV=1 docker run --rm --network grow8_default -v "$(CURDIR)/tests:/etc/newman" 		postman/newman:6.1.3-alpine run postman/grow8.postman_collection.json 		--env-var baseUrl=http://api:8000 		--reporters cli,json --reporter-json-export reports/postman-report.json
 
 lint:
 	$(COMPOSE) exec -T api ruff check /app/api /app/shared
