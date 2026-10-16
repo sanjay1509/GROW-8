@@ -7,7 +7,6 @@ _DEV_JWT_SECRET = "grow8-dev-only-insecure-jwt-secret-do-not-use-in-production"
 
 JWT_ALGORITHM = "HS256"
 
-
 class ApiSettings(Settings):
     """Shared settings plus API-only ones."""
 
@@ -26,7 +25,6 @@ class ApiSettings(Settings):
         if self.app_env == "production":
             raise RuntimeError("JWT_SECRET must be set when APP_ENV=production")
         return _DEV_JWT_SECRET
-
 
 @lru_cache
 def get_api_settings() -> ApiSettings:
