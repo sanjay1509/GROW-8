@@ -56,9 +56,8 @@ test-services:
 # Writes a few 'Postman:' rows into the dev DB (`make reset-db` removes them).
 # MSYS_NO_PATHCONV stops Git Bash on Windows from rewriting the container paths.
 postman:
-	MSYS_NO_PATHCONV=1 docker run --rm --network grow8_default -v "$(CURDIR)/tests:/etc/newman" 		postman/newman:6.1.3-alpine run postman/grow8.postman_collection.json 		--env-var baseUrl=http://api:8000 		--reporters cli,json --reporter-json-export reports/postman-report.json
-
-lint:
+	MSYS_NO_PATHCONV=1 docker run --rm --network grow8_default -v "$(CURDIR)/tests:/etc/newman" 		postman/newman:6.1.3-alpine run postman/grow8.postman_collection.json 		--env-var baseUrl=http://api:8000 			--reporters cli,json --reporter-json-export reports/postman-report.json
+	lint:
 	$(COMPOSE) exec -T api ruff check /app/api /app/shared
 	@for s in $(SERVICES); do $(COMPOSE) exec -T $$s ruff check . || exit 1; done
 
@@ -69,7 +68,6 @@ fmt:
 
 mysql:
 	$(COMPOSE) exec mysql sh -c 'mysql -u"$$MYSQL_USER" -p"$$MYSQL_PASSWORD" "$$MYSQL_DATABASE"'
-
 # ENSF 608: runs the SQL answers to the proposal's database questions on the dev DB.
 queries:
 	$(COMPOSE) exec -T mysql sh -c 'mysql -t -u"$$MYSQL_USER" -p"$$MYSQL_PASSWORD" "$$MYSQL_DATABASE"' < db/queries/database_questions.sql
