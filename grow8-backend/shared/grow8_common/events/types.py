@@ -1,0 +1,18 @@
+from enum import StrEnum
+
+
+class EventType(StrEnum):
+    OPPORTUNITY_CREATED = "OPPORTUNITY_CREATED"
+    APPLICATION_SUBMITTED = "APPLICATION_SUBMITTED"
+    APPLICATION_DECIDED = "APPLICATION_DECIDED"
+    WORK_SUBMITTED = "WORK_SUBMITTED"
+    WORK_VERIFIED = "WORK_VERIFIED"
+    WORK_REJECTED = "WORK_REJECTED"
+    FEEDBACK_SUBMITTED = "FEEDBACK_SUBMITTED"
+    FEEDBACK_APPROVED = "FEEDBACK_APPROVED"
+    FEEDBACK_REJECTED = "FEEDBACK_REJECTED"
+
+    @property
+    def routing_key(self) -> str:
+        """e.g. WORK_VERIFIED -> work.verified"""
+        return self.value.lower().replace("_", ".")
