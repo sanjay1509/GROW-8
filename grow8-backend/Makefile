@@ -1,3 +1,8 @@
+# Recipes are POSIX sh. On Windows, make falls back to cmd.exe when no sh is on PATH
+# (e.g. make run from PowerShell or cmd), so use the sh that ships with Git for Windows.
+ifeq ($(OS),Windows_NT)
+export PATH := C:\Program Files\Git\usr\bin;C:\Program Files\Git\bin;$(PATH)
+endif
 SHELL := sh
 COMPOSE := docker compose
 SERVICES := creator_service contributor_service admin_service
