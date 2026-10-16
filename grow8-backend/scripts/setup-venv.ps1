@@ -32,4 +32,4 @@ $venvPython = ".venv\Scripts\python.exe"
 if ($LASTEXITCODE -ne 0) { throw "pip install failed" }
 
 Write-Host "Editor venv ready: $venvPython"
-Write-Host "Open grow8-backend\grow8.code-workspace in VS Code (File > Open Workspace from File)."
+Write-Host "Open grow8.code-workspace (repository root) in VS Code (File > Open Workspace from File)."
