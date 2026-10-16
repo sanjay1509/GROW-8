@@ -25,6 +25,7 @@ services:
     volumes:
       - ./api:/app/api
       - ./shared:/app/shared
+      - ./db:/app/db:ro
 
   creator_service:
     build:
