@@ -32,7 +32,7 @@ The stack is made of six containers:
 - **Docker Desktop**, installed and **running** (whale icon in the system tray). Docker Compose v2 comes with it.
 - **Git**.
 - **`make`** (optional but recommended). Every `make` command below has a plain `docker compose` equivalent in [1.6](#16-without-make).
-  - Windows: `make` works from Git Bash, PowerShell or cmd. The Makefile's commands need the `sh` that comes with **Git for Windows**, installed in the default location (`C:\Program Files\Git`). If `make` isn't found, install it (e.g. `winget install GnuWin32.Make` or `choco install make`) or use the `docker compose` commands.
+  - Windows: `make` works from Git Bash, PowerShell or cmd. The Makefile's commands need the `sh` that comes with **Git for Windows**; the Makefile finds it automatically from wherever Git is installed, as long as `git --version` works in that terminal. If `make` isn't found, install it (e.g. `winget install GnuWin32.Make` or `choco install make`) or use the `docker compose` commands.
   - macOS / Linux: `make` is usually already installed.
 
 ### 1.2 First-time setup
@@ -151,7 +151,7 @@ Your data is kept in Docker volumes and will be there next time you run `make up
 | --- | --- |
 | `open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified` | Docker Desktop isn't running. Start it, wait until it says *Engine running*, and try again. |
 | `make: command not found` | Use Git Bash, install `make`, or use the commands in [1.6](#16-without-make). |
-| `'cp' is not recognized as an internal or external command` (or `'test'`) | `make` couldn't find `sh`. Pull the latest Makefile, which adds Git for Windows' `sh` automatically. If Git is installed somewhere other than `C:\Program Files\Git`, run `make` from **Git Bash** instead. |
+| `'cp' is not recognized as an internal or external command` (or `'test'`) | `make` couldn't find `sh`. Pull the latest Makefile, which adds Git for Windows' `sh` automatically. Also check that `git --version` works in that terminal (install Git for Windows with `winget install Git.Git` and open a new terminal). As a fallback, run `make` from **Git Bash**. |
 | `port is already allocated` / `address already in use` | Another program is using port 8000, 3307, 5672 or 15672. Stop it, or change `API_HOST_PORT`, `MYSQL_HOST_PORT`, `RABBITMQ_HOST_PORT` or `RABBITMQ_MGMT_HOST_PORT` in your `.env` and run `make up`. |
 | A container keeps restarting | `docker compose logs <container>` shows the error. |
 | `/health` shows `"mysql":"unavailable"` right after startup | MySQL can take up to ~30 s on first start. Wait and refresh. |
