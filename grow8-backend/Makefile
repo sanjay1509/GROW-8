@@ -1,7 +1,11 @@
 # Recipes are POSIX sh. On Windows, make falls back to cmd.exe when no sh is on PATH
 # (e.g. make run from PowerShell or cmd), so use the sh that ships with Git for Windows.
+# Git's own install dir is found via `git --exec-path` (<git>/mingw64/libexec/git-core),
+# which also covers per-user, Scoop and GitHub Desktop installs.
 ifeq ($(OS),Windows_NT)
-export PATH := C:\Program Files\Git\usr\bin;C:\Program Files\Git\bin;$(PATH)
+GIT_EXEC_PATH := $(subst \,/,$(shell git --exec-path))
+GIT_ROOT := $(subst /mingw64/libexec/git-core,,$(subst /mingw32/libexec/git-core,,$(subst /clangarm64/libexec/git-core,,$(GIT_EXEC_PATH))))
+export PATH := $(GIT_ROOT)/usr/bin;$(GIT_ROOT)/bin;C:/Program Files/Git/usr/bin;$(PATH)
 endif
 SHELL := sh
 COMPOSE := docker compose
