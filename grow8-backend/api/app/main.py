@@ -8,6 +8,11 @@ from grow8_common import db, messaging
 from grow8_common.logging import configure_logging
 
 from app.core.config import get_api_settings
+from app.core.exceptions import register_exception_handlers
+from app.dependencies.request import REQUEST_ID_HEADER, register_request_id_middleware
+from app.routers import auth
+
+API_PREFIX = "/api/v1"
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +33,7 @@ def _ping_rabbitmq() -> None:
 def create_app() -> FastAPI:
     settings = get_api_settings()
     configure_logging(settings.log_level, service="api")
+    _ = settings.effective_jwt_secret  # fail fast if production has no JWT_SECRET
 
     app = FastAPI(title="GROW8 API", version="0.1.0")
     app.add_middleware(
@@ -36,7 +42,12 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=[REQUEST_ID_HEADER],
     )
+    register_request_id_middleware(app)
+    register_exception_handlers(app)
+
+    app.include_router(auth.router, prefix=API_PREFIX)
 
     @app.get("/health", tags=["health"])
     def health() -> JSONResponse:
