@@ -249,3 +249,61 @@ def test_feedback_only_between_the_people_on_the_application(db: Exec) -> None:
     feedback(db, app_id, author=5, subject=2)  # contributor rates creator
     feedback(db, app_id, author=2, subject=5)  # creator rates contributor
 
+
+# --- I1, I3: derived values ----------------------------------------------------
+
+
+def test_verified_hours_count_only_approved_work(db: Exec, seeded_db: pymysql.Connection) -> None:
+    verification(db, submission(db, application(db, contributor_id=5)), "approved")
+    verification(db, submission(db, application(db, contributor_id=6)), "rejected")
+
+    rows = query(
+        seeded_db,
+        "SELECT contributor_id, verified_hours, completed_opportunities "
+        "FROM v_contributor_verified_hours ORDER BY contributor_id",
+    )
+    assert [(c, float(h), n) for c, h, n in rows] == [(5, 5.0, 1), (6, 0.0, 0), (7, 0.0, 0)]
+
+
+def test_feedback_status_and_public_rating_use_admin_decisions_only(
+    db: Exec, seeded_db: pymysql.Connection
+) -> None:
+    app_5, app_6, app_7 = (application(db, contributor_id=c) for c in (5, 6, 7))
+    approved = feedback(db, app_5, author=5, subject=2, rating=5)
+    rejected = feedback(db, app_6, author=6, subject=2, rating=1)
+    pending = feedback(db, app_7, author=7, subject=2, rating=1)
+    review = "INSERT INTO admin_review (feedback_id, admin_user_id, decision) VALUES (%s, 1, %s)"
+    db(review, approved, "approved")
+    db(review, rejected, "rejected")
+
+    statuses = dict(query(seeded_db, "SELECT feedback_id, status FROM v_feedback_status"))
+    assert statuses == {approved: "approved", rejected: "rejected", pending: "pending"}
+
+    rating = query(
+        seeded_db,
+        "SELECT average_rating, approved_feedback_count FROM v_user_rating WHERE user_id = 2",
+    )
+    assert [(float(avg), n) for avg, n in rating] == [(5.0, 1)]
+
+
+def test_leaderboard_sums_points_and_ranks_contributors(
+    db: Exec, seeded_db: pymysql.Connection
+) -> None:
+    approved = verification(db, submission(db, application(db, contributor_id=6)))
+    db(
+        "INSERT INTO point_transaction (contributor_id, points, source, verification_id) "
+        "VALUES (6, 30, 'work_verified', %s)",
+        approved,
+    )
+    db("INSERT INTO contributor_badge (contributor_id, badge_id) VALUES (5, 1)")
+    db(
+        "INSERT INTO point_transaction (contributor_id, points, source, badge_id) "
+        "VALUES (5, 10, 'badge_awarded', 1)"
+    )
+
+    rows = query(
+        seeded_db,
+        "SELECT contributor_id, total_points, leaderboard_rank FROM v_leaderboard "
+        "ORDER BY leaderboard_rank, contributor_id",
+    )
+    assert [(c, int(p), r) for c, p, r in rows] == [(6, 30, 1), (5, 10, 2), (7, 0, 3)]
