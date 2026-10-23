@@ -2,7 +2,7 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Based on the ENSF 608 proposal submitted Oct 9, 2026. To be reconciled with the schema once it is committed to the repo.
+> Written Oct 14 from the ENSF 608 proposal (submitted Oct 9). Updated Oct 23: section 7 shows how the committed schema (`grow8-backend/db/init/001_schema.sql`) resolves every issue below. Sections 3–6 keep the proposal's attribute names; section 6 of `functional-dependencies.md` maps them to the schema's.
 
 ## 1. Purpose
 
@@ -162,6 +162,8 @@ Without it, the database would accept a second profile, submission, verification
 
 ## 5. Open decisions for the team
 
+> Outcomes as of Oct 23 are in section 5 of `functional-dependencies.md`; only decision 4 (applicant limit) is still open.
+
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
 | 1 | Stored vs. calculated totals (I3) | Stored totals updated by events / calculated views | Calculated views |
@@ -173,6 +175,30 @@ Without it, the database would accept a second profile, submission, verification
 
 ## 6. Next steps
 
-- Formal 1NF → BCNF analysis after the Oct 16 normalization lecture, using `functional-dependencies.md`.
-- Apply the agreed constraints in the shared schema DDL.
-- Turn each rule in I5–I8 into a test case for database testing.
+- ~~Formal 1NF → BCNF analysis after the Oct 16 normalization lecture~~: done in `functional-dependencies.md` (all 17 tables in BCNF).
+- ~~Apply the agreed constraints in the shared schema DDL~~: done; see section 7.
+- ~~Turn each rule in I5–I8 into a test case for database testing~~: done in `grow8-backend/api/tests/integration/test_db_integrity.py`.
+- Still open: the applicant limit (decision 4), enforced in the backend apply endpoint once it is built, and whether `contributor_skill.source = 'verified'` is stored or derived (decision 7 in `functional-dependencies.md`).
+
+## 7. Status in the committed schema (Oct 23)
+
+Every issue is now enforced by the database itself, so it holds whichever service or script writes the data. Each rule has an accepted and a refused case in `test_db_integrity.py`.
+
+| Issue | How the schema enforces it |
+|---|---|
+| R1, R9, R11, R14 (I8) maximum of 1 | Shared PK on `contributor_profile`; `uq_work_submission_application`, `uq_work_verification_submission`, `uq_admin_review_feedback`. |
+| R5–R7 duplicates | Composite PKs on `contributor_skill`, `opportunity_skill`; `uq_application_contributor_opportunity`. |
+| R13 / I2 two users per feedback | `author_user_id` and `subject_user_id`, `chk_feedback_not_self`, and `trg_feedback_bi/bu`: both must be the application's contributor or the organization's owner. |
+| R20 verifier recorded | `work_verification.verified_by_user_id`; `trg_work_verification_bi/bu`: must own the opportunity's organization. |
+| I1 status stored twice | `feedback` has no status column; `v_feedback_status` derives `pending` / `approved` / `rejected`. |
+| I3 stored totals | None stored; views `v_contributor_verified_hours`, `v_user_rating`, `v_leaderboard`. |
+| I3 accepted redundancy `point_transaction.contributor_id` | `trg_point_transaction_bi/bu` checks it matches the verification's contributor; `fk_point_transaction_contributor_badge` checks it for badge points. |
+| I5 one point source | `chk_point_transaction_source`; `uq_point_transaction_verification` and `uq_point_transaction_contributor_badge` award points once. |
+| I6 role rules | `trg_contributor_profile_*`, `trg_creator_organization_*`, `trg_admin_review_*` (procedure `grow8_require_role`); `trg_user_account_bu` locks the role once rows depend on it. |
+| I7 submit only when accepted | `trg_work_submission_bi/bu`; `trg_application_bu` stops an accepted application with work from leaving `accepted`. |
+| I7 hours only when approved | `chk_work_verification_hours`. |
+| I7 points only from approved work | `trg_point_transaction_bi/bu`. |
+| I7 deadline and applicant limit | Backend, when the apply endpoint is built (`SELECT … FOR UPDATE` on the opportunity row). |
+| I9 badge once | Composite PK `(contributor_id, badge_id)` on `contributor_badge`. |
+
+Trigger violations raise SQLSTATE `45000` (MySQL error 1644) with a message that starts with the rule name, for example `reviewer_role: user 2 must have role admin`. An API endpoint that writes these tables should validate first and return a clear 4xx, and treat error 1644 as a conflict rather than a server error.
