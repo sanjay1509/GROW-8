@@ -30,7 +30,9 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
+    # --skip-log-bin: a dev database needs no binary log, and with it on MySQL refuses
+    # CREATE TRIGGER from non-SUPER users, which `make test` needs for grow8_test.
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--skip-log-bin"]
     ports:
       - "${MYSQL_HOST_PORT}:3306"
     volumes:
