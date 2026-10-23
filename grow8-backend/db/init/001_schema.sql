@@ -538,3 +538,56 @@ CREATE TRIGGER trg_point_transaction_bu BEFORE UPDATE ON point_transaction FOR E
 
 DELIMITER ;
 
+-- -----------------------------------------------------------------------------
+-- Derived values (views) - I1, I3
+--
+-- Verified hours, ratings, feedback status and leaderboard totals are calculated
+-- from the underlying records every time, so they can never drift from them.
+-- -----------------------------------------------------------------------------
+
+-- I1: a feedback's status is derived from its review, never stored twice.
+CREATE OR REPLACE VIEW v_feedback_status AS
+SELECT f.feedback_id,
+       f.application_id,
+       f.author_user_id,
+       f.subject_user_id,
+       f.rating,
+       COALESCE(ar.decision, 'pending') AS status,
+       ar.reviewed_at
+FROM feedback f
+LEFT JOIN admin_review ar ON ar.feedback_id = f.feedback_id;
+
+-- Approved hours and completed opportunities per contributor (0 when none yet).
+CREATE OR REPLACE VIEW v_contributor_verified_hours AS
+SELECT cp.user_id AS contributor_id,
+       COALESCE(SUM(wv.verified_hours), 0) AS verified_hours,
+       COUNT(wv.verification_id) AS completed_opportunities
+FROM contributor_profile cp
+LEFT JOIN application a ON a.contributor_id = cp.user_id
+LEFT JOIN work_submission ws ON ws.application_id = a.application_id
+LEFT JOIN work_verification wv
+       ON wv.submission_id = ws.submission_id AND wv.decision = 'approved'
+GROUP BY cp.user_id;
+
+-- Public rating: only feedback an admin approved counts. With one organization
+-- per creator (uq_creator_organization_owner) a creator's rating is also their
+-- organization's rating.
+CREATE OR REPLACE VIEW v_user_rating AS
+SELECT f.subject_user_id AS user_id,
+       ROUND(AVG(f.rating), 2) AS average_rating,
+       COUNT(*) AS approved_feedback_count
+FROM feedback f
+JOIN admin_review ar ON ar.feedback_id = f.feedback_id AND ar.decision = 'approved'
+GROUP BY f.subject_user_id;
+
+-- All-time leaderboard of active contributors. For a period, filter
+-- point_transaction.created_at in the query instead.
+CREATE OR REPLACE VIEW v_leaderboard AS
+SELECT cp.user_id AS contributor_id,
+       ua.full_name,
+       COALESCE(SUM(pt.points), 0) AS total_points,
+       RANK() OVER (ORDER BY COALESCE(SUM(pt.points), 0) DESC) AS leaderboard_rank
+FROM contributor_profile cp
+JOIN user_account ua ON ua.user_id = cp.user_id AND ua.is_active = TRUE
+LEFT JOIN point_transaction pt ON pt.contributor_id = cp.user_id
+GROUP BY cp.user_id, ua.full_name;
