@@ -158,6 +158,7 @@ Your data is kept in Docker volumes and will be there next time you run `make up
 | Code changes aren't picked up | If you changed dependencies, a Dockerfile or `.env`, run `make up`. Otherwise check `make logs` for an error that stopped the reload. |
 | Database still has old tables after editing `db/init/*.sql` | The init scripts only run on an empty database. Run `make reset-db` (deletes local data). |
 | `Table 'grow8.opportunity' doesn't exist` (or another table) | Your database was created before the schema existed. Run `make reset-db`. See [2.2](#22-after-pulling-database-changes). |
+| `make test` fails with `(1419, 'You do not have the SUPER privilege and binary logging is enabled ...')` | Your MySQL container still runs with the old settings. Run `make up` (it restarts MySQL with `--skip-log-bin`), then `make test` again. |
 | A teammate's changes don't work for you after `git pull` | Run `make up` to rebuild, and compare your `.env` with `.env.example` for new settings. |
 
 ---
@@ -170,7 +171,7 @@ The database is defined by three files in [`grow8-backend/db/init/`](grow8-backe
 
 | File | What it does |
 | --- | --- |
-| `001_schema.sql` | Creates all 17 tables (the single source of truth for the schema). |
+| `001_schema.sql` | Creates all 17 tables, the integrity triggers and the derived-value views (the single source of truth for the schema). |
 | `002_seed.sql` | Fills them with **development-only** placeholder data. It uses fixed IDs and dates, so every developer gets identical rows. |
 | `003_test_database.sh` | Creates an empty `grow8_test` database that `make test` uses, so tests never change your dev data. |
 
@@ -186,6 +187,8 @@ make reset-db
 ```
 
 ⚠️ This deletes everything in **your** local database and recreates it from the files. It does not affect anyone else.
+
+If the pull also changed `docker-compose.yml`, run `make up` first so MySQL restarts with the new settings.
 
 You can see whether a pull touched the database files with `git diff --stat HEAD@{1} -- grow8-backend/db/init`.
 
@@ -216,6 +219,7 @@ All seeded accounts use the password **`Grow8Dev!2026`**. Development only.
 ### 2.5 Changing the schema or seed
 
 - Edit `001_schema.sql` **and** the matching ORM model in `grow8-backend/shared/grow8_common/models/` in the same commit. `make test` fails if they differ.
+- Business rules that a foreign key or `CHECK` can't express live as triggers at the end of `001_schema.sql`, and derived values (verified hours, ratings, leaderboard, feedback status) as views. Each rule is explained in `docs/db/relationship-validation.md` and tested in `api/tests/integration/test_db_integrity.py`. A violated rule raises MySQL error 1644 with a message that starts with the rule name. Views and triggers are not part of the ORM.
 - Keep seed data deterministic: explicit IDs, fixed dates, no `NOW()`.
 - Tell the team in chat, because everyone has to run `make reset-db` after pulling.
 
