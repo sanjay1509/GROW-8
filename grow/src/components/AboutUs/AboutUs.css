@@ -1,0 +1,339 @@
+
+.grow8-about {
+  padding: 55px 0 35px;
+  font-family: "Inter", Arial, sans-serif;
+  color: #101a31;
+}
+
+/* Section heading */
+
+.grow8-about-heading {
+  text-align: center;
+  margin: 0 auto 35px;
+  max-width: 650px;
+}
+
+.grow8-about-eyebrow {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #1557d7;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.grow8-about-heading h2 {
+  margin: 0 0 12px;
+  color: #0b1428;
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.grow8-about-heading h2 span {
+  color: #1557e9;
+}
+
+.grow8-about-heading > p {
+  margin: 0;
+  color: #627187;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* Introduction section */
+
+.grow8-about-intro {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: 35px;
+  padding: 30px;
+  border: 1px solid #e5edfa;
+  border-radius: 18px;
+  background: linear-gradient(
+    125deg,
+    #f4f8ff,
+    #ffffff 75%
+  );
+}
+
+.grow8-about-intro-content h3 {
+  margin: 0 0 16px;
+  color: #101a31;
+  font-size: 27px;
+  line-height: 1.35;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+.grow8-about-intro-content h3 span {
+  color: #1557e9;
+}
+
+.grow8-about-intro-content > p {
+  margin: 0;
+  color: #627187;
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+.grow8-about-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+}
+
+.grow8-about-benefits li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #26364e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.grow8-about-benefits svg {
+  flex-shrink: 0;
+  color: #16865a;
+}
+
+/* Visual panel */
+
+.grow8-about-visual {
+  position: relative;
+  min-height: 270px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    #e0ebff,
+    #eff5ff 55%,
+    #dce8ff
+  );
+}
+
+.grow8-about-visual::before,
+.grow8-about-visual::after {
+  position: absolute;
+  content: "";
+  border-radius: 50%;
+}
+
+.grow8-about-visual::before {
+  width: 210px;
+  height: 210px;
+  top: -90px;
+  right: -60px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.grow8-about-visual::after {
+  width: 170px;
+  height: 170px;
+  bottom: -100px;
+  left: -35px;
+  background: rgba(181, 205, 255, 0.65);
+}
+
+.grow8-about-visual-circle {
+  position: relative;
+  z-index: 1;
+  width: 145px;
+  height: 145px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1557d7;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 10px 35px rgba(37, 81, 155, 0.1);
+}
+
+.grow8-about-floating-card {
+  position: absolute;
+  z-index: 2;
+  left: 15px;
+  right: 15px;
+  bottom: 17px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 5px 18px rgba(34, 66, 117, 0.08);
+  color: #1557d7;
+}
+
+.grow8-about-floating-card > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grow8-about-floating-card strong {
+  color: #101a31;
+  font-size: 13px;
+}
+
+.grow8-about-floating-card span {
+  color: #627187;
+  font-size: 11px;
+}
+
+/* Mission, purpose, vision cards */
+
+.grow8-about-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.grow8-about-value-card {
+  min-width: 0;
+  padding: 22px 18px;
+  border: 1px solid #e9eff8;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(26, 51, 84, 0.04);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.grow8-about-value-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(26, 51, 84, 0.08);
+}
+
+
+
+
+.grow8-about-value-icon {
+  width: 49px;
+  height: 49px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  color: #1557d7;
+  background: #e6efff;
+}
+
+
+.grow8-about-values > div:nth-child(1)
+.grow8-about-value-icon {
+  color: #e53935;
+  background: #ffebee;
+}
+
+
+.grow8-about-values > div:nth-child(2)
+.grow8-about-value-icon {
+  color: #16865a;
+  background: #e1f5ed;
+}
+
+
+.grow8-about-values > div:nth-child(3)
+.grow8-about-value-icon {
+  color: #1557d7;
+  background: #e6efff;
+}
+
+
+.grow8-about-value-card h3 {
+  margin: 0 0 9px;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.grow8-about-value-card p {
+  margin: 0;
+  color: #627187;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+  .grow8-about-intro {
+    gap: 22px;
+    padding: 22px;
+  }
+
+  .grow8-about-intro-content h3 {
+    font-size: 23px;
+  }
+
+  .grow8-about-values {
+    gap: 10px;
+  }
+
+  .grow8-about-value-card {
+    padding: 18px 14px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 650px) {
+  .grow8-about {
+    padding: 35px 0 20px;
+  }
+
+  .grow8-about-heading {
+    margin-bottom: 24px;
+  }
+
+  .grow8-about-heading h2 {
+    font-size: 29px;
+  }
+
+  .grow8-about-intro {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 20px;
+  }
+
+  .grow8-about-intro-content h3 {
+    font-size: 23px;
+  }
+
+  .grow8-about-intro-content > p {
+    font-size: 13px;
+  }
+
+  .grow8-about-visual {
+    min-height: 240px;
+  }
+
+  .grow8-about-values {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .grow8-about-value-card {
+    padding: 19px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grow8-about-value-card {
+    transition: none;
+  }
+}
