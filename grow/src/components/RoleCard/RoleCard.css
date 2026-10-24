@@ -1,0 +1,72 @@
+
+.grow8-role-card {
+  min-width: 0;
+  min-height: 157px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px 10px 12px;
+  border-radius: 14px;
+  background: #eff5fc;
+  text-align: center;
+  font-family: "Inter", Arial, sans-serif;
+}
+
+.grow8-role-card.green {
+  background: #eff8f7;
+}
+
+.grow8-role-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3px;
+  border-radius: 13px;
+  color: #1358df;
+  background: #e2ecff;
+}
+
+.grow8-role-card.green .grow8-role-icon {
+  color: #16865a;
+  background: #e1f5ed;
+}
+
+.grow8-role-card h3 {
+  margin: 0 0 6px;
+  color: #111827;
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 750;
+  letter-spacing: -0.25px;
+}
+
+.grow8-role-card p {
+  margin: 0;
+  color: #283346;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+@media (max-width: 650px) {
+  .grow8-role-card {
+    min-height: 132px;
+    padding: 12px;
+  }
+
+  .grow8-role-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .grow8-role-card h3 {
+    font-size: 15px;
+  }
+
+  .grow8-role-card p {
+    font-size: 12px;
+  }
+}
