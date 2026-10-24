@@ -1,0 +1,40 @@
+
+.grow8-roles-section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+  margin: 0 0 29px;
+}
+
+/* Make the entire role card clickable */
+.grow8-role-button {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.grow8-role-button:focus-visible {
+  outline: 3px solid #1557e9;
+  outline-offset: 4px;
+}
+
+.grow8-role-button > * {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 650px) {
+  .grow8-roles-section {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+}
