@@ -1,0 +1,76 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+:root {
+  font-family: "Inter", Arial, sans-serif;
+  color: #101a31;
+  background: #eaf2fc;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: linear-gradient(
+    115deg,
+    #e9f2ff 0%,
+    #f4f8fd 52%,
+    #eaf2fc 100%
+  );
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.grow8-page {
+  width: min(1200px, calc(100% - 18px));
+  margin: 10px auto 6px;
+  overflow: hidden;
+  border: 1px solid rgba(216, 228, 243, 0.9);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 3px 14px rgba(31, 65, 108, 0.035);
+}
+
+.grow8-page-content {
+  padding: 0 47px 16px 56px;
+}
+
+@media (max-width: 900px) {
+  .grow8-page-content {
+    padding: 0 26px 18px;
+  }
+}
+
+@media (max-width: 650px) {
+  .grow8-page {
+    width: calc(100% - 12px);
+    margin-top: 6px;
+    border-radius: 12px;
+  }
+
+  .grow8-page-content {
+    padding: 0 15px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

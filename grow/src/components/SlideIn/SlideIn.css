@@ -1,0 +1,46 @@
+
+.grow8-slide-in {
+  opacity: 0;
+  transition:
+    opacity 700ms ease,
+    transform 2000ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--grow8-slide-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+/* Starting positions */
+
+.grow8-slide-up {
+  transform: translateY(45px);
+}
+
+.grow8-slide-down {
+  transform: translateY(-45px);
+}
+
+.grow8-slide-left {
+  transform: translateX(45px);
+}
+
+.grow8-slide-right {
+  transform: translateX(-45px);
+}
+
+/* Visible state */
+
+.grow8-slide-in.grow8-slide-visible {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+/* Accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+  .grow8-slide-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    transition-delay: 200ms;
+    will-change: auto;
+  }
+}
