@@ -1,6 +1,20 @@
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import "./SlideIn.css";
+
+type SlideDirection = "up" | "down" | "left" | "right";
+
+interface SlideInProps {
+  children: ReactNode;
+  direction?: SlideDirection;
+  delay?: number;
+  className?: string;
+  threshold?: number;
+}
+
+type SlideInStyle = CSSProperties & {
+  "--grow8-slide-delay"?: string;
+};
 
 export default function SlideIn({
   children,
@@ -8,25 +22,24 @@ export default function SlideIn({
   delay = 0,
   className = "",
   threshold = 0.15,
-}) {
-  const elementRef = useRef(null);
+}: SlideInProps) {
+  const elementRef = useRef<HTMLDivElement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const element = elementRef.current;
+
     if (!element) return;
 
-    if (
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setIsVisible(true);
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Animate in when entering the viewport
-        // Reset the animation when leaving it
+        // Animate in when entering the viewport.
+        // Reset the animation when leaving it.
         setIsVisible(entry.isIntersecting);
       },
       {
@@ -51,7 +64,9 @@ export default function SlideIn({
       ]
         .filter(Boolean)
         .join(" ")}
-      style={{ "--grow8-slide-delay": `${delay}ms` }}
+      style={
+        { "--grow8-slide-delay": `${delay}ms` } as SlideInStyle
+      }
     >
       {children}
     </div>
