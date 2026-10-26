@@ -1,4 +1,3 @@
-
 # GROW8 – Earn, Learn and Grow
 
 **Course:** ENSF 607 / ENSF 608 – Team Project  
@@ -57,29 +56,29 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 
 ### Architecture Components
 
-| Component | Responsibility |
-|---|---|
-| React Frontend | Provides the user interface for Creators, Contributors, and Admins. |
-| FastAPI Backend | Validates requests, handles business logic, exposes REST APIs, and publishes events. |
-| MySQL Database | Stores users, opportunities, applications, submissions, hours, skills, feedback, and ratings. |
-| RabbitMQ | Routes published events to subscribed consumer services. |
-| Creator Service | Handles notifications about applications and work awaiting verification. |
-| Contributor Service | Handles opportunity notifications, application decisions, and verified experience updates. |
-| Admin Service | Handles feedback awaiting review and administrative feedback decisions. |
+| Component           | Responsibility                                                                                |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| React Frontend      | Provides the user interface for Creators, Contributors, and Admins.                           |
+| FastAPI Backend     | Validates requests, handles business logic, exposes REST APIs, and publishes events.          |
+| MySQL Database      | Stores users, opportunities, applications, submissions, hours, skills, feedback, and ratings. |
+| RabbitMQ            | Routes published events to subscribed consumer services.                                      |
+| Creator Service     | Handles notifications about applications and work awaiting verification.                      |
+| Contributor Service | Handles opportunity notifications, application decisions, and verified experience updates.    |
+| Admin Service       | Handles feedback awaiting review and administrative feedback decisions.                       |
 
 ### Event Flow
 
-| Producer Action | Event | Consumer Service | Resulting Behaviour |
-|---|---|---|---|
-| Creator actions | `OPPORTUNITY_CREATED` | Contributor Service | Notifies contributors about new opportunities. |
-| Creator actions | `APPLICATION_DECIDED` | Contributor Service | Notifies contributors of application decisions. |
-| Creator actions | `WORK_VERIFIED` | Contributor Service | Updates verified hours and skills. |
-| Creator actions | `WORK_REJECTED` | Contributor Service | Notifies contributors about rejected work. |
-| Contributor actions | `APPLICATION_SUBMITTED` | Creator Service | Notifies creators about new applications. |
-| Contributor actions | `WORK_SUBMITTED` | Creator Service | Notifies creators about work awaiting verification. |
-| Creator or Contributor actions | `FEEDBACK_SUBMITTED` | Admin Service | Alerts admins to feedback awaiting review. |
-| Admin actions | `FEEDBACK_APPROVED` | All three services | Updates public ratings and notifies the feedback author and subject. |
-| Admin actions | `FEEDBACK_REJECTED` | All three services | Records the rejection and notifies the feedback author and subject. |
+| Producer Action                | Event                   | Consumer Service    | Resulting Behaviour                                                  |
+| ------------------------------ | ----------------------- | ------------------- | -------------------------------------------------------------------- |
+| Creator actions                | `OPPORTUNITY_CREATED`   | Contributor Service | Notifies contributors about new opportunities.                       |
+| Creator actions                | `APPLICATION_DECIDED`   | Contributor Service | Notifies contributors of application decisions.                      |
+| Creator actions                | `WORK_VERIFIED`         | Contributor Service | Updates verified hours and skills.                                   |
+| Creator actions                | `WORK_REJECTED`         | Contributor Service | Notifies contributors about rejected work.                           |
+| Contributor actions            | `APPLICATION_SUBMITTED` | Creator Service     | Notifies creators about new applications.                            |
+| Contributor actions            | `WORK_SUBMITTED`        | Creator Service     | Notifies creators about work awaiting verification.                  |
+| Creator or Contributor actions | `FEEDBACK_SUBMITTED`    | Admin Service       | Alerts admins to feedback awaiting review.                           |
+| Admin actions                  | `FEEDBACK_APPROVED`     | All three services  | Updates public ratings and notifies the feedback author and subject. |
+| Admin actions                  | `FEEDBACK_REJECTED`     | All three services  | Records the rejection and notifies the feedback author and subject.  |
 
 ### Database
 
@@ -102,15 +101,15 @@ Failed event publications are retried. A transactional outbox is considered futu
 
 ## 3. Technology Stack
 
-| Component | Technology |
-|---|---|
-| Frontend | React, TypeScript, Tailwind CSS |
-| Backend | Python, FastAPI, REST APIs |
-| Database | MySQL |
-| Event Broker | RabbitMQ |
-| Testing | Postman, manual testing, execution reports |
-| Version Control | GitHub |
-| Deployment | Docker |
+| Component       | Technology                                 |
+| --------------- | ------------------------------------------ |
+| Frontend        | React, TypeScript, Tailwind CSS            |
+| Backend         | Python, FastAPI, REST APIs                 |
+| Database        | MySQL                                      |
+| Event Broker    | RabbitMQ                                   |
+| Testing         | Postman, manual testing, execution reports |
+| Version Control | GitHub                                     |
+| Deployment      | Docker                                     |
 
 ---
 
@@ -118,26 +117,26 @@ Failed event publications are retried. A transactional outbox is considered futu
 
 GROW8 supports **SDG 8 – Decent Work and Economic Growth** by connecting students and early-career workers with short-term opportunities that build practical skills and verifiable experience.
 
-| SDG 8 Target | Tier | How GROW8 Supports the Target | Measurable Indicator |
-|---|---|---|---|
-| 8.2 – Productivity through technology and innovation | Supporting | Enables knowledge-based opportunities that support digital improvements in organizations. | Number and share of completed opportunities in the knowledge-based category. |
-| 8.3 – Entrepreneurship and MSME development | Supporting | Connects small businesses with contributors to support productive business activities. | Number of small-business Creators with at least one completed opportunity. |
-| 8.5 – Productive employment and decent work | Core | Provides opportunities with transparent compensation, expected hours, working conditions, and accessibility information. | Share of published opportunities passing validation with all mandatory fields disclosed. |
-| 8.6 – Youth employment and training | Core | Enables students and early-career workers to gain practical skills and verified work experience. | Verified experience hours, acquired skills, and completed opportunities recorded per Contributor. |
-| 8.8 – Labour rights and workplace safety | Core | Requires safety information when opportunities are created and allows Admins to review feedback for discrepancies between published and actual conditions. | Safety information recorded per opportunity; number of Admin-reviewed discrepancy reports and resulting flags. |
+| SDG 8 Target                                         | Tier       | How GROW8 Supports the Target                                                                                                                              | Measurable Indicator                                                                                           |
+| ---------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 8.2 – Productivity through technology and innovation | Supporting | Enables knowledge-based opportunities that support digital improvements in organizations.                                                                  | Number and share of completed opportunities in the knowledge-based category.                                   |
+| 8.3 – Entrepreneurship and MSME development          | Supporting | Connects small businesses with contributors to support productive business activities.                                                                     | Number of small-business Creators with at least one completed opportunity.                                     |
+| 8.5 – Productive employment and decent work          | Core       | Provides opportunities with transparent compensation, expected hours, working conditions, and accessibility information.                                   | Share of published opportunities passing validation with all mandatory fields disclosed.                       |
+| 8.6 – Youth employment and training                  | Core       | Enables students and early-career workers to gain practical skills and verified work experience.                                                           | Verified experience hours, acquired skills, and completed opportunities recorded per Contributor.              |
+| 8.8 – Labour rights and workplace safety             | Core       | Requires safety information when opportunities are created and allows Admins to review feedback for discrepancies between published and actual conditions. | Safety information recorded per opportunity; number of Admin-reviewed discrepancy reports and resulting flags. |
 
 ---
 
 ## 5. Team Roles
 
-| Team Member | Responsibilities |
-|---|---|
-| Ashwin Chockalingam Shanmugam | Frontend and Backend Development |
-| Lila Sanjay Kumar Gorlie | Frontend, Backend, and Team Management |
-| Arman Hossain Dipu Khan | Backend and Frontend Development |
-| Maheen Hoque | Backend and Frontend Development |
-| Vineeth Donthamsetty | Database and Backend Development |
-| Aparna Ayyalasomayajula | Requirements Analysis, Manual Testing, and Artifact Creation |
+| Team Member                   | Responsibilities                                             |
+| ----------------------------- | ------------------------------------------------------------ |
+| Ashwin Chockalingam Shanmugam | Frontend and Backend Development                             |
+| Lila Sanjay Kumar Gorlie      | Frontend, Backend, and Team Management                       |
+| Arman Hossain Dipu Khan       | Backend and Frontend Development                             |
+| Maheen Hoque                  | Backend and Frontend Development                             |
+| Vineeth Donthamsetty          | Database and Backend Development                             |
+| Aparna Ayyalasomayajula       | Requirements Analysis, Manual Testing, and Artifact Creation |
 
 ---
 
@@ -171,3 +170,13 @@ GROW8 is being developed as a team project for ENSF 607/ ENSF 608.
 The application will combine a React-based frontend, FastAPI backend, MySQL database, and RabbitMQ event broker to support opportunity management, applications, work verification, feedback, and administrative review.
 
 More implementation details, setup instructions, and usage documentation can be added as development progresses.
+
+---
+
+## 9. Useful Links
+
+- [ENSF 607 Submission]()
+- [ENSF 607 Submission]()
+- [User Stories](https://docs.google.com/document/d/1muAfw88L-geIDE3aOM3-dn9aTc-V78F9JkT1dOCExAI/edit?usp=sharing "Google Doc File")
+- [ER Diagram](https://drive.google.com/drive/folders/1QxEIjlInno7MfMk9ziQp9i9-fl-NeeVU?usp=sharing "draw.io Import File")
+- [Data Dictionary](https://docs.google.com/spreadsheets/d/10z_qGlHWLnbuE7DJr4je_tGaTtfz8Kyzln5PdvFpMBU/edit?usp=sharing "Google Sheet File")
