@@ -1,0 +1,61 @@
+# Development overrides, applied automatically by `docker compose`.
+# - installs dev dependencies (pytest, ruff, watchfiles)
+# - bind-mounts source and hot-reloads on change
+# - PYTHONPATH=/app/shared makes the mounted grow8_common shadow the installed copy
+# - WATCHFILES_FORCE_POLLING: file events don't cross Docker Desktop bind mounts on Windows/macOS
+
+x-dev-env: &dev-env
+  PYTHONPATH: /app/shared
+  WATCHFILES_FORCE_POLLING: "true"
+
+services:
+  rabbitmq:
+    ports:
+      - "${RABBITMQ_HOST_PORT}:5672"
+
+  api:
+    build:
+      args:
+        INSTALL_DEV: "true"
+    environment:
+      <<: *dev-env
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      --reload --reload-dir /app/api/app --reload-dir /app/shared/grow8_common
+    volumes:
+      - ./api:/app/api
+      - ./shared:/app/shared
+      - ./db:/app/db:ro
+
+  creator_service:
+    build:
+      args:
+        INSTALL_DEV: "true"
+    environment:
+      <<: *dev-env
+    command: watchfiles --filter python "python -m app.main" /app/services/creator_service/app /app/shared/grow8_common
+    volumes:
+      - ./services/creator_service:/app/services/creator_service
+      - ./shared:/app/shared
+
+  contributor_service:
+    build:
+      args:
+        INSTALL_DEV: "true"
+    environment:
+      <<: *dev-env
+    command: watchfiles --filter python "python -m app.main" /app/services/contributor_service/app /app/shared/grow8_common
+    volumes:
+      - ./services/contributor_service:/app/services/contributor_service
+      - ./shared:/app/shared
+
+  admin_service:
+    build:
+      args:
+        INSTALL_DEV: "true"
+    environment:
+      <<: *dev-env
+    command: watchfiles --filter python "python -m app.main" /app/services/admin_service/app /app/shared/grow8_common
+    volumes:
+      - ./services/admin_service:/app/services/admin_service
+      - ./shared:/app/shared

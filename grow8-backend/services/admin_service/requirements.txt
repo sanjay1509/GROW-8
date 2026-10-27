@@ -1,0 +1,1 @@
+# Runtime deps come from shared/pyproject.toml; add service-only deps here.
