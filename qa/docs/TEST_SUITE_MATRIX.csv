@@ -1,0 +1,25 @@
+﻿Test Case ID,Suite Classification,Layer,Test Scenario and Expected Behavior,Execution Status,Automated Test File
+SMK-API-01,smoke,Backend API,health endpoint shows database and broker available,Automated - not executed,backend/tests/smoke/api.spec.js
+SMK-API-02,smoke,Backend API,public opportunities endpoint returns a paginated response,Automated - not executed,backend/tests/smoke/api.spec.js
+SMK-DB-01,smoke,Database,can connect to the MySQL database,Automated - not executed,database/tests/smoke/database.spec.js
+SMK-DB-02,smoke,Database,required opportunity table exists,Automated - not executed,database/tests/smoke/database.spec.js
+SMK-FE-01,smoke,Frontend,homepage loads and browse navigation works,Automated - not executed,frontend/tests/smoke/frontend.spec.js
+SMK-FE-02,smoke,Frontend,opportunity cards render from API-shaped fixtures,Automated - not executed,frontend/tests/smoke/frontend.spec.js
+SAN-API-01,sanity,Backend API,category filtering returns matching records,Automated - not executed,backend/tests/sanity/api.spec.js
+SAN-API-02,sanity,Backend API,a private creator endpoint requires authentication,Automated - not executed,backend/tests/sanity/api.spec.js
+SAN-DB-01,sanity,Database,seeded opportunity records exist,Automated - not executed,database/tests/sanity/database.spec.js
+SAN-DB-02,sanity,Database,"Open opportunity records contain valid IDs, nonempty titles and open status (database-only)",Automated - not executed,database/tests/sanity/database.spec.js
+SAN-FE-01,sanity,Frontend,search filters cards by opportunity title,Automated - not executed,frontend/tests/sanity/frontend.spec.js
+SAN-FE-02,sanity,Frontend,category checkbox filters and clear restores results,Automated - not executed,frontend/tests/sanity/frontend.spec.js
+SAN-FE-03,sanity,Frontend,opportunity detail dialog opens and closes,Automated - not executed,frontend/tests/sanity/frontend.spec.js
+REG-API-01,regression,Backend API,invalid hours filter receives HTTP 422,Automated - not executed,backend/tests/regression/api.spec.js
+REG-API-02,regression,Backend API,anonymous user cannot create an opportunity,Automated - not executed,backend/tests/regression/api.spec.js
+REG-API-03,regression,Backend API,valid seeded creator token resolves correct identity,Automated - not executed,backend/tests/regression/api.spec.js
+REG-API-04,regression,Backend API,contributor cannot create a creator opportunity,Automated - not executed,backend/tests/regression/api.spec.js
+REG-DB-01,regression,Database,opportunity foreign keys point to valid organizations,Automated - not executed,database/tests/regression/database.spec.js
+REG-DB-02,regression,Database,open opportunities have mandatory safety disclosures,Automated - not executed,database/tests/regression/database.spec.js
+REG-DB-03,regression,Database,database defines hours and date CHECK constraints,Automated - not executed,database/tests/regression/database.spec.js
+REG-FE-01,regression,Frontend,title A–Z sort orders cards,Automated - not executed,frontend/tests/regression/frontend.spec.js
+REG-FE-02,regression,Frontend,no matching search shows empty state,Automated - not executed,frontend/tests/regression/frontend.spec.js
+REG-FE-03,regression,Frontend,API failure shows a useful error message,Automated - not executed,frontend/tests/regression/frontend.spec.js
+REG-FE-04,regression,Frontend,clearing a search restores the original list,Automated - not executed,frontend/tests/regression/frontend.spec.js
