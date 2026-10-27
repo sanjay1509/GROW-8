@@ -54,14 +54,15 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 ### Seeing it end to end (Check-in I demo)
 
-1. `make up`, then `docker compose logs -f contributor_service creator_service` in a second terminal.
-2. In Swagger (<http://localhost:8000/docs>) log in as `yyc.events@grow8.dev` / `Grow8Dev!2026` and **Authorize** with the token.
+1. `make reset-db` (fresh seed: draft 15 back, no notifications; **wipes local data**), then `docker compose logs -f contributor_service creator_service` in a second terminal.
+2. In Swagger (<http://localhost:8000/docs>) log in (`POST /api/v1/auth/login`) as `yyc.events@grow8.dev` / `Grow8Dev!2026` and **Authorize** with the token.
 3. `POST /api/v1/opportunities/15/publish` (seeded draft "Volunteer coordinator for spring market", skills `customer-service`, `event-setup`).
-4. The contributor_service log shows `notified 1 contributor(s): [6]` (Jordan Lee has both skills), the creator_service log shows `notified creator user_id=4` (Sofia Martinez owns YYC Neighbourhood Events), and each shows `processed event_id=… correlation_id=<the request's X-Request-ID>`.
-   `make mysql`, then `SELECT user_id, title, message, read_at FROM notification;` shows two unread notifications: Jordan's (`opportunity_created`) and Sofia's (`opportunity_published`).
-5. Optional, to show durability: `docker compose stop contributor_service`, publish another draft, watch `grow8.contributor_service` hold 1 message in the RabbitMQ UI (<http://localhost:15672>), then `docker compose start contributor_service` and see it processed.
+4. The contributor_service log shows `notified 1 contributor(s): [6]` (Jordan Lee has both skills), the creator_service log shows `notified creator user_id=4` (Sofia Martinez owns YYC Neighbourhood Events), and each shows `processed event_id=… correlation_id=<the request's X-Request-ID>`. Same `event_id` in both: one event, two services.
+5. Still authorized as Sofia: `GET /api/v1/notifications` shows "Your opportunity is live: Volunteer coordinator for spring market" (`opportunity_published`, `is_read: false`).
+6. Log in as `jordan.lee@grow8.dev` and re-authorize: `GET /api/v1/notifications/unread-count` → `{"unread_count": 1}`; `GET /api/v1/notifications` shows "New opportunity: …" (`opportunity_created`). `PATCH /api/v1/notifications/{notification_id}/read`, then the count is 0.
+7. Optional, to show durability: `docker compose stop contributor_service`, publish another draft, watch `grow8.contributor_service` hold 1 message in the RabbitMQ UI (<http://localhost:15672>), then `docker compose start contributor_service` and see it processed. The creator's notification arrived meanwhile: the services don't depend on each other.
 
-`make reset-db` puts draft 15 back if you want to repeat the demo.
+`make postman` runs the same flow automatically (folder "4. Notifications"); `make reset-db` puts draft 15 back if you want to repeat the demo.
 
 ## Not yet implemented
 
