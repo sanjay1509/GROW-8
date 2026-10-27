@@ -55,3 +55,9 @@ class ReviewDecision(StrEnum):
 class PointSource(StrEnum):
     WORK_VERIFIED = "work_verified"
     BADGE_AWARDED = "badge_awarded"
+
+
+class NotificationType(StrEnum):
+    """One value per event that notifies users; add one with each new handler."""
+
+    OPPORTUNITY_CREATED = "opportunity_created"
