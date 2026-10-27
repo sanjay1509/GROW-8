@@ -58,6 +58,7 @@ class PointSource(StrEnum):
 
 
 class NotificationType(StrEnum):
-    """One value per event that notifies users; add one with each new handler."""
+    """One value per kind of notification (one event can produce several kinds)."""
 
-    OPPORTUNITY_CREATED = "opportunity_created"
+    OPPORTUNITY_CREATED = "opportunity_created"  # to matching contributors
+    OPPORTUNITY_PUBLISHED = "opportunity_published"  # to the creator who published it

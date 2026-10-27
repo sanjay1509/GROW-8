@@ -5,5 +5,11 @@ from grow8_common.queries.matching import (
     find_matching_contributors,
     is_opportunity_open,
 )
+from grow8_common.queries.organizations import find_active_owner
 
-__all__ = ["ContributorMatch", "find_matching_contributors", "is_opportunity_open"]
+__all__ = [
+    "ContributorMatch",
+    "find_active_owner",
+    "find_matching_contributors",
+    "is_opportunity_open",
+]

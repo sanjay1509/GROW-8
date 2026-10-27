@@ -4,14 +4,13 @@ import logging
 from collections.abc import Callable, Sequence
 
 from grow8_common.events import OpportunityCreatedPayload
+from grow8_common.notifications import Notifier
 from grow8_common.queries import (
     ContributorMatch,
     find_matching_contributors,
     is_opportunity_open,
 )
 from sqlalchemy.orm import Session
-
-from app.notifier import Notifier
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +28,9 @@ def handle_opportunity_created(
 ) -> list[ContributorMatch]:
     """Notify every matching contributor once and return who was notified.
 
-    Read-only on the database, so handling the same event twice (at-least-once
-    delivery) only repeats the notification; it never corrupts data.
+    The only writes are the notifier's, and it stores one notification per user per
+    event, so handling the same event twice (at-least-once delivery) adds nothing.
+    The caller commits.
     """
     if not is_open(session, payload.opportunity_id):
         logger.info(
@@ -45,10 +45,9 @@ def handle_opportunity_created(
         skills = ", ".join(match.matched_skill_codes) or "open to everyone"
         notifier.notify(
             match.user_id,
-            f"New opportunity: {payload.title} (apply by {deadline}). Your matching skills: "
-            f"{skills}.",
+            f"New opportunity: {payload.title}",
+            f"Apply by {deadline}. Your matching skills: {skills}.",
             opportunity_id=payload.opportunity_id,
-            matched_skills=len(match.matched_skill_codes),
         )
 
     logger.info(
