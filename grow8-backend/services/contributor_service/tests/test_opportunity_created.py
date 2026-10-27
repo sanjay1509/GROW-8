@@ -1,6 +1,7 @@
 """OPPORTUNITY_CREATED handler, with the database queries replaced by fakes.
 The real queries are tested against MySQL in api/tests/integration/test_contributor_matching.py."""
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from grow8_common.events import OpportunityCreatedPayload
@@ -18,12 +19,22 @@ PAYLOAD = OpportunityCreatedPayload(
 )
 
 
+@dataclass(frozen=True)
+class Sent:
+    user_id: int
+    title: str
+    message: str
+    opportunity_id: int | None
+
+
 class RecordingNotifier:
     def __init__(self) -> None:
-        self.sent: list[tuple[int, str, dict[str, object]]] = []
+        self.sent: list[Sent] = []
 
-    def notify(self, user_id: int, message: str, **context: object) -> None:
-        self.sent.append((user_id, message, context))
+    def notify(
+        self, user_id: int, title: str, message: str, *, opportunity_id: int | None = None
+    ) -> None:
+        self.sent.append(Sent(user_id, title, message, opportunity_id))
 
 
 def _run(matches: list[ContributorMatch], is_open: bool = True):
@@ -53,12 +64,12 @@ def test_notifies_each_matching_contributor_once() -> None:
 
     assert result == matches
     assert seen_codes == [["customer-service", "event-setup"]]
-    assert [user_id for user_id, _, _ in notifier.sent] == [6, 5]
-    user_id, message, context = notifier.sent[0]
-    assert "Volunteer coordinator for spring market" in message
-    assert "2026-11-20" in message
-    assert "customer-service, event-setup" in message
-    assert context == {"opportunity_id": 15, "matched_skills": 2}
+    assert [sent.user_id for sent in notifier.sent] == [6, 5]
+    first = notifier.sent[0]
+    assert first.title == "New opportunity: Volunteer coordinator for spring market"
+    assert "2026-11-20" in first.message
+    assert "customer-service, event-setup" in first.message
+    assert first.opportunity_id == 15
 
 
 def test_no_matches_sends_nothing() -> None:
@@ -79,4 +90,4 @@ def test_skips_opportunity_that_is_no_longer_open() -> None:
 def test_opportunity_without_skills_is_open_to_everyone() -> None:
     result, notifier, _ = _run([ContributorMatch(5, "Alex Chen")])
     assert len(result) == 1
-    assert "open to everyone" in notifier.sent[0][1]
+    assert "open to everyone" in notifier.sent[0].message
