@@ -7,9 +7,10 @@ from grow8_common.db import get_sessionmaker, wait_for_db
 from grow8_common.events import EventEnvelope, EventType, OpportunityCreatedPayload
 from grow8_common.logging import configure_logging
 from grow8_common.messaging import Handler, run_consumer
+from grow8_common.models import NotificationType
+from grow8_common.notifications import DbNotifier
 
 from app.handlers.opportunity_created import handle_opportunity_created
-from app.notifier import LogNotifier
 
 SERVICE_NAME = "contributor_service"
 
@@ -23,7 +24,10 @@ def _handle_sigterm(signum: int, frame: object) -> None:
 
 def _on_opportunity_created(envelope: EventEnvelope, payload: OpportunityCreatedPayload) -> None:
     with get_sessionmaker()() as session:
-        handle_opportunity_created(payload, session=session, notifier=LogNotifier())
+        notifier = DbNotifier(session, envelope.event_id, NotificationType.OPPORTUNITY_CREATED)
+        handle_opportunity_created(payload, session=session, notifier=notifier)
+        # Commit before returning: the message is acked only after this handler returns.
+        session.commit()
 
 
 # Event type -> handler. Each key becomes a binding on this service's queue.

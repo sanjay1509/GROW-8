@@ -178,7 +178,7 @@ CREATE TABLE notification (
     notification_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id           INT UNSIGNED NOT NULL,
     event_id          CHAR(36)     NOT NULL,
-    notification_type ENUM('opportunity_created') NOT NULL,
+    notification_type ENUM('opportunity_created', 'opportunity_published') NOT NULL,
     title             VARCHAR(200) NOT NULL,
     message           VARCHAR(500) NOT NULL,
     opportunity_id    INT UNSIGNED NULL,
