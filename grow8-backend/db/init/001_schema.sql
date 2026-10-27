@@ -8,6 +8,11 @@
 -- Conventions: INT UNSIGNED surrogate keys, DATETIME values stored in UTC,
 -- status values as ENUMs, derived values (verified hours, ratings, leaderboard
 -- totals) are computed by queries and never stored.
+--
+-- Layout: tables, then integrity triggers (rules a foreign key or CHECK cannot
+-- express), then views for the derived values. Rationale for each rule:
+-- docs/db/relationship-validation.md. The trigger section uses DELIMITER, which
+-- the mysql client and the test loader (api/tests/conftest.py) both understand.
 -- =============================================================================
 
 SET NAMES utf8mb4;
@@ -332,10 +337,257 @@ CREATE TABLE point_transaction (
         FOREIGN KEY (contributor_id) REFERENCES contributor_profile (user_id),
     CONSTRAINT fk_point_transaction_verification
         FOREIGN KEY (verification_id) REFERENCES work_verification (verification_id),
-    CONSTRAINT fk_point_transaction_badge
-        FOREIGN KEY (badge_id) REFERENCES badge (badge_id),
+    -- Badge points only for a badge this contributor actually earned. Not checked
+    -- when badge_id is NULL (work_verified points).
+    CONSTRAINT fk_point_transaction_contributor_badge
+        FOREIGN KEY (contributor_id, badge_id)
+        REFERENCES contributor_badge (contributor_id, badge_id),
     CONSTRAINT chk_point_transaction_source CHECK (
         (source = 'work_verified' AND verification_id IS NOT NULL AND badge_id IS NULL)
         OR (source = 'badge_awarded' AND badge_id IS NOT NULL AND verification_id IS NULL)
     )
 ) ENGINE = InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- Integrity rules (triggers)
+--
+-- A foreign key only proves a referenced row exists, and a CHECK cannot look at
+-- another table. These rules need both, so each one is a small procedure called
+-- from BEFORE INSERT / BEFORE UPDATE triggers. A violation raises SQLSTATE 45000
+-- (MySQL error 1644) with a message that starts with the rule name.
+-- References (R1, I6, ...) are to docs/db/relationship-validation.md.
+-- -----------------------------------------------------------------------------
+
+DELIMITER $$
+
+-- I6 (R1, R2, R15): the referenced account must have the expected role.
+DROP PROCEDURE IF EXISTS grow8_require_role $$
+CREATE PROCEDURE grow8_require_role(
+    IN p_user_id INT UNSIGNED, IN p_role VARCHAR(20), IN p_rule VARCHAR(60))
+BEGIN
+    DECLARE v_role VARCHAR(20);
+    DECLARE v_msg VARCHAR(128);
+    SET v_role = (SELECT role FROM user_account WHERE user_id = p_user_id);
+    -- a missing user is left to the foreign key
+    IF v_role IS NOT NULL AND v_role <> p_role THEN
+        SET v_msg = CONCAT(p_rule, ': user ', p_user_id, ' must have role ', p_role);
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_msg;
+    END IF;
+END $$
+
+-- I6: once an account owns role-specific rows, its role can no longer change,
+-- otherwise the role triggers above could be bypassed afterwards.
+DROP PROCEDURE IF EXISTS grow8_require_role_change_allowed $$
+CREATE PROCEDURE grow8_require_role_change_allowed(
+    IN p_user_id INT UNSIGNED, IN p_old_role VARCHAR(20), IN p_new_role VARCHAR(20))
+BEGIN
+    IF p_old_role <> p_new_role AND (
+        EXISTS (SELECT 1 FROM contributor_profile WHERE user_id = p_user_id)
+        OR EXISTS (SELECT 1 FROM creator_organization WHERE owner_user_id = p_user_id)
+        OR EXISTS (SELECT 1 FROM admin_review WHERE admin_user_id = p_user_id)
+        OR EXISTS (SELECT 1 FROM work_verification WHERE verified_by_user_id = p_user_id)
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'role_locked: account already has rows that depend on its role';
+    END IF;
+END $$
+
+-- I7 (R9): work can only be submitted for an accepted application.
+DROP PROCEDURE IF EXISTS grow8_require_accepted_application $$
+CREATE PROCEDURE grow8_require_accepted_application(IN p_application_id INT UNSIGNED)
+BEGIN
+    IF (SELECT status FROM application WHERE application_id = p_application_id)
+            <> 'accepted' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'submission_requires_accepted: application is not accepted';
+    END IF;
+END $$
+
+-- I7 (R9): an accepted application that already has a submission cannot leave
+-- the accepted state, or the rule above would stop holding.
+DROP PROCEDURE IF EXISTS grow8_require_application_status_change_allowed $$
+CREATE PROCEDURE grow8_require_application_status_change_allowed(
+    IN p_application_id INT UNSIGNED, IN p_old_status VARCHAR(20), IN p_new_status VARCHAR(20))
+BEGIN
+    IF p_old_status = 'accepted' AND p_new_status <> 'accepted'
+            AND EXISTS (SELECT 1 FROM work_submission WHERE application_id = p_application_id)
+    THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'submission_requires_accepted: work already submitted';
+    END IF;
+END $$
+
+-- I6 (R20): only the creator who owns the opportunity's organization verifies work.
+DROP PROCEDURE IF EXISTS grow8_require_verifier $$
+CREATE PROCEDURE grow8_require_verifier(
+    IN p_submission_id INT UNSIGNED, IN p_user_id INT UNSIGNED)
+BEGIN
+    DECLARE v_owner INT UNSIGNED;
+    SET v_owner = (
+        SELECT org.owner_user_id
+        FROM work_submission ws
+        JOIN application a ON a.application_id = ws.application_id
+        JOIN opportunity o ON o.opportunity_id = a.opportunity_id
+        JOIN creator_organization org ON org.organization_id = o.organization_id
+        WHERE ws.submission_id = p_submission_id
+    );
+    IF v_owner IS NOT NULL AND v_owner <> p_user_id THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'verifier_not_owner: verifier must own the opportunity''s organization';
+    END IF;
+END $$
+
+-- I2 (R13): author and subject must be the two people on the application: the
+-- contributor who applied and the creator who owns the opportunity's organization.
+-- (author <> subject is already chk_feedback_not_self.)
+DROP PROCEDURE IF EXISTS grow8_require_feedback_participants $$
+CREATE PROCEDURE grow8_require_feedback_participants(
+    IN p_application_id INT UNSIGNED, IN p_author INT UNSIGNED, IN p_subject INT UNSIGNED)
+BEGIN
+    DECLARE v_contributor INT UNSIGNED;
+    DECLARE v_owner INT UNSIGNED;
+    -- SET (SELECT ...) rather than SELECT ... INTO: no "No data" warning on a miss
+    SET v_contributor = (
+        SELECT contributor_id FROM application WHERE application_id = p_application_id);
+    SET v_owner = (
+        SELECT org.owner_user_id
+        FROM application a
+        JOIN opportunity o ON o.opportunity_id = a.opportunity_id
+        JOIN creator_organization org ON org.organization_id = o.organization_id
+        WHERE a.application_id = p_application_id);
+    IF v_contributor IS NOT NULL AND (
+        p_author NOT IN (v_contributor, v_owner) OR p_subject NOT IN (v_contributor, v_owner)
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'feedback_participants: author and subject must be on the application';
+    END IF;
+END $$
+
+-- I7 (R18) and I3: verification points come only from an approved verification
+-- of this same contributor's work. (Badge points are checked by
+-- fk_point_transaction_contributor_badge.)
+DROP PROCEDURE IF EXISTS grow8_require_point_source $$
+CREATE PROCEDURE grow8_require_point_source(
+    IN p_contributor_id INT UNSIGNED, IN p_verification_id INT UNSIGNED)
+BEGIN
+    DECLARE v_decision VARCHAR(20);
+    DECLARE v_contributor INT UNSIGNED;
+    IF p_verification_id IS NOT NULL THEN
+        SET v_decision = (
+            SELECT decision FROM work_verification WHERE verification_id = p_verification_id);
+        SET v_contributor = (
+            SELECT a.contributor_id
+            FROM work_verification wv
+            JOIN work_submission ws ON ws.submission_id = wv.submission_id
+            JOIN application a ON a.application_id = ws.application_id
+            WHERE wv.verification_id = p_verification_id);
+        IF v_decision IS NOT NULL AND v_decision <> 'approved' THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'points_require_approval: verification was not approved';
+        END IF;
+        IF v_contributor IS NOT NULL AND v_contributor <> p_contributor_id THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'points_wrong_contributor: verification belongs to another contributor';
+        END IF;
+    END IF;
+END $$
+
+CREATE TRIGGER trg_user_account_bu BEFORE UPDATE ON user_account FOR EACH ROW
+    CALL grow8_require_role_change_allowed(OLD.user_id, OLD.role, NEW.role) $$
+
+CREATE TRIGGER trg_contributor_profile_bi BEFORE INSERT ON contributor_profile FOR EACH ROW
+    CALL grow8_require_role(NEW.user_id, 'contributor', 'contributor_profile_role') $$
+CREATE TRIGGER trg_contributor_profile_bu BEFORE UPDATE ON contributor_profile FOR EACH ROW
+    CALL grow8_require_role(NEW.user_id, 'contributor', 'contributor_profile_role') $$
+
+CREATE TRIGGER trg_creator_organization_bi BEFORE INSERT ON creator_organization FOR EACH ROW
+    CALL grow8_require_role(NEW.owner_user_id, 'creator', 'organization_owner_role') $$
+CREATE TRIGGER trg_creator_organization_bu BEFORE UPDATE ON creator_organization FOR EACH ROW
+    CALL grow8_require_role(NEW.owner_user_id, 'creator', 'organization_owner_role') $$
+
+CREATE TRIGGER trg_application_bu BEFORE UPDATE ON application FOR EACH ROW
+    CALL grow8_require_application_status_change_allowed(
+        OLD.application_id, OLD.status, NEW.status) $$
+
+CREATE TRIGGER trg_work_submission_bi BEFORE INSERT ON work_submission FOR EACH ROW
+    CALL grow8_require_accepted_application(NEW.application_id) $$
+CREATE TRIGGER trg_work_submission_bu BEFORE UPDATE ON work_submission FOR EACH ROW
+    CALL grow8_require_accepted_application(NEW.application_id) $$
+
+CREATE TRIGGER trg_work_verification_bi BEFORE INSERT ON work_verification FOR EACH ROW
+    CALL grow8_require_verifier(NEW.submission_id, NEW.verified_by_user_id) $$
+CREATE TRIGGER trg_work_verification_bu BEFORE UPDATE ON work_verification FOR EACH ROW
+    CALL grow8_require_verifier(NEW.submission_id, NEW.verified_by_user_id) $$
+
+CREATE TRIGGER trg_feedback_bi BEFORE INSERT ON feedback FOR EACH ROW
+    CALL grow8_require_feedback_participants(
+        NEW.application_id, NEW.author_user_id, NEW.subject_user_id) $$
+CREATE TRIGGER trg_feedback_bu BEFORE UPDATE ON feedback FOR EACH ROW
+    CALL grow8_require_feedback_participants(
+        NEW.application_id, NEW.author_user_id, NEW.subject_user_id) $$
+
+CREATE TRIGGER trg_admin_review_bi BEFORE INSERT ON admin_review FOR EACH ROW
+    CALL grow8_require_role(NEW.admin_user_id, 'admin', 'reviewer_role') $$
+CREATE TRIGGER trg_admin_review_bu BEFORE UPDATE ON admin_review FOR EACH ROW
+    CALL grow8_require_role(NEW.admin_user_id, 'admin', 'reviewer_role') $$
+
+CREATE TRIGGER trg_point_transaction_bi BEFORE INSERT ON point_transaction FOR EACH ROW
+    CALL grow8_require_point_source(NEW.contributor_id, NEW.verification_id) $$
+CREATE TRIGGER trg_point_transaction_bu BEFORE UPDATE ON point_transaction FOR EACH ROW
+    CALL grow8_require_point_source(NEW.contributor_id, NEW.verification_id) $$
+
+DELIMITER ;
+
+-- -----------------------------------------------------------------------------
+-- Derived values (views) - I1, I3
+--
+-- Verified hours, ratings, feedback status and leaderboard totals are calculated
+-- from the underlying records every time, so they can never drift from them.
+-- -----------------------------------------------------------------------------
+
+-- I1: a feedback's status is derived from its review, never stored twice.
+CREATE OR REPLACE VIEW v_feedback_status AS
+SELECT f.feedback_id,
+       f.application_id,
+       f.author_user_id,
+       f.subject_user_id,
+       f.rating,
+       COALESCE(ar.decision, 'pending') AS status,
+       ar.reviewed_at
+FROM feedback f
+LEFT JOIN admin_review ar ON ar.feedback_id = f.feedback_id;
+
+-- Approved hours and completed opportunities per contributor (0 when none yet).
+CREATE OR REPLACE VIEW v_contributor_verified_hours AS
+SELECT cp.user_id AS contributor_id,
+       COALESCE(SUM(wv.verified_hours), 0) AS verified_hours,
+       COUNT(wv.verification_id) AS completed_opportunities
+FROM contributor_profile cp
+LEFT JOIN application a ON a.contributor_id = cp.user_id
+LEFT JOIN work_submission ws ON ws.application_id = a.application_id
+LEFT JOIN work_verification wv
+       ON wv.submission_id = ws.submission_id AND wv.decision = 'approved'
+GROUP BY cp.user_id;
+
+-- Public rating: only feedback an admin approved counts. With one organization
+-- per creator (uq_creator_organization_owner) a creator's rating is also their
+-- organization's rating.
+CREATE OR REPLACE VIEW v_user_rating AS
+SELECT f.subject_user_id AS user_id,
+       ROUND(AVG(f.rating), 2) AS average_rating,
+       COUNT(*) AS approved_feedback_count
+FROM feedback f
+JOIN admin_review ar ON ar.feedback_id = f.feedback_id AND ar.decision = 'approved'
+GROUP BY f.subject_user_id;
+
+-- All-time leaderboard of active contributors. For a period, filter
+-- point_transaction.created_at in the query instead.
+CREATE OR REPLACE VIEW v_leaderboard AS
+SELECT cp.user_id AS contributor_id,
+       ua.full_name,
+       COALESCE(SUM(pt.points), 0) AS total_points,
+       RANK() OVER (ORDER BY COALESCE(SUM(pt.points), 0) DESC) AS leaderboard_rank
+FROM contributor_profile cp
+JOIN user_account ua ON ua.user_id = cp.user_id AND ua.is_active = TRUE
+LEFT JOIN point_transaction pt ON pt.contributor_id = cp.user_id
+GROUP BY cp.user_id, ua.full_name;
