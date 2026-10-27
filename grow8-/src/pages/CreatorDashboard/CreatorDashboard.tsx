@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -7,15 +8,19 @@ import {
   Clock3,
   Plus,
 } from "lucide-react";
+
 import ApplicationTable from "../../components/CreatorDashboard/ApplicationTable";
 import CreatorPageHeading from "../../components/CreatorDashboard/CreatorPageHeading";
 import OpportunityGrid from "../../components/CreatorDashboard/OpportunityGrid";
 import { useCreatorWorkspace } from "../../context/CreatorWorkspaceContext";
-import { creatorProfile, summaryWork } from "../../data/creatorDashboardData";
+import {
+  creatorProfile,
+  summaryWork,
+} from "../../data/creatorDashboardData";
 
 export default function CreatorDashboard() {
   const { opportunities, applications } = useCreatorWorkspace();
-  // TODO API: Use backend summary totals here instead of preview counts.
+
   const stats = [
     {
       label: "Total Opportunities",
@@ -49,8 +54,10 @@ export default function CreatorDashboard() {
         title={`Welcome, ${creatorProfile.name}!`}
         description="Manage your opportunities and find great contributors."
       >
-        {/* TODO: Link to the creation page when opportunity management is implemented. */}
-        <Link className="creator-button is-primary" to="/creator/opportunities">
+        <Link
+          className="creator-button is-primary"
+          to="/creator/opportunities/create"
+        >
           <Plus size={19} />
           Create Opportunity
         </Link>
@@ -70,20 +77,32 @@ export default function CreatorDashboard() {
         ))}
       </div>
 
-      <section className="creator-section" aria-labelledby="creator-recent-title">
+      <section
+        className="creator-section"
+        aria-labelledby="creator-recent-title"
+      >
         <div className="creator-section-heading">
           <h2 id="creator-recent-title">Recent Applications</h2>
         </div>
-        <ApplicationTable applications={applications.slice(0, 4)} label="Recent applications" />
+
+        <ApplicationTable
+          applications={applications.slice(0, 4)}
+          label="Recent applications"
+        />
       </section>
 
-      <section className="creator-section" aria-labelledby="creator-opportunities-title">
+      <section
+        className="creator-section"
+        aria-labelledby="creator-opportunities-title"
+      >
         <div className="creator-section-heading">
           <h2 id="creator-opportunities-title">My Opportunities</h2>
+
           <Link className="creator-text-link" to="/creator/opportunities">
             View All <ArrowRight size={15} />
           </Link>
         </div>
+
         <OpportunityGrid opportunities={opportunities.slice(0, 3)} />
       </section>
     </>
