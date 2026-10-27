@@ -1,0 +1,37 @@
+{
+  "name": "grow8-qa-by-layer",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Independent Grow8 frontend, backend, and MySQL test layers with smoke, sanity, regression and per-run HTML reports",
+  "scripts": {
+    "test:frontend:smoke": "node scripts/run-layer.mjs frontend smoke",
+    "report:frontend:smoke": "node scripts/open-report.mjs frontend smoke",
+    "test:frontend:sanity": "node scripts/run-layer.mjs frontend sanity",
+    "report:frontend:sanity": "node scripts/open-report.mjs frontend sanity",
+    "test:frontend:regression": "node scripts/run-layer.mjs frontend regression",
+    "report:frontend:regression": "node scripts/open-report.mjs frontend regression",
+    "test:backend:smoke": "node scripts/run-layer.mjs backend smoke",
+    "report:backend:smoke": "node scripts/open-report.mjs backend smoke",
+    "test:backend:sanity": "node scripts/run-layer.mjs backend sanity",
+    "report:backend:sanity": "node scripts/open-report.mjs backend sanity",
+    "test:backend:regression": "node scripts/run-layer.mjs backend regression",
+    "report:backend:regression": "node scripts/open-report.mjs backend regression",
+    "test:database:smoke": "node scripts/run-layer.mjs database smoke",
+    "report:database:smoke": "node scripts/open-report.mjs database smoke",
+    "test:database:sanity": "node scripts/run-layer.mjs database sanity",
+    "report:database:sanity": "node scripts/open-report.mjs database sanity",
+    "test:database:regression": "node scripts/run-layer.mjs database regression",
+    "report:database:regression": "node scripts/open-report.mjs database regression",
+    "test:all:smoke": "node scripts/run-layer.mjs all smoke",
+    "test:all:sanity": "node scripts/run-layer.mjs all sanity",
+    "test:all:regression": "node scripts/run-layer.mjs all regression",
+    "test:frontend:list": "node scripts/list-layer.mjs frontend",
+    "test:backend:list": "node scripts/list-layer.mjs backend",
+    "test:database:list": "node scripts/list-layer.mjs database"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "mysql2": "3.15.3"
+  }
+}
