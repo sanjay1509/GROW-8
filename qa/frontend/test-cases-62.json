@@ -1,0 +1,374 @@
+{
+  "HOME-001": {
+    "page": "Home",
+    "suite": "Smoke",
+    "scenario": "Open the Grow8 homepage",
+    "expected": "Homepage loads; logo, hero heading and primary sections are visible"
+  },
+  "HOME-002": {
+    "page": "Home",
+    "suite": "Smoke",
+    "scenario": "Click the Grow8 logo",
+    "expected": "Navigates to /"
+  },
+  "HOME-003": {
+    "page": "Home",
+    "suite": "Sanity",
+    "scenario": "Click Opportunities in the navbar",
+    "expected": "Opens /opportunities"
+  },
+  "HOME-004": {
+    "page": "Home",
+    "suite": "Sanity",
+    "scenario": "Click Explore Opportunities",
+    "expected": "Opens the Browse Opportunities page"
+  },
+  "HOME-005": {
+    "page": "Home",
+    "suite": "Regression",
+    "scenario": "Verify Contributor and Creator role cards",
+    "expected": "Both cards display correct content and navigate to their configured routes"
+  },
+  "HOME-006": {
+    "page": "Home",
+    "suite": "Regression",
+    "scenario": "Verify Featured Opportunities",
+    "expected": "Three sample cards appear with title, organization and opportunity information"
+  },
+  "HOME-007": {
+    "page": "Home",
+    "suite": "Regression",
+    "scenario": "Click View All in Featured Opportunities",
+    "expected": "Opens /opportunities"
+  },
+  "HOME-008": {
+    "page": "Home",
+    "suite": "Regression",
+    "scenario": "Verify About, Mission, Purpose and Vision sections",
+    "expected": "All expected headings and descriptive content appear"
+  },
+  "HOME-009": {
+    "page": "Home",
+    "suite": "Regression",
+    "scenario": "Use Back to Top after scrolling",
+    "expected": "Page scrolls back to the top"
+  },
+  "BRW-001": {
+    "page": "Browse Opportunities",
+    "suite": "Smoke",
+    "scenario": "Open Browse Opportunities page",
+    "expected": "Page heading, search bar, filters, sorting and opportunity results are visible"
+  },
+  "BRW-002": {
+    "page": "Browse Opportunities",
+    "suite": "Smoke",
+    "scenario": "Load opportunities from backend",
+    "expected": "Opportunity cards show correct title, organization, location, work mode, hours, category and deadline from API response"
+  },
+  "BRW-003": {
+    "page": "Browse Opportunities",
+    "suite": "Sanity",
+    "scenario": "Search opportunities by title",
+    "expected": "Only matching opportunities displayed; result count updates"
+  },
+  "BRW-004": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Search by organization name or skill",
+    "expected": "Matching opportunities appear; search is case-insensitive"
+  },
+  "BRW-005": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Search for nonexistent opportunity",
+    "expected": "Displays No opportunities found with a Clear filters option"
+  },
+  "BRW-006": {
+    "page": "Browse Opportunities",
+    "suite": "Sanity",
+    "scenario": "Filter opportunities by category",
+    "expected": "Only opportunities belonging to selected category appear"
+  },
+  "BRW-007": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Filter opportunities by work mode",
+    "expected": "Selecting Remote, On-site or Hybrid displays matching records"
+  },
+  "BRW-008": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Filter by time commitment",
+    "expected": "Under 5, 5\u201310, and more than 10 hours produce correct results"
+  },
+  "BRW-009": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Filter by skills",
+    "expected": "Only opportunities containing selected skill appear"
+  },
+  "BRW-010": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Apply multiple filters together",
+    "expected": "Results satisfy selected filter groups; result count updates"
+  },
+  "BRW-011": {
+    "page": "Browse Opportunities",
+    "suite": "Sanity",
+    "scenario": "Clear all applied search terms and filters",
+    "expected": "Search and filter selections reset; complete loaded list returns"
+  },
+  "BRW-012": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Sort by Upcoming deadline",
+    "expected": "Earliest application deadlines appear first"
+  },
+  "BRW-013": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Sort by Latest deadline",
+    "expected": "Latest application deadlines appear first"
+  },
+  "BRW-014": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Sort by Title A\u2013Z",
+    "expected": "Opportunity titles appear alphabetically"
+  },
+  "BRW-015": {
+    "page": "Browse Opportunities",
+    "suite": "Smoke",
+    "scenario": "Click View Details on an opportunity",
+    "expected": "Modal opens with correct title, organization, description, location, mode, hours, deadline and skills"
+  },
+  "BRW-016": {
+    "page": "Browse Opportunities",
+    "suite": "Sanity",
+    "scenario": "Close opportunity details modal",
+    "expected": "Both Close Details button and close icon dismiss modal without navigating away"
+  },
+  "BRW-017": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Hide and show filter sidebar",
+    "expected": "Sidebar visibility changes while existing filters and results are preserved"
+  },
+  "BRW-018": {
+    "page": "Browse Opportunities",
+    "suite": "Regression",
+    "scenario": "Backend fails to load opportunities",
+    "expected": "Error message and Try again button appear; retry recovers when API becomes available"
+  },
+  "DASH-001": {
+    "page": "Creator Dashboard",
+    "suite": "Smoke",
+    "scenario": "Open Creator Dashboard",
+    "expected": "Dashboard loads at /creator/dashboard with welcome heading and key sections visible"
+  },
+  "DASH-002": {
+    "page": "Creator Dashboard",
+    "suite": "Smoke",
+    "scenario": "Verify four dashboard summary cards",
+    "expected": "Total Opportunities, Total Applications, In Progress, and Completed appear with configured values"
+  },
+  "DASH-003": {
+    "page": "Creator Dashboard",
+    "suite": "Sanity",
+    "scenario": "Click Create Opportunity",
+    "expected": "Navigates to /creator/opportunities/create"
+  },
+  "DASH-004": {
+    "page": "Creator Dashboard",
+    "suite": "Sanity",
+    "scenario": "Verify Recent Applications table",
+    "expected": "Shows up to 4 recent applications with applicant name, opportunity, status, date and View action"
+  },
+  "DASH-005": {
+    "page": "Creator Dashboard",
+    "suite": "Regression",
+    "scenario": "Verify application status badges",
+    "expected": "Under Review, Selected, and Rejected statuses display correctly for sample records"
+  },
+  "DASH-006": {
+    "page": "Creator Dashboard",
+    "suite": "Sanity",
+    "scenario": "Verify My Opportunities preview",
+    "expected": "Shows first 3 opportunity cards with correct titles, statuses, and application counts"
+  },
+  "DASH-007": {
+    "page": "Creator Dashboard",
+    "suite": "Sanity",
+    "scenario": "Click View All under My Opportunities",
+    "expected": "Navigates to /creator/opportunities"
+  },
+  "DASH-008": {
+    "page": "Creator Dashboard",
+    "suite": "Regression",
+    "scenario": "Click an opportunity preview card",
+    "expected": "Navigates to /creator/opportunities without an application crash"
+  },
+  "DASH-009": {
+    "page": "Creator Dashboard",
+    "suite": "Regression",
+    "scenario": "Verify Creator sidebar navigation",
+    "expected": "Dashboard and My Opportunities links navigate correctly; active item highlighted"
+  },
+  "DASH-010": {
+    "page": "Creator Dashboard",
+    "suite": "Regression",
+    "scenario": "Open and close dashboard notification popover",
+    "expected": "Shows pending-application count; opens on click; closes on Escape or outside click"
+  },
+  "MYOP-001": {
+    "page": "My Opportunities",
+    "suite": "Smoke",
+    "scenario": "Open My Opportunities with valid Creator token",
+    "expected": "Page loads, sends authenticated API request, displays heading and toolbar"
+  },
+  "MYOP-002": {
+    "page": "My Opportunities",
+    "suite": "Smoke",
+    "scenario": "Verify opportunities displayed from API response",
+    "expected": "Cards show title, category, status, description, location, hours, deadline and compensation"
+  },
+  "MYOP-003": {
+    "page": "My Opportunities",
+    "suite": "Sanity",
+    "scenario": "Search for opportunity by title or description",
+    "expected": "Only matching cards appear; result count updates"
+  },
+  "MYOP-004": {
+    "page": "My Opportunities",
+    "suite": "Sanity",
+    "scenario": "Filter by status and combine with search",
+    "expected": "Only opportunities satisfying selected status and search term appear"
+  },
+  "MYOP-005": {
+    "page": "My Opportunities",
+    "suite": "Regression",
+    "scenario": "Click Refresh after opportunity data changes",
+    "expected": "New API request is sent and displayed opportunities update"
+  },
+  "MYOP-006": {
+    "page": "My Opportunities",
+    "suite": "Regression",
+    "scenario": "Search or filter returns no matching opportunities",
+    "expected": "Displays No matching opportunities with explanatory message"
+  },
+  "MYOP-007": {
+    "page": "My Opportunities",
+    "suite": "Regression",
+    "scenario": "Creator has no existing opportunities",
+    "expected": "Displays No opportunities yet and Create your first opportunity button"
+  },
+  "MYOP-008": {
+    "page": "My Opportunities",
+    "suite": "Regression",
+    "scenario": "Open page without authentication token",
+    "expected": "Displays Unable to load opportunities and sign-in requirement; does not fetch protected data"
+  },
+  "MYOP-009": {
+    "page": "My Opportunities",
+    "suite": "Regression",
+    "scenario": "API returns error; user clicks Try again",
+    "expected": "Error appears; retry sends request and restores cards when successful"
+  },
+  "MYOP-010": {
+    "page": "My Opportunities",
+    "suite": "Regression",
+    "scenario": "Navigate using Create Opportunity and View buttons",
+    "expected": "Create opens /creator/opportunities/create; View opens selected opportunity details"
+  },
+  "CRT-001": {
+    "page": "Create Opportunity",
+    "suite": "Smoke",
+    "scenario": "Open Create Opportunity page",
+    "expected": "All four form sections and Save Draft, Publish Opportunity, Cancel buttons visible"
+  },
+  "CRT-002": {
+    "page": "Create Opportunity",
+    "suite": "Smoke",
+    "scenario": "Load categories",
+    "expected": "Category dropdown displays categories received from backend"
+  },
+  "CRT-003": {
+    "page": "Create Opportunity",
+    "suite": "Sanity",
+    "scenario": "Leave mandatory fields empty",
+    "expected": "Submission blocked; title, category and description required"
+  },
+  "CRT-004": {
+    "page": "Create Opportunity",
+    "suite": "Sanity",
+    "scenario": "Enter valid opportunity information",
+    "expected": "Inputs accept values and retain entered info before submission"
+  },
+  "CRT-005": {
+    "page": "Create Opportunity",
+    "suite": "Regression",
+    "scenario": "Enter invalid date combinations",
+    "expected": "End before start or deadline after start prevents submission with validation"
+  },
+  "CRT-006": {
+    "page": "Create Opportunity",
+    "suite": "Regression",
+    "scenario": "Enter invalid expected hours or applicant limit",
+    "expected": "Zero, negative and noninteger values rejected by numeric constraints"
+  },
+  "CRT-007": {
+    "page": "Create Opportunity",
+    "suite": "Sanity",
+    "scenario": "Select Paid compensation",
+    "expected": "Amount and currency fields appear; amount required and nonnegative"
+  },
+  "CRT-008": {
+    "page": "Create Opportunity",
+    "suite": "Regression",
+    "scenario": "Switch from Paid to Unpaid",
+    "expected": "Paid-only fields disappear; unpaid submission omits compensation amount"
+  },
+  "CRT-009": {
+    "page": "Create Opportunity",
+    "suite": "Smoke",
+    "scenario": "Save valid opportunity as Draft",
+    "expected": "Authenticated creation succeeds; no publish request; success message and navigation"
+  },
+  "CRT-010": {
+    "page": "Create Opportunity",
+    "suite": "Sanity",
+    "scenario": "Publish valid opportunity",
+    "expected": "Create request followed by publish request for returned ID; success and navigation"
+  },
+  "CRT-011": {
+    "page": "Create Opportunity",
+    "suite": "Regression",
+    "scenario": "Submit without authentication token",
+    "expected": "Sign-in requirement displayed; no creation request sent"
+  },
+  "CRT-012": {
+    "page": "Create Opportunity",
+    "suite": "Regression",
+    "scenario": "Backend rejects opportunity creation",
+    "expected": "Backend validation information displayed; user remains on form"
+  },
+  "CRT-013": {
+    "page": "Create Opportunity",
+    "suite": "Regression",
+    "scenario": "Creation succeeds but publishing fails",
+    "expected": "UI reports create success but publish failure; does not show publication success"
+  },
+  "CRT-014": {
+    "page": "Create Opportunity",
+    "suite": "Regression",
+    "scenario": "Categories API fails or returns empty list",
+    "expected": "Error or empty-category message; cannot submit without valid category"
+  },
+  "CRT-015": {
+    "page": "Create Opportunity",
+    "suite": "Regression",
+    "scenario": "Click Cancel or Back to Dashboard",
+    "expected": "Navigates to /creator/dashboard without submitting an opportunity"
+  }
+}

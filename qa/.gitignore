@@ -1,8 +1,0 @@
-node_modules/
-reports/
-backend/reports/
-backend/results/
-**/__pycache__/
-**/.pytest_cache/
-*.pyc
-.env
