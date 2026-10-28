@@ -2,7 +2,7 @@
 
 .browse-page {
   width: calc(100% - 40px);
-  max-width: 1200px;
+  width: min(1440px, calc(100% - 32px));
   min-height: calc(100vh - 24px);
   margin: 12px auto;
   overflow: hidden;
