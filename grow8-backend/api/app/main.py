@@ -10,7 +10,7 @@ from grow8_common.logging import configure_logging
 from app.core.config import get_api_settings
 from app.core.exceptions import register_exception_handlers
 from app.dependencies.request import REQUEST_ID_HEADER, register_request_id_middleware
-from app.routers import auth, opportunities, reference
+from app.routers import auth, notifications, opportunities, reference
 
 API_PREFIX = "/api/v1"
 
@@ -50,6 +50,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix=API_PREFIX)
     app.include_router(reference.router, prefix=API_PREFIX)
     app.include_router(opportunities.router, prefix=API_PREFIX)
+    app.include_router(notifications.router, prefix=API_PREFIX)
 
     @app.get("/health", tags=["health"])
     def health() -> JSONResponse:
