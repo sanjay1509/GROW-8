@@ -28,7 +28,9 @@
     "test:all:regression": "node scripts/run-layer.mjs all regression",
     "test:frontend:list": "node scripts/list-layer.mjs frontend",
     "test:backend:list": "node scripts/list-layer.mjs backend",
-    "test:database:list": "node scripts/list-layer.mjs database"
+    "test:database:list": "node scripts/list-layer.mjs database",
+    "test:frontend:all": "node scripts/run-layer.mjs frontend all",
+    "test:frontend:62:list": "node scripts/list-frontend-62.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
