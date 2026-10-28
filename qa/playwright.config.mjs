@@ -7,7 +7,7 @@ const layer = process.env.QA_LAYER;
 const suite = process.env.QA_SUITE;
 const runId = process.env.QA_RUN_ID;
 const validLayers = new Set(['frontend', 'backend', 'database']);
-const validSuites = new Set(['smoke', 'sanity', 'regression']);
+const validSuites = new Set(['smoke', 'sanity', 'regression', 'all']);
 if (!validLayers.has(layer) || !validSuites.has(suite) || !runId) {
   throw new Error('Run tests using npm run test:<layer>:<suite> (from qa/)');
 }
@@ -15,6 +15,8 @@ const reportRoot = `reports/${layer}/${suite}/${runId}`;
 
 export default defineConfig({
   testDir: `./${layer}/tests`,
+  // The 62-case release runs ONLY its own specs, leaving older QA tests untouched.
+  ...(layer === 'frontend' ? { testMatch: '**/*.grow8-62.spec.js' } : {}),
   timeout: 30_000,
   expect: { timeout: 10_000 },
   workers: process.env.CI ? 2 : undefined,

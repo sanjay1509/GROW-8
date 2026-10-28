@@ -8,8 +8,8 @@ const layerInput = process.argv[2];
 const suite = process.argv[3];
 const layers = layerInput === 'all' ? ['frontend','backend','database'] : [layerInput];
 if (!['frontend', 'backend', 'database', 'all'].includes(layerInput) ||
-    !['smoke', 'sanity', 'regression'].includes(suite)) {
-  console.error('Usage: node scripts/run-layer.mjs frontend|backend|database|all smoke|sanity|regression');
+    !['smoke', 'sanity', 'regression', 'all'].includes(suite) || (suite === 'all' && layerInput !== 'frontend')) {
+  console.error('Usage: node scripts/run-layer.mjs frontend|backend|database|all smoke|sanity|regression; frontend all');
   process.exit(2);
 }
 let failures = 0;
@@ -20,7 +20,8 @@ for (const layer of layers) {
   const invocation = { runId, layer, suite, startedAt: new Date().toISOString(), report: `reports/${layer}/${suite}/${runId}/html` };
   console.log(`\nRunning ${layer.toUpperCase()} ${suite.toUpperCase()} [${runId}]`);
   const args = [resolve(qaRoot, 'node_modules/playwright/cli.js'), 'test'];
-  if (suite !== 'regression') args.push('--grep', `@${suite}`);
+  // Frontend regression is regression-only; legacy backend/database regression behavior remains unchanged.
+  if ((layer === 'frontend' && suite !== 'all') || (layer !== 'frontend' && suite !== 'regression')) args.push('--grep', `@${suite}`);
   const result = spawnSync(process.execPath, args, {
     stdio: 'inherit',
     cwd: qaRoot,
