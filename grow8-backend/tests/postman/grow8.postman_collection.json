@@ -32,6 +32,18 @@
     {
       "key": "incompleteId",
       "value": ""
+    },
+    {
+      "key": "contributorNotificationId",
+      "value": ""
+    },
+    {
+      "key": "creatorNotificationId",
+      "value": ""
+    },
+    {
+      "key": "readAt",
+      "value": ""
     }
   ],
   "item": [
@@ -955,6 +967,411 @@
                   "pm.test(\"403 NOT_OPPORTUNITY_OWNER\", () => {",
                   "  pm.response.to.have.status(403);",
                   "  pm.expect(pm.response.json().error.code).to.eql(\"NOT_OPPORTUNITY_OWNER\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Notifications",
+      "description": "Publishing the draft in folder 2 emits OPPORTUNITY_CREATED. contributor_service notifies Alex Chen (has `spreadsheets`) and creator_service notifies the bakery that its opportunity is live. Run folder 2 first.",
+      "item": [
+        {
+          "name": "Contributor gets 'New opportunity'",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?unread_only=true&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "unread_only",
+                  "value": "true"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// The consumer services write notifications asynchronously, just after the",
+                  "// publish response: retry this request (up to 10 x 0.5 s) until it shows up.",
+                  "const draftId = Number(pm.collectionVariables.get(\"draftId\"));",
+                  "const found = pm.response.json().items.find(",
+                  "  (n) => n.opportunity_id === draftId && n.notification_type === \"opportunity_created\"",
+                  ");",
+                  "const tries = Number(pm.collectionVariables.get(\"contributorNotificationIdTries\") || 0);",
+                  "if (!found && tries < 10) {",
+                  "  pm.collectionVariables.set(\"contributorNotificationIdTries\", tries + 1);",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "  setTimeout(() => {}, 500);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(\"contributorNotificationIdTries\");",
+                  "  pm.test(\"200 and an unread opportunity_created notification for the published draft\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(found, \"notification for draftId \" + draftId).to.be.an(\"object\");",
+                  "    pm.expect(found.is_read).to.eql(false);",
+                  "    pm.expect(found.read_at).to.eql(null);",
+                  "    pm.expect(found.title).to.include(\"Postman: catalogue bread recipes\");",
+                  "  });",
+                  "  if (found) {",
+                  "    pm.collectionVariables.set(\"contributorNotificationId\", found.notification_id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator gets 'Your opportunity is live'",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?unread_only=true&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "unread_only",
+                  "value": "true"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// The consumer services write notifications asynchronously, just after the",
+                  "// publish response: retry this request (up to 10 x 0.5 s) until it shows up.",
+                  "const draftId = Number(pm.collectionVariables.get(\"draftId\"));",
+                  "const found = pm.response.json().items.find(",
+                  "  (n) => n.opportunity_id === draftId && n.notification_type === \"opportunity_published\"",
+                  ");",
+                  "const tries = Number(pm.collectionVariables.get(\"creatorNotificationIdTries\") || 0);",
+                  "if (!found && tries < 10) {",
+                  "  pm.collectionVariables.set(\"creatorNotificationIdTries\", tries + 1);",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "  setTimeout(() => {}, 500);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(\"creatorNotificationIdTries\");",
+                  "  pm.test(\"200 and an unread opportunity_published notification for the published draft\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(found, \"notification for draftId \" + draftId).to.be.an(\"object\");",
+                  "    pm.expect(found.is_read).to.eql(false);",
+                  "    pm.expect(found.read_at).to.eql(null);",
+                  "    pm.expect(found.title).to.include(\"Postman: catalogue bread recipes\");",
+                  "  });",
+                  "  if (found) {",
+                  "    pm.collectionVariables.set(\"creatorNotificationId\", found.notification_id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor unread count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "unread-count"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 and at least one unread\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().unread_count).to.be.a(\"number\").and.at.least(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Other creator cannot mark it read -> 404",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{otherCreatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/{{contributorNotificationId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "{{contributorNotificationId}}",
+                "read"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"404 NOTIFICATION_NOT_FOUND (someone else's)\", () => {",
+                  "  pm.response.to.have.status(404);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"NOTIFICATION_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/{{contributorNotificationId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "{{contributorNotificationId}}",
+                "read"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 and read\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().is_read).to.eql(true);",
+                  "  pm.expect(pm.response.json().read_at).to.be.a(\"string\");",
+                  "});",
+                  "pm.collectionVariables.set(\"readAt\", pm.response.json().read_at);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark read again keeps the first read_at",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/{{contributorNotificationId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "{{contributorNotificationId}}",
+                "read"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 and the same read_at (idempotent)\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().read_at).to.eql(pm.collectionVariables.get(\"readAt\"));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator marks all read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "read-all"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 and at least the new one marked\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().marked_read).to.be.a(\"number\").and.at.least(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator unread count is 0",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "unread-count"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 and nothing unread\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().unread_count).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Anonymous cannot read notifications -> 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"401 AUTH_REQUIRED\", () => {",
+                  "  pm.response.to.have.status(401);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"AUTH_REQUIRED\");",
                   "});"
                 ]
               }
