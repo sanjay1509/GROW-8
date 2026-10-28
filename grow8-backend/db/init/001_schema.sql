@@ -168,6 +168,33 @@ CREATE TABLE contributor_skill (
 ) ENGINE = InnoDB;
 
 -- -----------------------------------------------------------------------------
+-- Notifications (written by the consumer services, read through the API)
+-- -----------------------------------------------------------------------------
+
+-- title/message are what the user was told at the time, kept as written even if
+-- the opportunity changes later. One row per user per event: the consumers insert
+-- with INSERT IGNORE, so a redelivered event adds nothing.
+CREATE TABLE notification (
+    notification_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id           INT UNSIGNED NOT NULL,
+    event_id          CHAR(36)     NOT NULL,
+    notification_type ENUM('opportunity_created', 'opportunity_published') NOT NULL,
+    title             VARCHAR(200) NOT NULL,
+    message           VARCHAR(500) NOT NULL,
+    opportunity_id    INT UNSIGNED NULL,
+    read_at           DATETIME     NULL,
+    created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (notification_id),
+    UNIQUE KEY uq_notification_event_user (event_id, user_id),
+    -- inbox: a user's unread first, newest first; also serves the user_id FK
+    KEY ix_notification_user_read_created (user_id, read_at, created_at),
+    CONSTRAINT fk_notification_user
+        FOREIGN KEY (user_id) REFERENCES user_account (user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_notification_opportunity
+        FOREIGN KEY (opportunity_id) REFERENCES opportunity (opportunity_id) ON DELETE SET NULL
+) ENGINE = InnoDB;
+
+-- -----------------------------------------------------------------------------
 -- Applications, submissions, verification
 -- -----------------------------------------------------------------------------
 

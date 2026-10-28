@@ -55,3 +55,10 @@ class ReviewDecision(StrEnum):
 class PointSource(StrEnum):
     WORK_VERIFIED = "work_verified"
     BADGE_AWARDED = "badge_awarded"
+
+
+class NotificationType(StrEnum):
+    """One value per kind of notification (one event can produce several kinds)."""
+
+    OPPORTUNITY_CREATED = "opportunity_created"  # to matching contributors
+    OPPORTUNITY_PUBLISHED = "opportunity_published"  # to the creator who published it
