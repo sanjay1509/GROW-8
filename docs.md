@@ -220,6 +220,7 @@ All seeded accounts use the password **`Grow8Dev!2026`**. Development only.
 
 - Edit `001_schema.sql` **and** the matching ORM model in `grow8-backend/shared/grow8_common/models/` in the same commit. `make test` fails if they differ.
 - Business rules that a foreign key or `CHECK` can't express live as triggers at the end of `001_schema.sql`, and derived values (verified hours, ratings, leaderboard, feedback status) as views. Each rule is explained in `docs/db/relationship-validation.md` and tested in `api/tests/integration/test_db_integrity.py`. A violated rule raises MySQL error 1644 with a message that starts with the rule name. Views and triggers are not part of the ORM.
+- Update `docs/db/data-dictionary.md` (ENSF 608) when you add or change a column, and add new tables to `docs/db/functional-dependencies.md` and `relationship-validation.md`.
 - Keep seed data deterministic: explicit IDs, fixed dates, no `NOW()`.
 - Tell the team in chat, because everyone has to run `make reset-db` after pulling.
 

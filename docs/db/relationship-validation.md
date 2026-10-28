@@ -2,7 +2,7 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Written Oct 14 from the ENSF 608 proposal (submitted Oct 9). Updated Oct 23: section 7 shows how the committed schema (`grow8-backend/db/init/001_schema.sql`) resolves every issue below. Sections 3–6 keep the proposal's attribute names; section 6 of `functional-dependencies.md` maps them to the schema's.
+> Written Oct 14 from the ENSF 608 proposal (submitted Oct 9). Updated Oct 23 and Oct 27 (`notification`, R21–R22): section 7 shows how the committed schema (`grow8-backend/db/init/001_schema.sql`) resolves every issue below. Sections 3–6 keep the proposal's attribute names; section 6 of `functional-dependencies.md` maps them to the schema's.
 
 ## 1. Purpose
 
@@ -51,6 +51,13 @@ For each relationship I checked five things:
 | # | Relationship | Card. | Implementation | Why |
 |---|---|---|---|---|
 | R20 | UserAccount — WorkVerification | 1 : 0..M | `WorkVerification.verified_by_user_id` FK, `NOT NULL` | Records who actually verified the work. This is a historical fact, not redundant: an organization's manager can change later, so it can't be reliably derived. Supports the "only authorized Creators verify" rule and gives an audit trail. |
+
+**Added Oct 27 with the `notification` table (ADR 0003)**
+
+| # | Relationship | Card. | Implementation | Notes |
+|---|---|---|---|---|
+| R21 | UserAccount — Notification | 1 : 0..M | `notification.user_id` FK, `NOT NULL`, `ON DELETE CASCADE`; `UNIQUE (event_id, user_id)` | A user's notifications go with the account. The unique key makes a redelivered event a no-op, so consumers stay idempotent. |
+| R22 | Opportunity — Notification | 1 : 0..M (optional) | `notification.opportunity_id` FK, nullable, `ON DELETE SET NULL` | Optional link for "open the opportunity" in the UI. The stored title and message are what the user was told, not a copy kept in sync, so deleting the opportunity keeps the notification. |
 
 ## 4. Issues and proposed fixes
 
@@ -175,7 +182,8 @@ Without it, the database would accept a second profile, submission, verification
 
 ## 6. Next steps
 
-- ~~Formal 1NF → BCNF analysis after the Oct 16 normalization lecture~~: done in `functional-dependencies.md` (all 17 tables in BCNF).
+- ~~Formal 1NF → BCNF analysis after the Oct 16 normalization lecture~~: done in `functional-dependencies.md` (all 18 tables in BCNF).
+- ~~Data dictionary~~: done in `data-dictionary.md`, generated from the loaded schema.
 - ~~Apply the agreed constraints in the shared schema DDL~~: done; see section 7.
 - ~~Turn each rule in I5–I8 into a test case for database testing~~: done in `grow8-backend/api/tests/integration/test_db_integrity.py`.
 - Still open: the applicant limit (decision 4), enforced in the backend apply endpoint once it is built, and whether `contributor_skill.source = 'verified'` is stored or derived (decision 7 in `functional-dependencies.md`).
@@ -200,5 +208,7 @@ Every issue is now enforced by the database itself, so it holds whichever servic
 | I7 points only from approved work | `trg_point_transaction_bi/bu`. |
 | I7 deadline and applicant limit | Backend, when the apply endpoint is built (`SELECT … FOR UPDATE` on the opportunity row). |
 | I9 badge once | Composite PK `(contributor_id, badge_id)` on `contributor_badge`. |
+| R21 one notification per user per event | `uq_notification_event_user`; consumers insert with `INSERT IGNORE`. |
+| R21 who receives which notification type | Not a data-integrity rule: the consumer chooses recipients (matching contributors, the opportunity's creator). Covered by the service tests, not a trigger. |
 
 Trigger violations raise SQLSTATE `45000` (MySQL error 1644) with a message that starts with the rule name, for example `reviewer_role: user 2 must have role admin`. An API endpoint that writes these tables should validate first and return a clear 4xx, and treat error 1644 as a conflict rather than a server error.
