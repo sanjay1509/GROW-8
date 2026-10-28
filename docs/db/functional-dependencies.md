@@ -2,13 +2,13 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Updated Oct 23, 2026 against the committed schema, `grow8-backend/db/init/001_schema.sql`. The first version (Oct 14) analysed the proposal's preliminary entities; section 6 lists what changed between the two. Issue codes (I1–I9, R1–R20) refer to `relationship-validation.md`.
+> Updated Oct 23, 2026 against the committed schema, `grow8-backend/db/init/001_schema.sql`, and on Oct 27 for the `notification` table (ADR 0003). The first version (Oct 14) analysed the proposal's preliminary entities; section 6 lists what changed between the two. Issue codes (I1–I9, R1–R22) refer to `relationship-validation.md`; column-level details are in `data-dictionary.md`.
 
 ## 1. Purpose
 
-For each of the 17 tables this document gives the keys and the functional dependencies (FDs), then checks the table against 1NF, 2NF, 3NF and BCNF. Section 4 covers redundancy *between* tables, which per-table normalization does not catch, and how each case is either removed or enforced.
+For each of the 18 tables (the 17 from the proposal plus `notification`) this document gives the keys and the functional dependencies (FDs), then checks the table against 1NF, 2NF, 3NF and BCNF. Section 4 covers redundancy *between* tables, which per-table normalization does not catch, and how each case is either removed or enforced.
 
-**Result:** all 17 tables are in BCNF. Every derived total is calculated by a view instead of being stored, and the few cross-table redundancies kept on purpose are each enforced by a constraint or trigger.
+**Result:** all 18 tables are in BCNF. Every derived total is calculated by a view instead of being stored, and the few cross-table redundancies kept on purpose are each enforced by a constraint or trigger.
 
 ## 2. Notation and method
 
@@ -162,6 +162,16 @@ Method for each table: list every FD that holds *within* the table, find the can
 - **Normal form:** **BCNF** within the table.
 - **`source`** is redundant with "which of `verification_id` / `badge_id` is filled". `chk_point_transaction_source` keeps them consistent, and the column is kept so ledger queries read clearly.
 
+### 3.18 notification
+`notification(notification_id, user_id, event_id, notification_type, title, message, opportunity_id, read_at, created_at)`
+
+Added Oct 27 (ADR 0003); not in the proposal. One row per user per event.
+
+- **PK** `notification_id` · **CK** `(event_id, user_id)` (`uq_notification_event_user`: a redelivered event adds nothing)
+- **FDs:** `notification_id → user_id, event_id, notification_type, title, message, opportunity_id, read_at, created_at`; `(event_id, user_id) → notification_id`
+- **Not an FD:** `opportunity_id ↛ title, message`. The text is stored as it was shown, like a sent email, so it can differ from the opportunity's current title. `event_id ↛ notification_type` either: one `OPPORTUNITY_CREATED` event gives contributors an `opportunity_created` row and the creator an `opportunity_published` row.
+- **Normal form:** both determinants are candidate keys → **BCNF**.
+
 ## 4. Redundancy between tables
 
 Normalization works one table at a time, so it does not catch a fact that is stored in one table and also reachable through others. Each such case is listed here with its treatment.
@@ -177,6 +187,8 @@ Normalization works one table at a time, so it does not catch a fact that is sto
 | Contributor of a badge point | `point_transaction.(contributor_id, badge_id)` and `contributor_badge` | **Kept**; enforced by `fk_point_transaction_contributor_badge`. |
 | Badge point value | `point_transaction.points` and `badge.points` | **Not redundant.** The ledger records the value awarded at that time, and a badge's value may change later. |
 | Verifier | `work_verification.verified_by_user_id` and the organization's owner | **Not redundant.** Historical fact (R20). `trg_work_verification_bi/bu` checks it was the owner at the time. |
+| Notification text | `notification.title`, `message` and the linked opportunity's title and deadline | **Not redundant.** A record of what the user was told at that time; the opportunity may change later (R22). |
+| Read state | `notification.read_at` | **Single source.** The unread count is `COUNT(*) WHERE read_at IS NULL`, never stored. |
 
 ## 5. Decisions
 
@@ -207,3 +219,4 @@ Decisions 1–6 were open in the first version; the committed schema settles the
 | `AdminReview.reviewer_user_id`, `findings` | `admin_user_id`, `reason`. |
 | `ContributorBadge.contributor_badge_id` | Dropped; composite PK `(contributor_id, badge_id)`. |
 | `PointTransaction.contributor_badge_id`, `amount`, `reason` | `(contributor_id, badge_id)` referencing `contributor_badge`, `points`, `source`. |
+| *(none; Notification was dropped at proposal stage)* | `notification` added Oct 27 (ADR 0003) so users can see what the consumers tell them. |
