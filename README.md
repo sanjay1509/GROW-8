@@ -68,17 +68,17 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 
 ### Event Flow
 
-| Producer Action                | Event                   | Consumer Service    | Resulting Behaviour                                                  |
-| ------------------------------ | ----------------------- | ------------------- | -------------------------------------------------------------------- |
-| Creator actions                | `OPPORTUNITY_CREATED`   | Contributor Service | Notifies contributors about new opportunities.                       |
-| Creator actions                | `APPLICATION_DECIDED`   | Contributor Service | Notifies contributors of application decisions.                      |
-| Creator actions                | `WORK_VERIFIED`         | Contributor Service | Updates verified hours and skills.                                   |
-| Creator actions                | `WORK_REJECTED`         | Contributor Service | Notifies contributors about rejected work.                           |
-| Contributor actions            | `APPLICATION_SUBMITTED` | Creator Service     | Notifies creators about new applications.                            |
-| Contributor actions            | `WORK_SUBMITTED`        | Creator Service     | Notifies creators about work awaiting verification.                  |
-| Creator or Contributor actions | `FEEDBACK_SUBMITTED`    | Admin Service       | Alerts admins to feedback awaiting review.                           |
-| Admin actions                  | `FEEDBACK_APPROVED`     | All three services  | Updates public ratings and notifies the feedback author and subject. |
-| Admin actions                  | `FEEDBACK_REJECTED`     | All three services  | Records the rejection and notifies the feedback author and subject.  |
+| Producer Action                | Event                   | Consumer Service                   | Resulting Behaviour                                                  |
+| ------------------------------ | ----------------------- | ---------------------------------- | -------------------------------------------------------------------- |
+| Creator actions                | `OPPORTUNITY_CREATED`   | Contributor Service, Creator Service | Notifies matching contributors about the new opportunity and confirms to the creator that it was published. |
+| Creator actions                | `APPLICATION_DECIDED`   | Contributor Service                | Notifies contributors of application decisions.                      |
+| Creator actions                | `WORK_VERIFIED`         | Contributor Service                | Updates verified hours and skills.                                   |
+| Creator actions                | `WORK_REJECTED`         | Contributor Service                | Notifies contributors about rejected work.                           |
+| Contributor actions            | `APPLICATION_SUBMITTED` | Creator Service                    | Notifies creators about new applications.                            |
+| Contributor actions            | `WORK_SUBMITTED`        | Creator Service                    | Notifies creators about work awaiting verification.                  |
+| Creator or Contributor actions | `FEEDBACK_SUBMITTED`    | Admin Service                      | Alerts admins to feedback awaiting review.                           |
+| Admin actions                  | `FEEDBACK_APPROVED`     | All three services                 | Updates public ratings and notifies the feedback author and subject. |
+| Admin actions                  | `FEEDBACK_REJECTED`     | All three services                 | Records the rejection and notifies the feedback author and subject.  |
 
 ### Database
 
