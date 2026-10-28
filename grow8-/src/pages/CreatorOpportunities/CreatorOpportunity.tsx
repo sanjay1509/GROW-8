@@ -6,7 +6,14 @@ import {
   type FormEvent,
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, BriefcaseBusiness, Save, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  BriefcaseBusiness,
+  Save,
+  Send,
+  ClipboardCheck,
+  X,
+} from "lucide-react";
 import "./CreatorOpportunity.css";
 
 const API_BASE_URL =
@@ -36,6 +43,11 @@ type OpportunityForm = {
   working_conditions: string;
   safety_information: string;
   accessibility_details: string;
+};
+
+type CreatedOpportunity = {
+  opportunity_id?: number;
+  status?: string;
 };
 
 const initialForm: OpportunityForm = {
@@ -111,6 +123,20 @@ function getErrorMessage(data: unknown): string {
   return "The server rejected the request. Check the API response.";
 }
 
+function formatDate(value: string): string {
+  if (!value) return "Not specified";
+
+  const date = new Date(`${value}T12:00:00`);
+
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+}
+
 export default function CreateOpportunity() {
   const navigate = useNavigate();
 
@@ -118,6 +144,7 @@ export default function CreateOpportunity() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showReview, setShowReview] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -195,27 +222,20 @@ export default function CreateOpportunity() {
     setSuccess("");
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-    saveAsDraft: boolean
-  ) {
-    event.preventDefault();
-    setError("");
-    setSuccess("");
-
+  function validateForm(): boolean {
     if (!form.title.trim()) {
       setError("Please enter an opportunity title.");
-      return;
+      return false;
     }
 
     if (!form.category_id) {
       setError("Please select a category.");
-      return;
+      return false;
     }
 
     if (!form.description.trim()) {
       setError("Please enter an opportunity description.");
-      return;
+      return false;
     }
 
     if (
@@ -224,7 +244,7 @@ export default function CreateOpportunity() {
       form.end_date < form.start_date
     ) {
       setError("The end date cannot be earlier than the start date.");
-      return;
+      return false;
     }
 
     if (
@@ -233,22 +253,64 @@ export default function CreateOpportunity() {
       form.application_deadline > form.start_date
     ) {
       setError("The application deadline should not be after the start date.");
-      return;
+      return false;
     }
 
     if (
       form.compensation_type === "paid" &&
-      (!form.compensation_amount ||
+      (!form.compensation_amount.trim() ||
         !Number.isFinite(Number(form.compensation_amount)) ||
         Number(form.compensation_amount) < 0)
     ) {
       setError("Enter a valid compensation amount.");
+      return false;
+    }
+
+    if (
+      form.expected_hours &&
+      (!Number.isFinite(Number(form.expected_hours)) ||
+        Number(form.expected_hours) < 1)
+    ) {
+      setError("Expected hours must be at least 1.");
+      return false;
+    }
+
+    if (
+      form.applicant_limit &&
+      (!Number.isFinite(Number(form.applicant_limit)) ||
+        Number(form.applicant_limit) < 1)
+    ) {
+      setError("The applicant limit must be at least 1.");
+      return false;
+    }
+
+    return true;
+  }
+
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+    saveAsDraft: boolean,
+    confirmPublish = false
+  ) {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!validateForm()) {
+      setShowReview(false);
+      return;
+    }
+
+    // Publishing first requires the creator to review the details.
+    if (!saveAsDraft && !confirmPublish) {
+      setShowReview(true);
       return;
     }
 
     const token = localStorage.getItem("access_token");
 
     if (!token) {
+      setShowReview(false);
       setError("Please sign in as a creator before continuing.");
       return;
     }
@@ -286,7 +348,7 @@ export default function CreateOpportunity() {
           form.accessibility_details.trim() || null,
       };
 
-      // First create the opportunity.
+      // Create the opportunity as a draft first.
       const response = await fetch(`${API_BASE_URL}/opportunities`, {
         method: "POST",
         headers: {
@@ -302,45 +364,49 @@ export default function CreateOpportunity() {
         throw new Error(getErrorMessage(data));
       }
 
-      const created = data as {
-        opportunity_id?: number;
-        status?: string;
-      };
+      const created = data as CreatedOpportunity;
 
-      // Publish only when the user clicked Publish Opportunity.
-      if (!saveAsDraft) {
-        if (!created.opportunity_id) {
-          throw new Error(
-            "The opportunity was created, but its ID was not returned. Check the create API response."
-          );
-        }
+      // Save Draft ends here. Do not publish it.
+      if (saveAsDraft) {
+        setShowReview(false);
+        setSuccess("Your opportunity draft was saved.");
 
-        const publishResponse = await fetch(
-          `${API_BASE_URL}/opportunities/${created.opportunity_id}/publish`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        window.setTimeout(() => {
+          navigate("/creator/opportunities");
+        }, 900);
 
-        const publishData: unknown = await publishResponse
-          .json()
-          .catch(() => null);
-
-        if (!publishResponse.ok) {
-          throw new Error(
-            `The opportunity was created, but publishing failed (HTTP ${publishResponse.status}): ${getErrorMessage(publishData)}`
-          );
-        }
+        return;
       }
 
-      setSuccess(
-        saveAsDraft
-          ? "Your opportunity draft was saved."
-          : "Your opportunity was published successfully."
+      if (!created.opportunity_id) {
+        throw new Error(
+          "The opportunity was created, but its ID was not returned."
+        );
+      }
+
+      // Publish only after the creator confirms the review.
+      const publishResponse = await fetch(
+        `${API_BASE_URL}/opportunities/${created.opportunity_id}/publish`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
+      const publishData: unknown = await publishResponse
+        .json()
+        .catch(() => null);
+
+      if (!publishResponse.ok) {
+        throw new Error(
+          `The opportunity was created as a draft, but publishing failed (HTTP ${publishResponse.status}): ${getErrorMessage(publishData)}`
+        );
+      }
+
+      setShowReview(false);
+      setSuccess("Your opportunity was published successfully.");
 
       window.setTimeout(() => {
         navigate("/creator/opportunities");
@@ -355,6 +421,10 @@ export default function CreateOpportunity() {
       setSubmitting(false);
     }
   }
+
+  const selectedCategory = categories.find(
+    (category) => category.code === form.category_id
+  );
 
   return (
     <main className="create-opportunity-page">
@@ -713,19 +783,244 @@ export default function CreateOpportunity() {
             <button
               type="submit"
               className="co-button co-button-primary"
-              disabled={submitting}
+              disabled={submitting || loadingCategories}
             >
               <Send size={17} />
-              {submitting ? "Submitting..." : "Publish Opportunity"}
+              {submitting ? "Submitting..." : "Review & Publish"}
             </button>
           </div>
 
           <p className="co-required-note">
-            Fields marked * are required. The backend determines which
-            opportunities are publicly visible.
+            Fields marked * are required. Review your details before
+            publishing your opportunity.
           </p>
         </form>
       </div>
+
+      {/* Opportunity review popup */}
+      {showReview && (
+        <div
+          className="co-review-overlay"
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              !submitting
+            ) {
+              setShowReview(false);
+            }
+          }}
+        >
+          <section
+            className="co-review-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="co-review-title"
+          >
+            <div className="co-review-header">
+              <span className="co-review-icon">
+                <ClipboardCheck size={25} />
+              </span>
+
+              <div className="co-review-heading-text">
+                <span className="co-eyebrow">FINAL REVIEW</span>
+                <h2 id="co-review-title">Review Your Opportunity</h2>
+                <p>
+                  Check your information before publishing it on GROW8.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="co-review-close"
+                aria-label="Close review"
+                disabled={submitting}
+                onClick={() => setShowReview(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="co-review-content">
+              <section className="co-review-section">
+                <h3>Basic Information</h3>
+
+                <div className="co-review-row">
+                  <span>Title</span>
+                  <strong>{form.title || "Not provided"}</strong>
+                </div>
+
+                <div className="co-review-row">
+                  <span>Category</span>
+                  <strong>
+                    {selectedCategory?.name ||
+                      form.category_id ||
+                      "Not provided"}
+                  </strong>
+                </div>
+
+                <div className="co-review-field">
+                  <span>Description</span>
+                  <p>{form.description || "Not provided"}</p>
+                </div>
+
+                <div className="co-review-field">
+                  <span>Requirements and Skills</span>
+                  <p>{form.requirements || "Not provided"}</p>
+                </div>
+              </section>
+
+              <section className="co-review-section">
+                <h3>Work Arrangement</h3>
+
+                <div className="co-review-row">
+                  <span>Work Mode</span>
+                  <strong>
+                    {form.work_mode.charAt(0).toUpperCase() +
+                      form.work_mode.slice(1)}
+                  </strong>
+                </div>
+
+                <div className="co-review-row">
+                  <span>Location</span>
+                  <strong>{form.location || "Not provided"}</strong>
+                </div>
+
+                <div className="co-review-row">
+                  <span>Start Date</span>
+                  <strong>{formatDate(form.start_date)}</strong>
+                </div>
+
+                <div className="co-review-row">
+                  <span>End Date</span>
+                  <strong>{formatDate(form.end_date)}</strong>
+                </div>
+
+                <div className="co-review-row">
+                  <span>Application Deadline</span>
+                  <strong>
+                    {formatDate(form.application_deadline)}
+                  </strong>
+                </div>
+
+                <div className="co-review-row">
+                  <span>Expected Hours</span>
+                  <strong>
+                    {form.expected_hours
+                      ? `${form.expected_hours} hours`
+                      : "Not specified"}
+                  </strong>
+                </div>
+
+                <div className="co-review-row">
+                  <span>Applicant Limit</span>
+                  <strong>{form.applicant_limit || "No limit"}</strong>
+                </div>
+              </section>
+
+              <section className="co-review-section">
+                <h3>Compensation</h3>
+
+                <div className="co-review-row">
+                  <span>Type</span>
+                  <strong>
+                    {form.compensation_type === "paid"
+                      ? "Paid"
+                      : "Unpaid / Volunteer"}
+                  </strong>
+                </div>
+
+                {form.compensation_type === "paid" && (
+                  <>
+                    <div className="co-review-row">
+                      <span>Amount</span>
+                      <strong>
+                        {form.compensation_amount
+                          ? `${form.compensation_currency} ${Number(
+                              form.compensation_amount
+                            ).toFixed(2)}`
+                          : "Not provided"}
+                      </strong>
+                    </div>
+
+                    <div className="co-review-row">
+                      <span>Currency</span>
+                      <strong>{form.compensation_currency}</strong>
+                    </div>
+                  </>
+                )}
+              </section>
+
+              <section className="co-review-section">
+                <h3>Safety and Accessibility</h3>
+
+                <div className="co-review-field">
+                  <span>Working Conditions</span>
+                  <p>{form.working_conditions || "Not provided"}</p>
+                </div>
+
+                <div className="co-review-field">
+                  <span>Safety Information</span>
+                  <p>{form.safety_information || "Not provided"}</p>
+                </div>
+
+                <div className="co-review-field">
+                  <span>Accessibility Arrangements</span>
+                  <p>{form.accessibility_details || "Not provided"}</p>
+                </div>
+              </section>
+            </div>
+
+            <div className="co-review-notice">
+              <strong>Ready to publish?</strong>
+              <p>
+                Confirming will create your opportunity and send it for
+                publication. Make sure all details are correct.
+              </p>
+            </div>
+
+            <div className="co-review-actions">
+              <button
+                type="button"
+                className="co-button co-button-light"
+                disabled={submitting}
+                onClick={() => setShowReview(false)}
+              >
+                <ArrowLeft size={17} />
+                Back to Edit
+              </button>
+
+              <button
+                type="button"
+                className="co-button co-button-primary"
+                disabled={submitting}
+                onClick={(event) => {
+                  const formElement =
+                    event.currentTarget.closest(".co-review-modal")
+                      ?.parentElement
+                      ?.parentElement
+                      ?.querySelector<HTMLFormElement>(".co-form");
+
+                  if (formElement && !formElement.reportValidity()) {
+                    setShowReview(false);
+                    return;
+                  }
+
+                  void handleSubmit(
+                    {
+                      preventDefault: () => {},
+                    } as FormEvent<HTMLFormElement>,
+                    false,
+                    true
+                  );
+                }}
+              >
+                <Send size={17} />
+                {submitting ? "Publishing..." : "Confirm & Publish"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
