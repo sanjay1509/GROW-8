@@ -62,6 +62,8 @@
   font-size: 13px;
   font-weight: 650;
   white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .grow8-login {
@@ -70,11 +72,65 @@
   border: 2px solid #b8ceff;
 }
 
+.grow8-login:hover {
+  background: #f3f7ff;
+}
+
 .grow8-signup {
   color: #fff;
   background: linear-gradient(135deg, #174c9c, #0b2e69);
   border: 1px solid #123f8b;
   box-shadow: 0 3px 7px rgba(17, 58, 122, 0.18);
+}
+
+.grow8-signup:hover {
+  background: linear-gradient(135deg, #205db5, #123b80);
+}
+
+/* Logged-in user information */
+.grow8-user-label {
+  color: #26354d;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grow8-dashboard-link {
+  color: #1556d5;
+  background: #fff;
+  border: 1px solid #b8ceff;
+}
+
+.grow8-dashboard-link:hover {
+  background: #f3f7ff;
+}
+
+.grow8-logout-button {
+  color: #fff;
+  background: linear-gradient(135deg, #174c9c, #0b2e69);
+  border: 1px solid #123f8b;
+}
+
+.grow8-logout-button:hover {
+  background: #123b80;
+}
+
+@media (max-width: 850px) {
+  .grow8-navbar {
+    gap: 20px;
+    padding: 0 20px;
+  }
+
+  .grow8-nav-links {
+    gap: 16px;
+  }
+
+  .grow8-user-label {
+    max-width: 100px;
+  }
 }
 
 @media (max-width: 650px) {
@@ -109,5 +165,401 @@
     min-height: 34px;
     padding: 0 12px;
     font-size: 12px;
+  }
+
+  .grow8-user-label {
+    display: none;
+  }
+}
+
+
+/* Profile icon and dropdown */
+.grow8-profile-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.grow8-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  font-family: "Inter", Arial, sans-serif;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.grow8-profile-trigger:hover,
+.grow8-profile-trigger[aria-expanded="true"] {
+  background: #f4f7fc;
+  border-color: #e4eaf4;
+}
+
+.grow8-profile-avatar {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #174c9c, #0b2e69);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.3px;
+}
+
+.grow8-profile-name {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #17233a;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.grow8-chevron {
+  color: #69758a;
+  font-size: 15px;
+  transition: transform 0.2s ease;
+}
+
+.grow8-chevron.open {
+  transform: rotate(180deg);
+}
+
+.grow8-profile-dropdown {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 245px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #e7ecf4;
+  border-radius: 12px;
+  box-shadow: 0 12px 35px rgba(16, 32, 60, 0.14);
+  animation: grow8-dropdown-in 0.16s ease-out;
+}
+
+@keyframes grow8-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.grow8-dropdown-user {
+  padding: 12px 11px;
+}
+
+.grow8-dropdown-name {
+  color: #15213a;
+  font-size: 14px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.grow8-dropdown-email {
+  margin-top: 4px;
+  color: #778197;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.grow8-dropdown-role {
+  display: inline-block;
+  margin-top: 9px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: #edf4ff;
+  color: #1556b8;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.grow8-dropdown-divider {
+  height: 1px;
+  margin: 5px 0;
+  background: #edf0f5;
+}
+
+.grow8-dropdown-item {
+  width: 100%;
+  min-height: 41px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 11px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #27344b;
+  text-decoration: none;
+  text-align: left;
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.grow8-dropdown-item > span {
+  width: 17px;
+  color: #61718b;
+  font-size: 16px;
+  text-align: center;
+}
+
+.grow8-dropdown-item:hover {
+  background: #f2f6fd;
+  color: #1556d5;
+}
+
+.grow8-dropdown-logout {
+  color: #d14343;
+}
+
+.grow8-dropdown-logout > span {
+  color: #d14343;
+}
+
+.grow8-dropdown-logout:hover {
+  background: #fff1f1;
+  color: #c52d2d;
+}
+
+@media (max-width: 650px) {
+  .grow8-profile-name,
+  .grow8-chevron {
+    display: none;
+  }
+
+  .grow8-profile-trigger {
+    padding: 2px;
+  }
+
+  .grow8-profile-dropdown {
+    right: 0;
+    width: 230px;
+  }
+}
+
+
+/* Profile dropdown — matches CreatorNavbar */
+.grow8-profile-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.grow8-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 8px;
+  background: #fff;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: "Inter", Arial, sans-serif;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.grow8-profile-trigger:hover,
+.grow8-profile-trigger[aria-expanded="true"] {
+  background: #f4f7fc;
+  border-color: #e4eaf4;
+}
+
+.grow8-profile-avatar,
+.grow8-dropdown-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #36a665, #176b40);
+  color: #fff;
+  font-weight: 750;
+  letter-spacing: 0.3px;
+}
+
+.grow8-profile-avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 13px;
+}
+
+.grow8-profile-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.grow8-profile-label strong {
+  max-width: 135px;
+  overflow: hidden;
+  color: #17233a;
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grow8-profile-label > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #69758a;
+  font-size: 11px;
+}
+
+.grow8-profile-dropdown {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 260px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #e7ecf4;
+  border-radius: 12px;
+  box-shadow: 0 12px 35px rgba(16, 32, 60, 0.14);
+  animation: grow8-dropdown-in 0.16s ease-out;
+}
+
+.grow8-dropdown-user {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 10px;
+}
+
+.grow8-dropdown-avatar {
+  width: 42px;
+  height: 42px;
+  font-size: 14px;
+}
+
+.grow8-dropdown-user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 4px;
+}
+
+.grow8-dropdown-user-info strong {
+  overflow-wrap: anywhere;
+  color: #15213a;
+  font-size: 13px;
+}
+
+.grow8-dropdown-user-info > span {
+  overflow-wrap: anywhere;
+  color: #778197;
+  font-size: 11px;
+}
+
+.grow8-dropdown-user-info small {
+  color: #1556b8;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.grow8-dropdown-divider {
+  height: 1px;
+  margin: 5px 0;
+  background: #edf0f5;
+}
+
+.grow8-dropdown-item {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 11px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #27344b;
+  text-align: left;
+  text-decoration: none;
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.grow8-dropdown-item > svg {
+  flex-shrink: 0;
+  color: #61718b;
+}
+
+.grow8-dropdown-item:hover {
+  background: #f2f6fd;
+  color: #1556d5;
+}
+
+.grow8-dropdown-item:hover > svg {
+  color: #1556d5;
+}
+
+.grow8-dropdown-logout {
+  color: #d14343;
+}
+
+.grow8-dropdown-logout > svg {
+  color: #d14343;
+}
+
+.grow8-dropdown-logout:hover {
+  background: #fff1f1;
+  color: #c52d2d;
+}
+
+@keyframes grow8-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 850px) {
+  .grow8-profile-label strong {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 650px) {
+  .grow8-profile-label {
+    display: none;
+  }
+
+  .grow8-profile-trigger {
+    padding: 2px;
+  }
+
+  .grow8-profile-dropdown {
+    width: 245px;
   }
 }

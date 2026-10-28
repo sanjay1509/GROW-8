@@ -47,7 +47,7 @@ export default function RolesSection() {
         <button
           type="button"
           className="grow8-role-button"
-          onClick={() => navigate("/creator-dashboard")}
+          onClick={() => navigate("/creator/dashboard")}
           aria-label="Open Creator Dashboard"
         >
           <RoleCard

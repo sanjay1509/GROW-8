@@ -170,7 +170,7 @@ The database is defined by three files in [`grow8-backend/db/init/`](grow8-backe
 
 | File | What it does |
 | --- | --- |
-| `001_schema.sql` | Creates all 17 tables (the single source of truth for the schema). |
+| `001_schema.sql` | Creates all 18 tables: the 17 from the ENSF 608 proposal plus `notification` (see [ADR 0003](grow8-backend/docs/adr/0003-persisted-notifications.md)). It is the single source of truth for the schema. |
 | `002_seed.sql` | Fills them with **development-only** placeholder data. It uses fixed IDs and dates, so every developer gets identical rows. |
 | `003_test_database.sh` | Creates an empty `grow8_test` database that `make test` uses, so tests never change your dev data. |
 

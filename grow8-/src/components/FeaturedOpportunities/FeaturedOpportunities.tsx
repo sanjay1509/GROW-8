@@ -11,44 +11,10 @@ import {
 import OpportunityCard from "../OpportunityCard/OpportunityCard";
 import "./FeaturedOpportunities.css";
 
-// Temporary sample data until the backend is connected
-const sampleOpportunities = [
-  {
-    id: 1,
-    title: "Social Media Support",
-    organization: "Green Future NGO",
-    location: "Calgary, AB",
-    mode: "Remote",
-    category: "Digital Support",
-    hours: "5-10 hrs",
-    icon: HeartHandshake,
-    color: "blue",
-  },
-  {
-    id: 2,
-    title: "Event Volunteer Support",
-    organization: "City Arts Festival",
-    location: "Calgary, AB",
-    mode: "On-site",
-    category: "Community",
-    hours: "8-12 hrs",
-    icon: Building2,
-    color: "orange",
-  },
-  {
-    id: 3,
-    title: "Data Entry and Organization",
-    organization: "Local Business Inc.",
-    location: "Calgary, AB",
-    mode: "Remote",
-    category: "Digital Support",
-    hours: "5-10 hrs",
-    icon: BriefcaseBusiness,
-    color: "blue",
-  },
-];
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
 
-// Select up to three random opportunities
+// Randomly select up to three unique opportunities.
 function getRandomOpportunities(opportunities, count = 3) {
   const shuffled = [...opportunities];
 
@@ -60,24 +26,73 @@ function getRandomOpportunities(opportunities, count = 3) {
   return shuffled.slice(0, count);
 }
 
-export default function FeaturedOpportunities({
-  items,
-  fetchFromBackend = false,
-}) {
-  const [featuredItems, setFeaturedItems] = useState(() =>
-    getRandomOpportunities(items ?? sampleOpportunities)
-  );
+// Convert the backend response into the format used by OpportunityCard.
+function normalizeOpportunity(opportunity) {
+  const category =
+    typeof opportunity.category === "object"
+      ? opportunity.category?.name || opportunity.category?.code
+      : opportunity.category;
 
-  const [loading, setLoading] = useState(fetchFromBackend);
+  const organization =
+    typeof opportunity.organization === "object"
+      ? opportunity.organization?.name ||
+        opportunity.organization?.organization_name
+      : opportunity.organization;
+
+  const mode = opportunity.work_mode || opportunity.mode || "Not specified";
+
+  const hours =
+    opportunity.expected_hours != null
+      ? `${opportunity.expected_hours} hrs`
+      : opportunity.hours || "Flexible";
+
+  const categoryText = String(category || "Opportunity").toLowerCase();
+
+  let icon = BriefcaseBusiness;
+  let color = "blue";
+
+  if (
+    categoryText.includes("community") ||
+    categoryText.includes("volunteer") ||
+    categoryText.includes("social")
+  ) {
+    icon = HeartHandshake;
+    color = "orange";
+  } else if (
+    categoryText.includes("business") ||
+    categoryText.includes("organization") ||
+    categoryText.includes("event")
+  ) {
+    icon = Building2;
+    color = "blue";
+  }
+
+  return {
+    ...opportunity,
+    id: opportunity.opportunity_id ?? opportunity.id,
+    title: opportunity.title || "Untitled Opportunity",
+    organization:
+      organization ||
+      opportunity.organization_name ||
+      opportunity.organization?.name ||
+      "Organization",
+    location: opportunity.location || "Location not specified",
+    mode: String(mode)
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase()),
+    category: category || "General",
+    hours,
+    icon,
+    color,
+  };
+}
+
+export default function FeaturedOpportunities() {
+  const [featuredItems, setFeaturedItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!fetchFromBackend) {
-      setFeaturedItems(getRandomOpportunities(items ?? sampleOpportunities));
-      setLoading(false);
-      return;
-    }
-
     const controller = new AbortController();
 
     async function loadOpportunities() {
@@ -85,23 +100,49 @@ export default function FeaturedOpportunities({
         setLoading(true);
         setError("");
 
-        // Replace this URL with your actual backend endpoint.
+        // Fetch real opportunities from the FastAPI backend.
         const response = await fetch(
-          "/api/opportunities/featured",
-          { signal: controller.signal }
+          `${API_BASE_URL}/opportunities?limit=100`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+            signal: controller.signal,
+          }
         );
 
         if (!response.ok) {
-          throw new Error("Failed to load opportunities.");
+          throw new Error(
+            `Failed to load opportunities (HTTP ${response.status}).`
+          );
         }
 
         const data = await response.json();
 
-        setFeaturedItems(
-          getRandomOpportunities(Array.isArray(data) ? data : [], 3)
-        );
+        // FastAPI returns a paginated response with an "items" array.
+        const opportunities = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.items)
+            ? data.items
+            : [];
+
+        // Exclude records without a usable ID or title.
+        const validOpportunities = opportunities
+          .filter(
+            (item) =>
+              item &&
+              (item.opportunity_id != null || item.id != null) &&
+              typeof item.title === "string" &&
+              item.title.trim() !== ""
+          )
+          .map(normalizeOpportunity);
+
+        // Randomize the results whenever this component loads.
+        setFeaturedItems(getRandomOpportunities(validOpportunities, 3));
       } catch (err) {
         if (err.name !== "AbortError") {
+          console.error("Error loading featured opportunities:", err);
           setError("Unable to load opportunities right now.");
           setFeaturedItems([]);
         }
@@ -112,10 +153,10 @@ export default function FeaturedOpportunities({
       }
     }
 
-    loadOpportunities();
+    void loadOpportunities();
 
     return () => controller.abort();
-  }, [items, fetchFromBackend]);
+  }, []);
 
   return (
     <section className="grow8-featured" id="opportunities">
