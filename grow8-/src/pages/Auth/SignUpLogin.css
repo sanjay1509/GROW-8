@@ -1,0 +1,513 @@
+
+.grow8-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #eef3fb;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: #202b45;
+}
+
+.grow8-auth-page * {
+  box-sizing: border-box;
+}
+
+.grow8-auth-card {
+  display: grid;
+  grid-template-columns: 1.12fr 0.88fr;
+  width: min(100%, 920px);
+  min-height: 600px;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 12px 38px rgba(25, 45, 80, 0.1);
+}
+
+/* Left panel */
+.grow8-auth-form-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 42px 28px;
+  min-width: 0;
+}
+
+/* Close button */
+.grow8-auth-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #f1f4f9;
+  color: #475569;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.grow8-auth-close:hover {
+  background: #e1e8f4;
+  color: #14213d;
+  transform: rotate(90deg);
+}
+
+.grow8-auth-close:focus-visible {
+  outline: 2px solid #2860f4;
+  outline-offset: 3px;
+}
+
+/* Brand */
+.grow8-auth-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 12px;
+  color: #0c2755;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.grow8-auth-brand svg {
+  color: #239b56;
+  fill: #d5f2df;
+}
+
+/* Heading */
+.grow8-auth-heading {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.grow8-auth-heading h1 {
+  margin: 0 0 6px;
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+}
+
+.grow8-auth-heading p {
+  margin: 0;
+  color: #71809d;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Contributor and Creator role cards */
+.grow8-role-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.grow8-role-card {
+  display: flex;
+  min-width: 0;
+  min-height: 94px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 4px;
+  border: 1px solid #e1e7f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #25324c;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.grow8-role-card:hover {
+  border-color: #9ab5ff;
+  transform: translateY(-2px);
+}
+
+.grow8-role-card.selected {
+  border-color: #2860f4;
+  background: #f5f8ff;
+  box-shadow: 0 0 0 2px rgba(40, 96, 244, 0.08);
+}
+
+.grow8-role-card:focus-visible {
+  outline: 2px solid #2860f4;
+  outline-offset: 3px;
+}
+
+.grow8-role-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+}
+
+.contributor-icon {
+  background: #eaf0ff;
+  color: #215cff;
+}
+
+.creator-icon {
+  background: #e8f8ef;
+  color: #16834a;
+}
+
+.grow8-role-card strong {
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.grow8-role-card small {
+  color: #6f7d96;
+  font-size: 9px;
+  text-align: center;
+}
+
+/* Form */
+.grow8-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.grow8-auth-form > input,
+.grow8-password-field input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #dfe5ee;
+  border-radius: 5px;
+  outline: none;
+  background: #fff;
+  color: #25324c;
+  font-family: inherit;
+  font-size: 12px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.grow8-auth-form input::placeholder {
+  color: #77859d;
+}
+
+.grow8-auth-form > input:focus,
+.grow8-password-field input:focus {
+  border-color: #3266f5;
+  box-shadow: 0 0 0 3px rgba(50, 102, 245, 0.1);
+}
+
+.grow8-password-field {
+  position: relative;
+  width: 100%;
+}
+
+.grow8-password-field input {
+  padding-right: 40px;
+}
+
+.grow8-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  padding: 3px;
+  border: 0;
+  background: transparent;
+  color: #77859d;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.grow8-password-toggle:hover {
+  color: #245cf5;
+}
+
+.grow8-password-toggle:focus-visible {
+  outline: 2px solid #2860f4;
+  border-radius: 4px;
+}
+
+/* Main Login / Sign Up button */
+.grow8-auth-submit {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 3px;
+  border: 0;
+  border-radius: 5px;
+  background: linear-gradient(100deg, #2860f4, #1654ed);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    filter 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.grow8-auth-submit:hover {
+  filter: brightness(1.06);
+}
+
+.grow8-auth-submit:active {
+  transform: scale(0.99);
+}
+
+.grow8-auth-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Separate Admin login button below the main button */
+.grow8-admin-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 38px;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border: 1px solid #dce3ef;
+  border-radius: 5px;
+  background: #fff;
+  color: #334155;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.grow8-admin-login:hover {
+  background: #f5f7fb;
+  border-color: #9baac2;
+  color: #14213d;
+}
+
+.grow8-admin-login:focus-visible {
+  outline: 2px solid #2860f4;
+  outline-offset: 3px;
+}
+
+.grow8-admin-login:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Login / Sign Up switch */
+.grow8-auth-switch {
+  margin: 14px 0 0;
+  color: #71809d;
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.grow8-auth-switch button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1458f5;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.grow8-auth-switch button:hover {
+  text-decoration: underline;
+}
+
+/* Success and error messages */
+.grow8-auth-message {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.grow8-auth-message.error {
+  color: #c33232;
+}
+
+.grow8-auth-message.success {
+  color: #15803d;
+}
+
+/* Right-side image panel */
+.grow8-auth-visual {
+  position: relative;
+  display: flex;
+  min-height: 600px;
+  align-items: flex-end;
+  overflow: hidden;
+  background-color: #154e70;
+  background-image: url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85");
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+}
+
+.grow8-visual-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(9, 29, 48, 0.02) 15%,
+    rgba(7, 27, 42, 0.15) 43%,
+    rgba(3, 19, 30, 0.88) 100%
+  );
+}
+
+.grow8-visual-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 38px 30px 32px;
+}
+
+.grow8-visual-tag {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #c7e7ff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.grow8-visual-content h2 {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: clamp(25px, 3vw, 35px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.8px;
+}
+
+.grow8-visual-content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.grow8-slide-indicators {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 22px;
+}
+
+.grow8-slide-indicators span {
+  width: 22px;
+  height: 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.grow8-slide-indicators span.active {
+  width: 35px;
+  background: #fff;
+}
+
+/* Larger screens */
+@media (min-width: 1000px) {
+  .grow8-auth-card {
+    width: min(100%, 900px);
+    min-height: 570px;
+  }
+
+  .grow8-auth-form-panel {
+    padding-right: 48px;
+    padding-left: 48px;
+  }
+
+  .grow8-auth-visual {
+    min-height: 570px;
+  }
+}
+
+/* Tablet and mobile */
+@media (max-width: 680px) {
+  .grow8-auth-page {
+    padding: 12px;
+    align-items: flex-start;
+  }
+
+  .grow8-auth-card {
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 430px;
+    margin: auto;
+  }
+
+  .grow8-auth-form-panel {
+    padding: 54px 24px 30px;
+  }
+
+  .grow8-auth-visual {
+    min-height: 280px;
+  }
+
+  .grow8-visual-content {
+    padding: 28px 24px;
+  }
+
+  .grow8-visual-content h2 {
+    font-size: 28px;
+  }
+}
+
+/* Small mobile screens */
+@media (max-width: 360px) {
+  .grow8-auth-form-panel {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .grow8-role-grid {
+    gap: 7px;
+  }
+
+  .grow8-role-card {
+    min-height: 88px;
+  }
+
+  .grow8-role-card strong {
+    font-size: 10px;
+  }
+
+  .grow8-role-card small {
+    font-size: 8px;
+  }
+
+  .grow8-auth-heading h1 {
+    font-size: 19px;
+  }
+}
