@@ -4,6 +4,7 @@ from decimal import Decimal
 from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     Numeric,
@@ -62,6 +63,12 @@ class PointTransaction(Base):
             "contributor_id", "badge_id", name="uq_point_transaction_contributor_badge"
         ),
         Index("ix_point_transaction_badge", "badge_id"),
+        # Badge points only for a badge this contributor earned (NULL badge_id: not checked).
+        ForeignKeyConstraint(
+            ["contributor_id", "badge_id"],
+            ["contributor_badge.contributor_id", "contributor_badge.badge_id"],
+            name="fk_point_transaction_contributor_badge",
+        ),
         CheckConstraint(
             "(source = 'work_verified' AND verification_id IS NOT NULL AND badge_id IS NULL) "
             "OR (source = 'badge_awarded' AND badge_id IS NOT NULL AND verification_id IS NULL)",
@@ -82,7 +89,5 @@ class PointTransaction(Base):
             "work_verification.verification_id", name="fk_point_transaction_verification"
         ),
     )
-    badge_id: Mapped[int | None] = mapped_column(
-        UnsignedInt, ForeignKey("badge.badge_id", name="fk_point_transaction_badge")
-    )
+    badge_id: Mapped[int | None] = mapped_column(UnsignedInt)
     created_at: Mapped[datetime] = created_at_column()

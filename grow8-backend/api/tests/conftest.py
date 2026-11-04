@@ -42,16 +42,41 @@ def _connect() -> pymysql.Connection:
     )
 
 
+def _split_sql(script: str) -> Iterator[str]:
+    """Split a script into statements the way the mysql client does, honouring
+    `DELIMITER` lines (needed for the trigger and procedure bodies in 001_schema.sql)."""
+    delimiter = ";"
+    buffer: list[str] = []
+    for line in script.splitlines():
+        stripped = line.strip()
+        if stripped.upper().startswith("DELIMITER "):
+            delimiter = stripped.split(None, 1)[1]
+            continue
+        buffer.append(line)
+        if stripped.endswith(delimiter) and not stripped.startswith("--"):
+            statement = "\n".join(buffer).strip()[: -len(delimiter)].strip()
+            buffer = []
+            if statement:
+                yield statement
+    if any(line.strip() and not line.strip().startswith("--") for line in buffer):
+        yield "\n".join(buffer).strip()
+
+
 def _run_sql_file(conn: pymysql.Connection, path: Path) -> None:
+    script = path.read_text(encoding="utf-8")
     with conn.cursor() as cur:
-        cur.execute(path.read_text(encoding="utf-8"))
-        while cur.nextset():
-            pass
+        if "DELIMITER" not in script:
+            cur.execute(script)
+            while cur.nextset():
+                pass
+            return
+        for statement in _split_sql(script):
+            cur.execute(statement)
 
 
-def _tables(conn: pymysql.Connection) -> list[str]:
+def _tables(conn: pymysql.Connection, table_type: str = "BASE TABLE") -> list[str]:
     with conn.cursor() as cur:
-        cur.execute("SHOW TABLES")
+        cur.execute("SHOW FULL TABLES WHERE Table_type = %s", (table_type,))
         return [row[0] for row in cur.fetchall()]
 
 
@@ -59,6 +84,9 @@ def _clear_tables(conn: pymysql.Connection, drop: bool) -> None:
     statement = "DROP TABLE `{}`" if drop else "DELETE FROM `{}`"
     with conn.cursor() as cur:
         cur.execute("SET FOREIGN_KEY_CHECKS = 0")
+        if drop:
+            for view in _tables(conn, "VIEW"):
+                cur.execute(f"DROP VIEW `{view}`")
         for table in _tables(conn):
             cur.execute(statement.format(table))
         cur.execute("SET FOREIGN_KEY_CHECKS = 1")
