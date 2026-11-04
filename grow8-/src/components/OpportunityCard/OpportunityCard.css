@@ -1,0 +1,273 @@
+
+/* ========================================
+   GROW8 OPPORTUNITY CARD
+======================================== */
+
+.grow8-opportunity-card {
+  min-width: 0;
+  min-height: 190px;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+
+  padding: 20px 18px;
+
+  border: 1px solid #edf1f6;
+  border-radius: 15px;
+
+  background: #ffffff;
+
+  box-shadow: 0 2px 7px rgba(26, 51, 84, 0.08);
+
+  font-family: "Inter", Arial, sans-serif;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.grow8-opportunity-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(26, 51, 84, 0.10);
+}
+
+/* ========================================
+   OPPORTUNITY ICON
+======================================== */
+
+.grow8-opportunity-icon {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 13px;
+
+  color: #1559e7;
+  background: #e6efff;
+}
+
+.grow8-opportunity-icon.orange {
+  color: #f0522b;
+  background: #fff0e9;
+}
+
+/* ========================================
+   CARD CONTENT
+======================================== */
+
+.grow8-opportunity-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.grow8-opportunity-content h3 {
+  margin: 3px 0 5px;
+
+  color: #131b2a;
+
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 750;
+  letter-spacing: -0.2px;
+
+  overflow-wrap: anywhere;
+}
+
+.grow8-organization {
+  margin: 0;
+
+  color: #6b7687;
+
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* ========================================
+   LOCATION AND WORK MODE
+======================================== */
+
+.grow8-opportunity-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: 10px 14px;
+
+  margin: 20px 0 13px -69px;
+
+  color: #697587;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.grow8-opportunity-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  white-space: nowrap;
+}
+
+.grow8-opportunity-meta svg {
+  flex-shrink: 0;
+  stroke-width: 2.3;
+}
+
+/* ========================================
+   CATEGORY AND HOURS TAGS
+======================================== */
+
+.grow8-opportunity-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-left: -69px;
+}
+
+.grow8-tag {
+  min-height: 32px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  padding: 0 11px;
+
+  border-radius: 11px;
+
+  white-space: nowrap;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.grow8-tag svg {
+  flex-shrink: 0;
+}
+
+.grow8-category {
+  color: #1556d5;
+  background: #e5eeff;
+}
+
+.grow8-category.community {
+  color: #9b6618;
+  background: #fff0cc;
+}
+
+.grow8-hours {
+  color: #5c6b80;
+  background: #eef3f9;
+}
+
+/* ========================================
+   TABLET RESPONSIVENESS
+======================================== */
+
+@media (max-width: 900px) {
+  .grow8-opportunity-card {
+    min-height: 180px;
+    gap: 10px;
+    padding: 16px 12px;
+  }
+
+  .grow8-opportunity-icon {
+    width: 46px;
+    height: 46px;
+    flex-basis: 46px;
+  }
+
+  .grow8-opportunity-content h3 {
+    font-size: 14px;
+  }
+
+  .grow8-organization {
+    font-size: 12px;
+  }
+
+  .grow8-opportunity-meta,
+  .grow8-opportunity-tags {
+    margin-left: -58px;
+  }
+
+  .grow8-opportunity-meta {
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  .grow8-tag {
+    min-height: 30px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+}
+
+/* ========================================
+   MOBILE RESPONSIVENESS
+======================================== */
+
+@media (max-width: 650px) {
+  .grow8-opportunity-card {
+    min-height: 165px;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .grow8-opportunity-icon {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+  }
+
+  .grow8-opportunity-content h3 {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .grow8-organization {
+    font-size: 12px;
+  }
+
+  .grow8-opportunity-meta,
+  .grow8-opportunity-tags {
+    margin-left: -60px;
+  }
+
+  .grow8-opportunity-meta {
+    margin-top: 16px;
+    margin-bottom: 12px;
+    gap: 10px;
+    font-size: 11px;
+  }
+
+  .grow8-tag {
+    min-height: 30px;
+    padding: 0 9px;
+    font-size: 11px;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .grow8-opportunity-card {
+    transition: none;
+  }
+
+  .grow8-opportunity-card:hover {
+    transform: none;
+  }
+}
