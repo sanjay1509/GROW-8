@@ -180,5 +180,5 @@ More implementation details, setup instructions, and usage documentation can be 
 - [Class diagram](docs/diagrams/class-diagram.drawio.svg)
 - [Architecture diagram](docs/diagrams/architectureDiagram607Project.png)
 - [User Stories](https://docs.google.com/document/d/1muAfw88L-geIDE3aOM3-dn9aTc-V78F9JkT1dOCExAI/edit?usp=sharing "Google Doc File")
-- [ER Diagram](https://drive.google.com/drive/folders/1QxEIjlInno7MfMk9ziQp9i9-fl-NeeVU?usp=sharing "draw.io Import File")
+- [ER Diagram](docs/diagrams/ER-diagram.drawio.svg)
 - [Data Dictionary](https://docs.google.com/spreadsheets/d/10z_qGlHWLnbuE7DJr4je_tGaTtfz8Kyzln5PdvFpMBU/edit?usp=sharing "Google Sheet File")
