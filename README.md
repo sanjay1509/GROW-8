@@ -177,6 +177,7 @@ More implementation details, setup instructions, and usage documentation can be 
 
 - [ENSF 607 Submission]()
 - [ENSF 607 Submission]()
+- [Class diagram](docs/diagrams/class-diagram.drawio.svg)
 - [User Stories](https://docs.google.com/document/d/1muAfw88L-geIDE3aOM3-dn9aTc-V78F9JkT1dOCExAI/edit?usp=sharing "Google Doc File")
 - [ER Diagram](https://drive.google.com/drive/folders/1QxEIjlInno7MfMk9ziQp9i9-fl-NeeVU?usp=sharing "draw.io Import File")
 - [Data Dictionary](https://docs.google.com/spreadsheets/d/10z_qGlHWLnbuE7DJr4je_tGaTtfz8Kyzln5PdvFpMBU/edit?usp=sharing "Google Sheet File")
