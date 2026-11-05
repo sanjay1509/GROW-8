@@ -4,6 +4,7 @@ import {
   BriefcaseBusiness,
   CircleUserRound,
   ClipboardCheck,
+  HomeIcon,
   LayoutDashboard,
   MessageSquareText,
   Settings,
@@ -12,6 +13,7 @@ import {
 import "./CreatorSidebar.css";
 
 const navigation = [
+  { path: "/", label: "Home", icon: HomeIcon},
   { path: "/creator/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
   { path: "/creator/opportunities", label: "My Opportunities", icon: BriefcaseBusiness },
   { path: "/creator/applications", label: "Applications", icon: UsersRound },

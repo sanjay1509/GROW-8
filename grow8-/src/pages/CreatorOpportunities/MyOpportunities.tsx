@@ -10,6 +10,8 @@ import {
   CalendarDays,
   RefreshCw,
   Eye,
+  X,
+  Trash2,
 } from "lucide-react";
 import "./MyOpportunities.css";
 
@@ -26,15 +28,19 @@ type Opportunity = {
   work_mode?: string;
   expected_hours?: number | null;
   application_deadline?: string | null;
+  created_at?: string | null;
+  published_at?: string | null;
   compensation_type?: string;
   compensation_amount?: number | null;
 };
 
 function formatDate(value?: string | null) {
-  if (!value) return "No deadline";
+  if (!value) return "Not available";
+
   const date = new Date(value);
+
   return Number.isNaN(date.getTime())
-    ? "No deadline"
+    ? "Not available"
     : date.toLocaleDateString("en-CA", {
         year: "numeric",
         month: "short",
@@ -49,12 +55,41 @@ function statusLabel(status: string) {
   );
 }
 
+function getCompensation(item: Opportunity) {
+  if (
+    item.compensation_type === "stipend" &&
+    item.compensation_amount != null
+  ) {
+    return `$${item.compensation_amount} stipend`;
+  }
+
+  if (
+    item.compensation_type === "paid" &&
+    item.compensation_amount != null
+  ) {
+    return `$${item.compensation_amount} paid`;
+  }
+
+  if (item.compensation_type === "unpaid") {
+    return "Volunteer / Unpaid";
+  }
+
+  return item.compensation_type
+    ? statusLabel(item.compensation_type)
+    : "Compensation not specified";
+}
+
 export default function MyOpportunities() {
   const [items, setItems] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
+
+  const [selectedOpportunity, setSelectedOpportunity] =
+    useState<Opportunity | null>(null);
+
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   async function loadOpportunities() {
     setLoading(true);
@@ -72,7 +107,9 @@ export default function MyOpportunities() {
       const response = await fetch(
         `${API_BASE_URL}/opportunities/mine`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -84,14 +121,15 @@ export default function MyOpportunities() {
         );
       }
 
-      const rows = Array.isArray(data)
-        ? data
-        : data &&
-            typeof data === "object" &&
-            "items" in data &&
-            Array.isArray(data.items)
-          ? data.items
-          : [];
+      const rows =
+        Array.isArray(data)
+          ? data
+          : data &&
+              typeof data === "object" &&
+              "items" in data &&
+              Array.isArray(data.items)
+            ? data.items
+            : [];
 
       setItems(rows as Opportunity[]);
     } catch (err) {
@@ -108,6 +146,84 @@ export default function MyOpportunities() {
   useEffect(() => {
     void loadOpportunities();
   }, []);
+
+  // Close the details popup with Escape.
+  useEffect(() => {
+    if (!selectedOpportunity) return;
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedOpportunity(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [selectedOpportunity]);
+
+  async function deleteOpportunity(item: Opportunity) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${item.title}"? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      window.alert("Please sign in to delete an opportunity.");
+      return;
+    }
+
+    setDeletingId(item.opportunity_id);
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/opportunities/${item.opportunity_id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+
+        throw new Error(
+          data?.detail ||
+            `Unable to delete opportunity (HTTP ${response.status}).`
+        );
+      }
+
+      // Update the list after the server confirms deletion.
+      setItems((currentItems) =>
+        currentItems.filter(
+          (opportunity) =>
+            opportunity.opportunity_id !== item.opportunity_id
+        )
+      );
+
+      // Close the popup if it shows the deleted opportunity.
+      setSelectedOpportunity((current) =>
+        current?.opportunity_id === item.opportunity_id
+          ? null
+          : current
+      );
+    } catch (err) {
+      window.alert(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong while deleting the opportunity."
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   const filtered = useMemo(() => {
     return items.filter((item) => {
@@ -130,7 +246,9 @@ export default function MyOpportunities() {
         <div>
           <span className="mo-eyebrow">CREATOR WORKSPACE</span>
           <h1>My Opportunities</h1>
-          <p>Manage the opportunities your organization has created.</p>
+          <p>
+            Manage the opportunities your organization has created.
+          </p>
         </div>
 
         <Link
@@ -144,6 +262,7 @@ export default function MyOpportunities() {
       <div className="mo-toolbar">
         <label className="mo-search">
           <Search size={18} />
+
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -169,7 +288,7 @@ export default function MyOpportunities() {
         <button
           className="mo-refresh-button"
           onClick={() => void loadOpportunities()}
-          disabled={loading}
+          disabled={loading || deletingId !== null}
           type="button"
         >
           <RefreshCw size={16} /> Refresh
@@ -193,7 +312,11 @@ export default function MyOpportunities() {
         <div className="mo-error" role="alert">
           <strong>Unable to load opportunities</strong>
           <p>{error}</p>
-          <button type="button" onClick={() => void loadOpportunities()}>
+
+          <button
+            type="button"
+            onClick={() => void loadOpportunities()}
+          >
             Try again
           </button>
         </div>
@@ -204,12 +327,19 @@ export default function MyOpportunities() {
           <span className="mo-empty-icon">
             <BriefcaseBusiness size={30} />
           </span>
-          <h2>{items.length ? "No matching opportunities" : "No opportunities yet"}</h2>
+
+          <h2>
+            {items.length
+              ? "No matching opportunities"
+              : "No opportunities yet"}
+          </h2>
+
           <p>
             {items.length
               ? "Try another search term or status filter."
               : "Create your first opportunity to start connecting with contributors."}
           </p>
+
           {items.length === 0 && (
             <Link
               className="mo-create-button"
@@ -224,13 +354,19 @@ export default function MyOpportunities() {
       {!loading && !error && filtered.length > 0 && (
         <div className="mo-grid">
           {filtered.map((item) => (
-            <article className="mo-card" key={item.opportunity_id}>
+            <article
+              className="mo-card"
+              key={item.opportunity_id}
+            >
               <div className="mo-card-top">
                 <span className="mo-card-icon">
                   <BriefcaseBusiness size={22} />
                 </span>
+
                 <span
-                  className={`mo-badge mo-status-${item.status.toLowerCase().replaceAll("_", "-")}`}
+                  className={`mo-badge mo-status-${item.status
+                    .toLowerCase()
+                    .replaceAll("_", "-")}`}
                 >
                   {statusLabel(item.status)}
                 </span>
@@ -241,19 +377,26 @@ export default function MyOpportunities() {
               </span>
 
               <h2>{item.title}</h2>
-              <p className="mo-description">{item.description}</p>
+
+              <p className="mo-description">
+                {item.description}
+              </p>
 
               <div className="mo-metadata">
                 <span>
                   <MapPin size={16} />
-                  {item.location || item.work_mode?.replaceAll("_", " ") || "Location not specified"}
+                  {item.location ||
+                    item.work_mode?.replaceAll("_", " ") ||
+                    "Location not specified"}
                 </span>
+
                 <span>
                   <Clock size={16} />
                   {item.expected_hours != null
                     ? `${item.expected_hours} expected hours`
                     : "Hours not specified"}
                 </span>
+
                 <span>
                   <CalendarDays size={16} />
                   Deadline: {formatDate(item.application_deadline)}
@@ -262,28 +405,173 @@ export default function MyOpportunities() {
 
               <div className="mo-card-footer">
                 <span className="mo-compensation">
-                  {item.compensation_type === "stipend" &&
-                  item.compensation_amount != null
-                    ? `$${item.compensation_amount} stipend`
-                    : item.compensation_type === "paid" &&
-                        item.compensation_amount != null
-                      ? `$${item.compensation_amount} paid`
-                      : item.compensation_type === "unpaid"
-                        ? "Volunteer / Unpaid"
-                        : item.compensation_type
-                          ? statusLabel(item.compensation_type)
-                          : "Compensation not specified"}
+                  {getCompensation(item)}
                 </span>
 
-                <Link
-                  to={`/creator/opportunities/${item.opportunity_id}`}
-                  className="mo-view-link"
-                >
-                  <Eye size={16} /> View
-                </Link>
+                <div className="mo-card-actions">
+                  <button
+                    type="button"
+                    className="mo-view-link"
+                    onClick={() => setSelectedOpportunity(item)}
+                    aria-label={`View details for ${item.title}`}
+                  >
+                    <Eye size={16} /> View
+                  </button>
+
+                  <button
+                    type="button"
+                    className="mo-delete-button"
+                    onClick={() => void deleteOpportunity(item)}
+                    disabled={deletingId !== null}
+                    aria-label={`Delete ${item.title}`}
+                  >
+                    <Trash2 size={16} />
+                    {deletingId === item.opportunity_id
+                      ? "Deleting..."
+                      : "Delete"}
+                  </button>
+                </div>
               </div>
             </article>
           ))}
+        </div>
+      )}
+
+      {/* Opportunity details popup */}
+      {selectedOpportunity && (
+        <div
+          className="mo-modal-overlay"
+          onClick={() => setSelectedOpportunity(null)}
+        >
+          <section
+            className="mo-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mo-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="mo-modal-header">
+              <div>
+                <span className="mo-eyebrow">
+                  CREATOR WORKSPACE
+                </span>
+
+                <h2 id="mo-modal-title">
+                  {selectedOpportunity.title}
+                </h2>
+
+                <p>Opportunity details</p>
+              </div>
+
+              <button
+                type="button"
+                className="mo-modal-close"
+                onClick={() => setSelectedOpportunity(null)}
+                aria-label="Close opportunity details"
+              >
+                <X size={22} />
+              </button>
+            </header>
+
+            <div className="mo-modal-body">
+              <div className="mo-modal-status">
+                <span className="mo-category">
+                  {selectedOpportunity.category?.name ??
+                    "Opportunity"}
+                </span>
+
+                <span
+                  className={`mo-badge mo-status-${selectedOpportunity.status
+                    .toLowerCase()
+                    .replaceAll("_", "-")}`}
+                >
+                  {statusLabel(selectedOpportunity.status)}
+                </span>
+              </div>
+
+              <div className="mo-modal-section">
+                <h3>Description</h3>
+                <p>
+                  {selectedOpportunity.description ||
+                    "No description provided."}
+                </p>
+              </div>
+
+              <div className="mo-modal-info-grid">
+                <div className="mo-modal-info">
+                  <MapPin size={18} />
+                  <div>
+                    <span>Location</span>
+                    <strong>
+                      {selectedOpportunity.location ||
+                        selectedOpportunity.work_mode?.replaceAll(
+                          "_",
+                          " "
+                        ) ||
+                        "Not specified"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="mo-modal-info">
+                  <Clock size={18} />
+                  <div>
+                    <span>Expected hours</span>
+                    <strong>
+                      {selectedOpportunity.expected_hours != null
+                        ? `${selectedOpportunity.expected_hours} hours`
+                        : "Not specified"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="mo-modal-info">
+                  <CalendarDays size={18} />
+                  <div>
+                    <span>Published Date</span>
+                    <strong>
+                      {formatDate(
+                        selectedOpportunity.published_at ??
+                          selectedOpportunity.created_at
+                      )}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="mo-modal-info">
+                  <CalendarDays size={18} />
+                  <div>
+                    <span>Application deadline</span>
+                    <strong>
+                      {formatDate(
+                        selectedOpportunity.application_deadline
+                      )}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="mo-modal-info">
+                  <BriefcaseBusiness size={18} />
+                  <div>
+                    <span>Compensation</span>
+                    <strong>
+                      {getCompensation(selectedOpportunity)}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <footer className="mo-modal-footer">
+              <button
+                type="button"
+                className="mo-modal-close-button"
+                onClick={() => setSelectedOpportunity(null)}
+              >
+                Close
+              </button>
+            </footer>
+          </section>
         </div>
       )}
     </section>
