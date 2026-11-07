@@ -1,0 +1,7 @@
+# Shared deps (SQLAlchemy, PyMySQL, pika, pydantic...) come from shared/pyproject.toml.
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+# JWT access tokens (CLAUDE.md: JWT bearer auth)
+PyJWT==2.10.1
+# password hashing (CLAUDE.md: bcrypt hashes)
+bcrypt==4.3.0
