@@ -149,7 +149,7 @@ A FK to UserAccount only checks that the user exists, not their role. And a MySQ
 | `approved_hours` set only when the decision is approved | `CHECK ((decision = 'approved' AND approved_hours > 0) OR (decision = 'rejected' AND approved_hours IS NULL))` |
 | Points only from `approved` verifications | Trigger or backend check |
 
-**Open question:** does the applicant limit count all applications, or only accepted ones?
+**Resolved (decision 4):** the limit counts active applications (pending + accepted). It is enforced in the database rather than the backend, so every code path is covered.
 
 ### I8 — Every 1 : 0..1 relationship needs a uniqueness guarantee (R1, R9, R11, R14)
 
@@ -169,14 +169,14 @@ Without it, the database would accept a second profile, submission, verification
 
 ## 5. Open decisions for the team
 
-> Outcomes as of Oct 23 are in section 5 of `functional-dependencies.md`; only decision 4 (applicant limit) is still open.
+> Outcomes are in section 5 of `functional-dependencies.md`. All decisions are closed as of Nov 7 (4: applicant limit, 7: verified skills).
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
 | 1 | Stored vs. calculated totals (I3) | Stored totals updated by events / calculated views | Calculated views |
 | 2 | Rating target (I4) | Creator account / organization | Organization |
 | 3 | One role per account (I6) | Single role / multiple roles | Single role for MVP |
-| 4 | Applicant limit (I7) | Counts all applications / accepted only | Team to decide |
+| 4 | Applicant limit (I7) | Counts all applications / accepted only | **Active (pending + accepted)**, enforced by `trg_application_bi/bu` |
 | 5 | Badge repeatable? (I9) | Once only / repeatable | Once only |
 | 6 | Feedback per application (R12) | One per author / many | One per author per application |
 
@@ -186,11 +186,12 @@ Without it, the database would accept a second profile, submission, verification
 - ~~Data dictionary~~: done in `data-dictionary.md`, generated from the loaded schema.
 - ~~Apply the agreed constraints in the shared schema DDL~~: done; see section 7.
 - ~~Turn each rule in I5–I8 into a test case for database testing~~: done in `grow8-backend/api/tests/integration/test_db_integrity.py`.
-- Still open: the applicant limit (decision 4), enforced in the backend apply endpoint once it is built, and whether `contributor_skill.source = 'verified'` is stored or derived (decision 7 in `functional-dependencies.md`).
+- ~~Applicant limit (decision 4) and verified skills (decision 7)~~: done Nov 7; see section 7 and `functional-dependencies.md` section 5.
+- ~~SQL for the proposal's database questions~~: done in `database-questions.md`.
 
-## 7. Status in the committed schema (Oct 23)
+## 7. Status in the committed schema (updated Nov 7)
 
-Every issue is now enforced by the database itself, so it holds whichever service or script writes the data. Each rule has an accepted and a refused case in `test_db_integrity.py`.
+Every issue is now enforced by the database itself, so it holds whichever service or script writes the data. Each rule has an accepted and a refused case in `test_db_integrity.py` or `test_db_applications.py`.
 
 | Issue | How the schema enforces it |
 |---|---|
@@ -206,7 +207,8 @@ Every issue is now enforced by the database itself, so it holds whichever servic
 | I7 submit only when accepted | `trg_work_submission_bi/bu`; `trg_application_bu` stops an accepted application with work from leaving `accepted`. |
 | I7 hours only when approved | `chk_work_verification_hours`. |
 | I7 points only from approved work | `trg_point_transaction_bi/bu`. |
-| I7 deadline and applicant limit | Backend, when the apply endpoint is built (`SELECT … FOR UPDATE` on the opportunity row). |
+| I7 open, deadline and applicant limit | `trg_application_bi/bu` (procedure `grow8_require_application_capacity`): opportunity must be `open`, `submitted_at` on or before the deadline, and active applications below `applicant_limit`. The opportunity row is locked with `SELECT … FOR UPDATE`, so concurrent applications cannot both take the last place (tested with two connections). Contributor, opportunity and `submitted_at` cannot change afterwards. |
+| Decision 7 verified skills | Not stored; `v_contributor_skill` derives `is_verified` from approved work on an opportunity that required the skill. |
 | I9 badge once | Composite PK `(contributor_id, badge_id)` on `contributor_badge`. |
 | R21 one notification per user per event | `uq_notification_event_user`; consumers insert with `INSERT IGNORE`. |
 | R21 who receives which notification type | Not a data-integrity rule: the consumer chooses recipients (matching contributors, the opportunity's creator). Covered by the service tests, not a trigger. |
