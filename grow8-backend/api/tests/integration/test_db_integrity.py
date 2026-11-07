@@ -5,8 +5,9 @@ by MySQL itself, whichever code path writes it. Trigger violations raise error 1
 (SQLSTATE 45000) with a message that starts with the rule name.
 
 Seeded data used here: admin 1; creators 2, 3, 4 owning organizations 1, 2, 3;
-contributors 5, 6, 7; opportunity 1 is open and belongs to organization 1 (creator 2);
-badge 1 exists.
+contributors 5, 6, 7; opportunities 1 (limit 2) and 4 (limit 3) are open and belong to
+organization 1 (creator 2); badge 1 exists. Applications use a fixed submitted_at before
+every seeded deadline, so the tests do not depend on today's date.
 """
 
 from collections.abc import Callable
@@ -41,14 +42,21 @@ def refused(db: Exec, error_code: int, sql: str, *args: object) -> str:
     return message
 
 
-def application(db: Exec, contributor_id: int = 5, status: str = "accepted") -> int:
-    """Application to opportunity 1 (Maple Street Bakery, owner 2)."""
+SUBMITTED_AT = "2026-10-15 10:00:00"
+
+
+def application(
+    db: Exec, contributor_id: int = 5, status: str = "accepted", opportunity_id: int = 1
+) -> int:
+    """Application to an opportunity of Maple Street Bakery (owner 2), opportunity 1 by default."""
     decided = None if status == "pending" else "2026-10-20 12:00:00"
     return db(
-        "INSERT INTO application (opportunity_id, contributor_id, status, decided_at) "
-        "VALUES (1, %s, %s, %s)",
+        "INSERT INTO application (opportunity_id, contributor_id, status, submitted_at, "
+        "decided_at) VALUES (%s, %s, %s, %s, %s)",
+        opportunity_id,
         contributor_id,
         status,
+        SUBMITTED_AT,
         decided,
     )
 
@@ -268,7 +276,8 @@ def test_verified_hours_count_only_approved_work(db: Exec, seeded_db: pymysql.Co
 def test_feedback_status_and_public_rating_use_admin_decisions_only(
     db: Exec, seeded_db: pymysql.Connection
 ) -> None:
-    app_5, app_6, app_7 = (application(db, contributor_id=c) for c in (5, 6, 7))
+    # opportunity 4 has three places, one for each contributor
+    app_5, app_6, app_7 = (application(db, contributor_id=c, opportunity_id=4) for c in (5, 6, 7))
     approved = feedback(db, app_5, author=5, subject=2, rating=5)
     rejected = feedback(db, app_6, author=6, subject=2, rating=1)
     pending = feedback(db, app_7, author=7, subject=2, rating=1)
@@ -307,3 +316,4 @@ def test_leaderboard_sums_points_and_ranks_contributors(
         "ORDER BY leaderboard_rank, contributor_id",
     )
     assert [(c, int(p), r) for c, p, r in rows] == [(6, 30, 1), (5, 10, 2), (7, 0, 3)]
+
