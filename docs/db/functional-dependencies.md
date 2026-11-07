@@ -82,13 +82,13 @@ Method for each table: list every FD that holds *within* the table, find the can
 - **Normal form:** **BCNF**. No skill name or opportunity title is copied in, which would have created a partial dependency (`skill_id → name`).
 
 ### 3.8 contributor_skill
-`contributor_skill(contributor_id, skill_id, source, created_at)`
+`contributor_skill(contributor_id, skill_id, created_at)`
 
 - **PK** `(contributor_id, skill_id)`
-- **FDs:** `(contributor_id, skill_id) → source, created_at`
-- **2NF:** neither `contributor_id` nor `skill_id` alone determines `source` or `created_at` → no partial dependency.
+- **FDs:** `(contributor_id, skill_id) → created_at`
+- **2NF:** neither `contributor_id` nor `skill_id` alone determines `created_at` → no partial dependency.
 - **Normal form:** **BCNF**.
-- **Open point:** see decision 7 in section 5 about whether `source = 'verified'` is stored or derived.
+- **`source` removed (decision 7).** "Verified" meant "used in approved work", which follows from `application`, `opportunity_skill` and `work_verification`. Storing it would be a dependency on rows in other tables that could disagree with them, so it is derived in `v_contributor_skill` instead.
 
 ### 3.9 application
 `application(application_id, opportunity_id, contributor_id, status, motivation, submitted_at, decided_at)`
@@ -97,6 +97,7 @@ Method for each table: list every FD that holds *within* the table, find the can
 - **FDs:** `application_id → opportunity_id, contributor_id, status, motivation, submitted_at, decided_at`; `(contributor_id, opportunity_id) → application_id`
 - **2NF:** no non-prime attribute depends on `contributor_id` or `opportunity_id` alone.
 - **Normal form:** **BCNF**. The second candidate key is what stops duplicate applications.
+- **Cross-table rules (I7, decision 4):** applying needs an open opportunity, a `submitted_at` on or before its deadline, and a free place under `applicant_limit`. These depend on `opportunity` and on the other applications, so no key or CHECK can express them; `trg_application_bi/bu` enforce them, locking the opportunity row so concurrent applications are serialized.
 
 ### 3.10 work_submission
 `work_submission(submission_id, application_id, description, hours_claimed, submitted_at)`
@@ -123,15 +124,16 @@ Method for each table: list every FD that holds *within* the table, find the can
   - "`verified_hours` only when approved" is a business rule (`chk_work_verification_hours`), not an FD.
 
 ### 3.13 feedback
-`feedback(feedback_id, application_id, author_user_id, subject_user_id, rating, comment, created_at)`
+`feedback(feedback_id, application_id, author_user_id, subject_user_id, rating, comment, reports_discrepancy, created_at)`
 
 - **PK** `feedback_id` · **CK** `(application_id, author_user_id)` (`uq_feedback_application_author`)
 - **FDs:**
-  - `feedback_id → application_id, author_user_id, subject_user_id, rating, comment, created_at`
+  - `feedback_id → application_id, author_user_id, subject_user_id, rating, comment, reports_discrepancy, created_at`
   - `(application_id, author_user_id) → feedback_id`
   - `(application_id, author_user_id) → subject_user_id`, and `(application_id, subject_user_id) → author_user_id`: an application has exactly two participants, so knowing one fixes the other.
 - **Normal form:** **BCNF**. Both left sides are candidate keys. `(application_id, subject_user_id)` is also a candidate key implicitly, since it determines the author.
 - **Approval status is not stored here** (I1); it is derived in `v_feedback_status`.
+- **`reports_discrepancy`** (added Nov 7) is what the author states when writing the feedback, so it depends only on the key; it is the discrepancy flag the proposal moved into Feedback, used by database question 7.
 
 ### 3.14 admin_review
 `admin_review(review_id, feedback_id, admin_user_id, decision, reason, reviewed_at)`
@@ -189,20 +191,22 @@ Normalization works one table at a time, so it does not catch a fact that is sto
 | Verifier | `work_verification.verified_by_user_id` and the organization's owner | **Not redundant.** Historical fact (R20). `trg_work_verification_bi/bu` checks it was the owner at the time. |
 | Notification text | `notification.title`, `message` and the linked opportunity's title and deadline | **Not redundant.** A record of what the user was told at that time; the opportunity may change later (R22). |
 | Read state | `notification.read_at` | **Single source.** The unread count is `COUNT(*) WHERE read_at IS NULL`, never stored. |
+| Verified skill | `contributor_skill.source = 'verified'` and the approved work that used the skill | **Removed** (decision 7). `v_contributor_skill` derives it. |
+| Places taken on an opportunity | a stored counter on `opportunity` | **Not stored.** Counted from active applications under the row lock in `grow8_require_application_capacity`. |
 
 ## 5. Decisions
 
-Decisions 1–6 were open in the first version; the committed schema settles them.
+Decisions 1–6 were open in the first version and 7 was added later; the committed schema settles all of them (4 and 7 on Nov 7).
 
 | # | Decision | Outcome in the schema |
 |---|---|---|
 | 1 | Stored vs calculated totals | **Calculated** (views; see section 4). |
 | 2 | Rating target | The subject **user**. While each creator owns one organization (`uq_creator_organization_owner`), this is the same as rating the organization. If creators may own several later, rate the organization, which is derivable through application → opportunity. |
 | 3 | One role per account | **Yes** (`user_account.role`). A role is locked once role-specific rows exist (`trg_user_account_bu`). |
-| 4 | Applicant limit counts all or only accepted applications | **Still open.** To be enforced in the backend apply endpoint (not built yet) with `SELECT … FOR UPDATE` on the opportunity row. |
+| 4 | Applicant limit counts all or only accepted applications | **Active applications** (pending + accepted). Rejected and withdrawn ones free their place. Enforced in the database by `trg_application_bi/bu`, which lock the opportunity row (`SELECT … FOR UPDATE`) and count with a locking read, so it holds for any code path and two people cannot take the last place at once. The deadline is checked against `submitted_at`. Counting only accepted applications would let an unlimited number of pending applications pile up. |
 | 5 | Badge repeatable | **Once only** (composite PK of `contributor_badge`). |
 | 6 | Feedback per application | **One per author** (`uq_feedback_application_author`). |
-| 7 | *New:* `contributor_skill.source = 'verified'` | **Open.** If it means "the skill was used in approved work", it is derivable and should be a view. If it means "the creator confirmed the skill" during verification, it is a stored fact; record who confirmed it. Decide before building `WORK_VERIFIED`. |
+| 7 | `contributor_skill.source = 'verified'` | **Derived.** It means "the skill was used in approved work", as the proposal describes verification. `source` is dropped and `v_contributor_skill` computes `is_verified` and `verified_at`. |
 
 ## 6. Changes since the proposal-stage analysis (Oct 14)
 
@@ -213,9 +217,9 @@ Decisions 1–6 were open in the first version; the committed schema settles the
 | `CreatorOrganization.manager_user_id` | `owner_user_id`, unique (one organization per creator). |
 | `Opportunity.compensation` | Split into `compensation_type`, `compensation_amount`, `compensation_details` (atomic). |
 | `OpportunitySkill.requirement_type` | Dropped (all listed skills are relevant). |
-| `ContributorSkill.proficiency`, `verification_status` | `source` (`self_reported` / `verified`). |
+| `ContributorSkill.proficiency`, `verification_status` | Dropped; verification is derived in `v_contributor_skill` (decision 7). |
 | `WorkVerification.approved_hours` | `verified_hours`; `verified_by_user_id` added (R20). |
-| `Feedback.recipient_user_id`, `approval_status` | `subject_user_id`; `approval_status` removed (I1). |
+| `Feedback.recipient_user_id`, `approval_status`, discrepancy flag | `subject_user_id`; `approval_status` removed (I1); flag is `reports_discrepancy`. |
 | `AdminReview.reviewer_user_id`, `findings` | `admin_user_id`, `reason`. |
 | `ContributorBadge.contributor_badge_id` | Dropped; composite PK `(contributor_id, badge_id)`. |
 | `PointTransaction.contributor_badge_id`, `amount`, `reason` | `(contributor_id, badge_id)` referencing `contributor_badge`, `points`, `source`. |
