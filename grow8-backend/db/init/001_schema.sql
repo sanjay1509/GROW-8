@@ -162,8 +162,9 @@ CREATE TABLE opportunity_skill (
 CREATE TABLE contributor_skill (
     contributor_id INT UNSIGNED NOT NULL,
     skill_id       INT UNSIGNED NOT NULL,
-    source         ENUM('self_reported', 'verified') NOT NULL DEFAULT 'self_reported',
     created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Whether a skill is verified is derived from approved work (decision 7),
+    -- see v_contributor_skill; it is not stored here.
     PRIMARY KEY (contributor_id, skill_id),
     KEY ix_contributor_skill_skill (skill_id),
     CONSTRAINT fk_contributor_skill_contributor
@@ -286,6 +287,9 @@ CREATE TABLE feedback (
     subject_user_id INT UNSIGNED     NOT NULL,
     rating          TINYINT UNSIGNED NOT NULL,
     comment         TEXT             NULL,
+    -- the author reports that something on the application went wrong (e.g. hours
+    -- or a verification decision they dispute); admins see these first
+    reports_discrepancy BOOLEAN      NOT NULL DEFAULT FALSE,
     created_at      DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (feedback_id),
     UNIQUE KEY uq_feedback_application_author (application_id, author_user_id),
@@ -419,6 +423,81 @@ BEGIN
     END IF;
 END $$
 
+-- I7 (R7, R8), decision 4: an application can be placed only on an open
+-- opportunity, no later than its deadline, while its active applications
+-- (pending + accepted) are below applicant_limit. Rejected and withdrawn
+-- applications free their place.
+-- The opportunity row is locked (FOR UPDATE) and the active applications are
+-- counted with a locking read (FOR SHARE), so two people applying at the same
+-- moment are serialized and cannot both take the last place.
+-- p_application_id is NULL on insert; on update it excludes the row itself.
+-- p_check_window is FALSE when a decided application is re-activated: the
+-- deadline and open status apply to applying, not to the creator's decision.
+DROP PROCEDURE IF EXISTS grow8_require_application_capacity $$
+CREATE PROCEDURE grow8_require_application_capacity(
+    IN p_application_id INT UNSIGNED, IN p_opportunity_id INT UNSIGNED,
+    IN p_submitted_at DATETIME, IN p_check_window BOOLEAN)
+BEGIN
+    DECLARE v_status VARCHAR(20);
+    DECLARE v_deadline DATETIME;
+    DECLARE v_limit SMALLINT UNSIGNED;
+    DECLARE v_active INT UNSIGNED;
+    DECLARE v_found BOOLEAN DEFAULT TRUE;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_found = FALSE;
+
+    SELECT status, application_deadline, applicant_limit
+      INTO v_status, v_deadline, v_limit
+      FROM opportunity
+     WHERE opportunity_id = p_opportunity_id
+       FOR UPDATE;
+
+    -- a missing opportunity is left to the foreign key
+    IF v_found THEN
+        IF p_check_window AND v_status <> 'open' THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'application_closed: opportunity is not open for applications';
+        END IF;
+        IF p_check_window AND p_submitted_at > v_deadline THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'application_deadline_passed: submitted after the application deadline';
+        END IF;
+
+        SELECT COUNT(*) INTO v_active
+          FROM application
+         WHERE opportunity_id = p_opportunity_id
+           AND status IN ('pending', 'accepted')
+           AND application_id <> COALESCE(p_application_id, 0)
+           FOR SHARE;
+
+        IF v_limit IS NOT NULL AND v_active >= v_limit THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'applicant_limit_reached: opportunity has no places left';
+        END IF;
+    END IF;
+END $$
+
+-- I7: an application always belongs to the same contributor and opportunity, and
+-- cannot be dated in the future (submitted_at is what the deadline is checked on).
+DROP PROCEDURE IF EXISTS grow8_require_application_identity $$
+CREATE PROCEDURE grow8_require_application_identity(
+    IN p_old_opportunity_id INT UNSIGNED, IN p_new_opportunity_id INT UNSIGNED,
+    IN p_old_contributor_id INT UNSIGNED, IN p_new_contributor_id INT UNSIGNED,
+    IN p_old_submitted_at DATETIME, IN p_new_submitted_at DATETIME)
+BEGIN
+    IF p_old_opportunity_id IS NOT NULL AND (
+        p_old_opportunity_id <> p_new_opportunity_id
+        OR p_old_contributor_id <> p_new_contributor_id
+        OR p_old_submitted_at <> p_new_submitted_at
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'application_immutable: contributor, opportunity and submitted_at cannot change';
+    END IF;
+    IF p_new_submitted_at > NOW() THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'application_future_dated: submitted_at cannot be in the future';
+    END IF;
+END $$
+
 -- I7 (R9): work can only be submitted for an accepted application.
 DROP PROCEDURE IF EXISTS grow8_require_accepted_application $$
 CREATE PROCEDURE grow8_require_accepted_application(IN p_application_id INT UNSIGNED)
@@ -532,9 +611,28 @@ CREATE TRIGGER trg_creator_organization_bi BEFORE INSERT ON creator_organization
 CREATE TRIGGER trg_creator_organization_bu BEFORE UPDATE ON creator_organization FOR EACH ROW
     CALL grow8_require_role(NEW.owner_user_id, 'creator', 'organization_owner_role') $$
 
+CREATE TRIGGER trg_application_bi BEFORE INSERT ON application FOR EACH ROW
+BEGIN
+    CALL grow8_require_application_identity(
+        NULL, NEW.opportunity_id, NULL, NEW.contributor_id, NULL, NEW.submitted_at);
+    IF NEW.status IN ('pending', 'accepted') THEN
+        CALL grow8_require_application_capacity(
+            NULL, NEW.opportunity_id, NEW.submitted_at, TRUE);
+    END IF;
+END $$
 CREATE TRIGGER trg_application_bu BEFORE UPDATE ON application FOR EACH ROW
+BEGIN
+    CALL grow8_require_application_identity(
+        OLD.opportunity_id, NEW.opportunity_id, OLD.contributor_id, NEW.contributor_id,
+        OLD.submitted_at, NEW.submitted_at);
     CALL grow8_require_application_status_change_allowed(
-        OLD.application_id, OLD.status, NEW.status) $$
+        OLD.application_id, OLD.status, NEW.status);
+    -- re-activating a rejected or withdrawn application needs a free place again
+    IF OLD.status IN ('rejected', 'withdrawn') AND NEW.status IN ('pending', 'accepted') THEN
+        CALL grow8_require_application_capacity(
+            NEW.application_id, NEW.opportunity_id, NEW.submitted_at, FALSE);
+    END IF;
+END $$
 
 CREATE TRIGGER trg_work_submission_bi BEFORE INSERT ON work_submission FOR EACH ROW
     CALL grow8_require_accepted_application(NEW.application_id) $$
@@ -579,6 +677,7 @@ SELECT f.feedback_id,
        f.author_user_id,
        f.subject_user_id,
        f.rating,
+       f.reports_discrepancy,
        COALESCE(ar.decision, 'pending') AS status,
        ar.reviewed_at
 FROM feedback f
@@ -618,3 +717,23 @@ FROM contributor_profile cp
 JOIN user_account ua ON ua.user_id = cp.user_id AND ua.is_active = TRUE
 LEFT JOIN point_transaction pt ON pt.contributor_id = cp.user_id
 GROUP BY cp.user_id, ua.full_name;
+
+-- Decision 7: a skill is verified once the contributor has approved work on an
+-- opportunity that required it. Derived, so it can never disagree with the
+-- verifications it comes from. verified_at is the first such approval.
+CREATE OR REPLACE VIEW v_contributor_skill AS
+SELECT cs.contributor_id,
+       cs.skill_id,
+       cs.created_at,
+       (MIN(wv.verified_at) IS NOT NULL) AS is_verified,
+       MIN(wv.verified_at) AS verified_at
+FROM contributor_skill cs
+LEFT JOIN application a ON a.contributor_id = cs.contributor_id
+LEFT JOIN opportunity_skill os
+       ON os.opportunity_id = a.opportunity_id AND os.skill_id = cs.skill_id
+LEFT JOIN work_submission ws ON ws.application_id = a.application_id
+LEFT JOIN work_verification wv
+       ON wv.submission_id = ws.submission_id
+      AND wv.decision = 'approved'
+      AND os.skill_id IS NOT NULL
+GROUP BY cs.contributor_id, cs.skill_id, cs.created_at;

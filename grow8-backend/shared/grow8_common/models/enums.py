@@ -33,11 +33,6 @@ class OpportunityStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
-class SkillSource(StrEnum):
-    SELF_REPORTED = "self_reported"
-    VERIFIED = "verified"
-
-
 class ApplicationStatus(StrEnum):
     PENDING = "pending"
     ACCEPTED = "accepted"
