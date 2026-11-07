@@ -9,7 +9,6 @@ from grow8_common.models.enums import (
     OrganizationType,
     PointSource,
     ReviewDecision,
-    SkillSource,
     UserRole,
     WorkMode,
 )
@@ -53,7 +52,6 @@ __all__ = [
     "PointTransaction",
     "ReviewDecision",
     "Skill",
-    "SkillSource",
     "SubmissionAttachment",
     "UserAccount",
     "UserRole",

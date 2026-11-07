@@ -60,10 +60,10 @@ INSERT INTO contributor_profile (user_id, headline, bio, institution, city) VALU
     (6, 'Business administration student', 'Interested in nonprofits and community work.',           'Mount Royal University', 'Calgary'),
     (7, 'Early-career designer',         'Recent graduate building a design portfolio.',               'SAIT',                   'Calgary');
 
-INSERT INTO contributor_skill (contributor_id, skill_id, source) VALUES
-    (5, 2, 'self_reported'), (5, 3, 'self_reported'), (5, 6, 'self_reported'),
-    (6, 7, 'self_reported'), (6, 8, 'self_reported'), (6, 9, 'self_reported'),
-    (7, 4, 'self_reported'), (7, 5, 'self_reported'), (7, 11, 'self_reported');
+INSERT INTO contributor_skill (contributor_id, skill_id) VALUES
+    (5, 2), (5, 3), (5, 6),
+    (6, 7), (6, 8), (6, 9),
+    (7, 4), (7, 5), (7, 11);
 
 -- -----------------------------------------------------------------------------
 -- Opportunities (DEV ONLY placeholders)
