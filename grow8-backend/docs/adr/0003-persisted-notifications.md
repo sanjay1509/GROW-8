@@ -11,7 +11,7 @@ The event catalog has several "notify the user" behaviours. The first one, `OPPO
 
 1. **Add an 18th table, `notification`.** It holds one row per user per event: `user_id`, `event_id`, `notification_type`, `title`, `message`, an optional `opportunity_id` link, and `read_at` (`NULL` means unread).
 2. **Consumers write it and the API reads it.** The services insert through a `DbNotifier` (in `grow8_common`) that implements the existing `Notifier` interface, so the handlers don't change. The API only reads rows and sets `read_at`.
-3. **Idempotency comes from the schema.** `UNIQUE (event_id, user_id)` plus `INSERT IGNORE` makes a redelivered event a no-op, as CLAUDE.md's "consumers are idempotent" rule requires. The service commits before acking.
+3. **Idempotency comes from the schema.** `UNIQUE (event_id, user_id)` plus `INSERT IGNORE` makes a redelivered event a no-op, so consumers stay idempotent. The service commits before acking.
 4. **`title` and `message` are stored as written, not rebuilt from the opportunity.** A notification records what the user was told at that time, like a sent email. This is not a functional dependency on `opportunity`, so the table stays in BCNF: every non-key attribute depends on `notification_id`, and the only other candidate key is `(event_id, user_id)`.
 5. **Deleting things:** deleting a user deletes their notifications (`ON DELETE CASCADE`). Deleting an opportunity keeps them and sets `opportunity_id` to `NULL` (`ON DELETE SET NULL`).
 6. **`notification_type` is an ENUM** that gains one value per event that notifies users.
