@@ -162,8 +162,9 @@ CREATE TABLE opportunity_skill (
 CREATE TABLE contributor_skill (
     contributor_id INT UNSIGNED NOT NULL,
     skill_id       INT UNSIGNED NOT NULL,
-    source         ENUM('self_reported', 'verified') NOT NULL DEFAULT 'self_reported',
     created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Whether a skill is verified is derived from approved work (decision 7),
+    -- see v_contributor_skill; it is not stored here.
     PRIMARY KEY (contributor_id, skill_id),
     KEY ix_contributor_skill_skill (skill_id),
     CONSTRAINT fk_contributor_skill_contributor
@@ -286,6 +287,9 @@ CREATE TABLE feedback (
     subject_user_id INT UNSIGNED     NOT NULL,
     rating          TINYINT UNSIGNED NOT NULL,
     comment         TEXT             NULL,
+    -- the author reports that something on the application went wrong (e.g. hours
+    -- or a verification decision they dispute); admins see these first
+    reports_discrepancy BOOLEAN      NOT NULL DEFAULT FALSE,
     created_at      DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (feedback_id),
     UNIQUE KEY uq_feedback_application_author (application_id, author_user_id),
@@ -673,6 +677,7 @@ SELECT f.feedback_id,
        f.author_user_id,
        f.subject_user_id,
        f.rating,
+       f.reports_discrepancy,
        COALESCE(ar.decision, 'pending') AS status,
        ar.reviewed_at
 FROM feedback f
@@ -712,3 +717,23 @@ FROM contributor_profile cp
 JOIN user_account ua ON ua.user_id = cp.user_id AND ua.is_active = TRUE
 LEFT JOIN point_transaction pt ON pt.contributor_id = cp.user_id
 GROUP BY cp.user_id, ua.full_name;
+
+-- Decision 7: a skill is verified once the contributor has approved work on an
+-- opportunity that required it. Derived, so it can never disagree with the
+-- verifications it comes from. verified_at is the first such approval.
+CREATE OR REPLACE VIEW v_contributor_skill AS
+SELECT cs.contributor_id,
+       cs.skill_id,
+       cs.created_at,
+       (MIN(wv.verified_at) IS NOT NULL) AS is_verified,
+       MIN(wv.verified_at) AS verified_at
+FROM contributor_skill cs
+LEFT JOIN application a ON a.contributor_id = cs.contributor_id
+LEFT JOIN opportunity_skill os
+       ON os.opportunity_id = a.opportunity_id AND os.skill_id = cs.skill_id
+LEFT JOIN work_submission ws ON ws.application_id = a.application_id
+LEFT JOIN work_verification wv
+       ON wv.submission_id = ws.submission_id
+      AND wv.decision = 'approved'
+      AND os.skill_id IS NOT NULL
+GROUP BY cs.contributor_id, cs.skill_id, cs.created_at;
