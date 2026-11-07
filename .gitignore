@@ -6,3 +6,9 @@
 */*.pyd
 CLAUDE.md
 .DS_Store
+**/venv*/
+**/.venv/
+**/__pycache__/
+**/node_modules/
+**/.DS_Store
+.env
