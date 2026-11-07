@@ -11,10 +11,10 @@ SHELL := sh
 COMPOSE := docker compose
 SERVICES := creator_service contributor_service admin_service
 
-.PHONY: help env config build up down restart logs ps reset-db test test-services postman lint fmt mysql venv
+.PHONY: help env config build up down restart logs ps reset-db test test-services postman lint fmt mysql queries venv
 
 help:
-	@echo "env | config | build | up | down | restart | logs | ps | reset-db | test | test-services | postman | lint | fmt | mysql | venv"
+	@echo "env | config | build | up | down | restart | logs | ps | reset-db | test | test-services | postman | lint | fmt | mysql | queries | venv"
 
 env:
 	@test -f .env && echo ".env already exists" || (cp .env.example .env && echo "created .env from .env.example")
@@ -68,6 +68,10 @@ fmt:
 
 mysql:
 	$(COMPOSE) exec mysql sh -c 'mysql -u"$$MYSQL_USER" -p"$$MYSQL_PASSWORD" "$$MYSQL_DATABASE"'
+
+# ENSF 608: runs the SQL answers to the proposal's database questions on the dev DB.
+queries:
+	$(COMPOSE) exec -T mysql sh -c 'mysql -t -u"$$MYSQL_USER" -p"$$MYSQL_PASSWORD" "$$MYSQL_DATABASE"' < db/queries/database_questions.sql
 
 # Editor-only venv for VS Code/Pylance/ruff (code still runs in Docker). See docs.md 4.
 venv:
