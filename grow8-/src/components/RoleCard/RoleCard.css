@@ -8,13 +8,17 @@
   justify-content: flex-start;
   padding: 16px 10px 12px;
   border-radius: 14px;
-  background: #eff5fc;
+  background: #eff8ff; /* Pale blue for contributors */
   text-align: center;
   font-family: "Inter", Arial, sans-serif;
 }
 
+.grow8-role-card:not(.green) {
+  background-color: #eff8ff !important;
+}
+
 .grow8-role-card.green {
-  background: #eff8f7;
+  background-color: #eff8f7 !important;
 }
 
 .grow8-role-icon {

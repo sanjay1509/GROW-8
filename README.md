@@ -70,7 +70,7 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 
 | Producer Action                | Event                   | Consumer Service    | Resulting Behaviour                                                  |
 | ------------------------------ | ----------------------- | ------------------- | -------------------------------------------------------------------- |
-| Creator actions                | `OPPORTUNITY_CREATED`   | Contributor Service | Notifies contributors about new opportunities.                       |
+| Creator actions                | `OPPORTUNITY_CREATED`   | Contributor Service, Creator Service | Notifies matching contributors about the new opportunity, and confirms to the creator that it was published.                       |
 | Creator actions                | `APPLICATION_DECIDED`   | Contributor Service | Notifies contributors of application decisions.                      |
 | Creator actions                | `WORK_VERIFIED`         | Contributor Service | Updates verified hours and skills.                                   |
 | Creator actions                | `WORK_REJECTED`         | Contributor Service | Notifies contributors about rejected work.                           |
@@ -177,6 +177,8 @@ More implementation details, setup instructions, and usage documentation can be 
 
 - [ENSF 607 Submission]()
 - [ENSF 607 Submission]()
+- [Class diagram](docs/diagrams/class-diagram.drawio.svg)
+- [Architecture diagram](docs/diagrams/architectureDiagram607Project.png)
 - [User Stories](https://docs.google.com/document/d/1muAfw88L-geIDE3aOM3-dn9aTc-V78F9JkT1dOCExAI/edit?usp=sharing "Google Doc File")
-- [ER Diagram](https://drive.google.com/drive/folders/1QxEIjlInno7MfMk9ziQp9i9-fl-NeeVU?usp=sharing "draw.io Import File")
+- [ER Diagram](docs/diagrams/ER-diagram.drawio.svg)
 - [Data Dictionary](https://docs.google.com/spreadsheets/d/10z_qGlHWLnbuE7DJr4je_tGaTtfz8Kyzln5PdvFpMBU/edit?usp=sharing "Google Sheet File")

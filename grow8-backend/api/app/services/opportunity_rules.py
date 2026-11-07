@@ -4,7 +4,7 @@ from datetime import datetime
 
 from grow8_common.models import CompensationType, Opportunity
 
-# Disclosures required before an opportunity can be published (CLAUDE.md section 8).
+# Disclosures required before an opportunity can be published.
 # category, title and description are NOT NULL columns, so they are always present.
 MANDATORY_PUBLISH_FIELDS: tuple[str, ...] = (
     "requirements",

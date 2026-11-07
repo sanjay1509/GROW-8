@@ -77,7 +77,40 @@ Unknown fields → 422. `end_date` before `start_date` → 422. Unknown category
 
 To publish, these must be set: `requirements`, `start_date`, `end_date`, `expected_hours`, `compensation_type`, `applicant_limit`, `application_deadline`, `working_conditions`, `safety_information`, `accessibility_details`, plus `compensation_amount` when the type is `paid` or `stipend`. Otherwise → 422 `OPPORTUNITY_INCOMPLETE` with `details.missing_fields`. The deadline must be in the future (422 `DEADLINE_PASSED`). The same rule is enforced in MySQL by `chk_opportunity_published_complete`.
 
-### Error codes
+## Notifications
+
+Every signed-in user (any role) has an inbox. The consumer services write the notifications when events happen (see [events.md](events.md) and [ADR 0003](adr/0003-persisted-notifications.md)); the API only reads them and marks them read. You only ever see your own: someone else's `id` → 404, the same as one that doesn't exist.
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| GET | `/notifications` | any signed-in user | Your notifications, newest first. `unread_only=true` for the unread ones; paginated (`limit`, `offset`). |
+| GET | `/notifications/unread-count` | any signed-in user | `{"unread_count": 3}`. Cheap; meant to be polled for a badge (e.g. every 30 s while the tab is visible). |
+| PATCH | `/notifications/{id}/read` | the notification's user | Marks it read and returns it. Safe to repeat: a notification that is already read keeps its first `read_at`. |
+| POST | `/notifications/read-all` | any signed-in user | Marks all your unread notifications read. `{"marked_read": 3}` (0 if there were none). |
+
+A notification:
+
+```json
+{
+  "notification_id": 12,
+  "notification_type": "opportunity_created",
+  "title": "New opportunity: Volunteer coordinator for spring market",
+  "message": "Apply by 2027-02-28 23:59 UTC. Your matching skills: customer-service, event-setup.",
+  "opportunity_id": 15,
+  "read_at": null,
+  "created_at": "2026-10-27T20:13:51Z",
+  "is_read": false
+}
+```
+
+| `notification_type` | Who gets it | When |
+| --- | --- | --- |
+| `opportunity_created` | contributors with a matching skill | An opportunity is published. |
+| `opportunity_published` | the creator who owns it | Their opportunity is published. |
+
+`opportunity_id` links to `GET /opportunities/{id}`. It is `null` if the opportunity was deleted. `title` and `message` are stored as written and don't change if the opportunity is edited later.
+
+## Error codes
 
 | Status | Code | When |
 | --- | --- | --- |
@@ -87,6 +120,7 @@ To publish, these must be set: `requirements`, `start_date`, `end_date`, `expect
 | 403 | `ROLE_FORBIDDEN` | Wrong role (e.g. contributor creating an opportunity). |
 | 403 | `NOT_OPPORTUNITY_OWNER` | Changing another organization's (non-draft) opportunity. |
 | 404 | `OPPORTUNITY_NOT_FOUND` | Missing, or a draft you don't own. |
+| 404 | `NOTIFICATION_NOT_FOUND` | Missing, or someone else's notification. |
 | 409 | `OPPORTUNITY_NOT_DRAFT` | Editing or publishing a non-draft. |
 | 409 | `ORGANIZATION_REQUIRED` | Creator account has no organization. |
 | 422 | `VALIDATION_ERROR` | Body or query failed validation (`details` lists each problem). |
