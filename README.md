@@ -68,17 +68,17 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 
 ### Event Flow
 
-| Producer Action                | Event                   | Consumer Service                   | Resulting Behaviour                                                  |
-| ------------------------------ | ----------------------- | ---------------------------------- | -------------------------------------------------------------------- |
-| Creator actions                | `OPPORTUNITY_CREATED`   | Contributor Service, Creator Service | Notifies matching contributors about the new opportunity and confirms to the creator that it was published. |
-| Creator actions                | `APPLICATION_DECIDED`   | Contributor Service                | Notifies contributors of application decisions.                      |
-| Creator actions                | `WORK_VERIFIED`         | Contributor Service                | Updates verified hours and skills.                                   |
-| Creator actions                | `WORK_REJECTED`         | Contributor Service                | Notifies contributors about rejected work.                           |
-| Contributor actions            | `APPLICATION_SUBMITTED` | Creator Service                    | Notifies creators about new applications.                            |
-| Contributor actions            | `WORK_SUBMITTED`        | Creator Service                    | Notifies creators about work awaiting verification.                  |
-| Creator or Contributor actions | `FEEDBACK_SUBMITTED`    | Admin Service                      | Alerts admins to feedback awaiting review.                           |
-| Admin actions                  | `FEEDBACK_APPROVED`     | All three services                 | Updates public ratings and notifies the feedback author and subject. |
-| Admin actions                  | `FEEDBACK_REJECTED`     | All three services                 | Records the rejection and notifies the feedback author and subject.  |
+| Producer Action                | Event                   | Consumer Service    | Resulting Behaviour                                                  |
+| ------------------------------ | ----------------------- | ------------------- | -------------------------------------------------------------------- |
+| Creator actions                | `OPPORTUNITY_CREATED`   | Contributor Service, Creator Service | Notifies matching contributors about the new opportunity, and confirms to the creator that it was published.                       |
+| Creator actions                | `APPLICATION_DECIDED`   | Contributor Service | Notifies contributors of application decisions.                      |
+| Creator actions                | `WORK_VERIFIED`         | Contributor Service | Updates verified hours and skills.                                   |
+| Creator actions                | `WORK_REJECTED`         | Contributor Service | Notifies contributors about rejected work.                           |
+| Contributor actions            | `APPLICATION_SUBMITTED` | Creator Service     | Notifies creators about new applications.                            |
+| Contributor actions            | `WORK_SUBMITTED`        | Creator Service     | Notifies creators about work awaiting verification.                  |
+| Creator or Contributor actions | `FEEDBACK_SUBMITTED`    | Admin Service       | Alerts admins to feedback awaiting review.                           |
+| Admin actions                  | `FEEDBACK_APPROVED`     | All three services  | Updates public ratings and notifies the feedback author and subject. |
+| Admin actions                  | `FEEDBACK_REJECTED`     | All three services  | Records the rejection and notifies the feedback author and subject.  |
 
 ### Database
 
@@ -177,6 +177,8 @@ More implementation details, setup instructions, and usage documentation can be 
 
 - [ENSF 607 Submission]()
 - [ENSF 607 Submission]()
+- [Class diagram](docs/diagrams/class-diagram.drawio.svg)
+- [Architecture diagram](docs/diagrams/architectureDiagram607Project.png)
 - [User Stories](https://docs.google.com/document/d/1muAfw88L-geIDE3aOM3-dn9aTc-V78F9JkT1dOCExAI/edit?usp=sharing "Google Doc File")
-- [ER Diagram](https://drive.google.com/drive/folders/1QxEIjlInno7MfMk9ziQp9i9-fl-NeeVU?usp=sharing "draw.io Import File")
+- [ER Diagram](docs/diagrams/ER-diagram.drawio.svg)
 - [Data Dictionary](https://docs.google.com/spreadsheets/d/10z_qGlHWLnbuE7DJr4je_tGaTtfz8Kyzln5PdvFpMBU/edit?usp=sharing "Google Sheet File")
