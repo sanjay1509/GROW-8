@@ -1,0 +1,65 @@
+
+.grow8-back-to-top {
+  position: fixed;
+  right: 25px;
+  bottom: 25px;
+  z-index: 9999;
+
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+  background: #1557e9;
+  color: #ffffff;
+
+  cursor: pointer;
+  box-shadow: 0 5px 18px rgba(21, 87, 233, 0.25);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(12px);
+
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    visibility 0.3s ease,
+    background 0.2s ease;
+}
+
+.grow8-back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.grow8-back-to-top:hover {
+  background: #1044bd;
+  transform: translateY(-4px);
+}
+
+.grow8-back-to-top:focus-visible {
+  outline: 3px solid #9cbaff;
+  outline-offset: 4px;
+}
+
+@media (max-width: 650px) {
+  .grow8-back-to-top {
+    right: 16px;
+    bottom: 18px;
+    width: 43px;
+    height: 43px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grow8-back-to-top {
+    transition: none;
+  }
+}

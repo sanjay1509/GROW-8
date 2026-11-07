@@ -1,0 +1,113 @@
+
+.grow8-navbar {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  padding: 0 35px 0 53px;
+  background: #fff;
+  border-bottom: 1px solid #edf1f7;
+  font-family: "Inter", Arial, sans-serif;
+}
+
+.grow8-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #101a31;
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.9px;
+  white-space: nowrap;
+}
+
+.grow8-brand-icon {
+  font-size: 23px;
+}
+
+.grow8-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 27px;
+}
+
+.grow8-nav-links a {
+  color: #171d2b;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.grow8-nav-links a:hover {
+  color: #1557d7;
+}
+
+.grow8-nav-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.grow8-nav-button {
+  min-height: 39px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 20px;
+  border-radius: 7px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.grow8-login {
+  color: #1556d5;
+  background: #fff;
+  border: 2px solid #b8ceff;
+}
+
+.grow8-signup {
+  color: #fff;
+  background: linear-gradient(135deg, #174c9c, #0b2e69);
+  border: 1px solid #123f8b;
+  box-shadow: 0 3px 7px rgba(17, 58, 122, 0.18);
+}
+
+@media (max-width: 650px) {
+  .grow8-navbar {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 15px;
+  }
+
+  .grow8-brand {
+    font-size: 22px;
+  }
+
+  .grow8-nav-links {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .grow8-nav-links a {
+    font-size: 11px;
+  }
+
+  .grow8-nav-actions {
+    gap: 7px;
+  }
+
+  .grow8-nav-button {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+}

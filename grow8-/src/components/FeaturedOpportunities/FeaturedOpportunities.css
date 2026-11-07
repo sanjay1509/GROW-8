@@ -1,0 +1,149 @@
+
+/* ========================================
+   GROW8 FEATURED OPPORTUNITIES SECTION
+======================================== */
+
+.grow8-featured {
+  width: 100%;
+  padding: 0 0 12px;
+  font-family: "Inter", Arial, sans-serif;
+}
+
+/* ========================================
+   SECTION HEADING
+======================================== */
+
+.grow8-featured-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+
+  margin: 0 0 18px;
+}
+
+.grow8-featured-heading h2 {
+  margin: 0;
+
+  color: #101827;
+
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 750;
+  letter-spacing: -0.45px;
+}
+
+.grow8-featured-heading a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  color: #1556d5;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  transition: color 0.2s ease;
+}
+
+.grow8-featured-heading a:hover {
+  color: #0b3eac;
+}
+
+.grow8-featured-heading a svg {
+  flex-shrink: 0;
+}
+
+/* ========================================
+   OPPORTUNITY GRID
+======================================== */
+
+.grow8-featured-grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 16px;
+
+  align-items: stretch;
+}
+
+/* Ensure each card fills its grid cell */
+
+.grow8-featured-grid > * {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+}
+
+/* ========================================
+   LARGE DESKTOP SCREENS
+======================================== */
+
+@media (min-width: 1200px) {
+  .grow8-featured-grid {
+    gap: 18px;
+  }
+}
+
+/* ========================================
+   TABLET
+======================================== */
+
+@media (max-width: 900px) {
+  .grow8-featured-heading {
+    margin-bottom: 16px;
+  }
+
+  .grow8-featured-heading h2 {
+    font-size: 20px;
+  }
+
+  .grow8-featured-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 650px) {
+  .grow8-featured {
+    padding-bottom: 8px;
+  }
+
+  .grow8-featured-heading {
+    margin-bottom: 14px;
+    align-items: center;
+  }
+
+  .grow8-featured-heading h2 {
+    font-size: 19px;
+    letter-spacing: -0.35px;
+  }
+
+  .grow8-featured-heading a {
+    font-size: 12px;
+  }
+
+  .grow8-featured-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .grow8-featured-heading a {
+    transition: none;
+  }
+}
