@@ -9,7 +9,7 @@ from grow8_common.events.types import EventType
 
 
 class EventEnvelope(BaseModel):
-    """Wrapper shared by every event on the bus (see CLAUDE.md section 7)."""
+    """Wrapper shared by every event on the bus."""
 
     event_id: UUID = Field(default_factory=uuid4)
     event_type: EventType
