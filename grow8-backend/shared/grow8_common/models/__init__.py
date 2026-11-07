@@ -4,6 +4,7 @@ from grow8_common.models.base import Base
 from grow8_common.models.enums import (
     ApplicationStatus,
     CompensationType,
+    NotificationType,
     OpportunityStatus,
     OrganizationType,
     PointSource,
@@ -13,6 +14,7 @@ from grow8_common.models.enums import (
     WorkMode,
 )
 from grow8_common.models.feedback import AdminReview, Feedback
+from grow8_common.models.notifications import Notification
 from grow8_common.models.opportunities import (
     ContributorSkill,
     Opportunity,
@@ -41,6 +43,8 @@ __all__ = [
     "ContributorSkill",
     "CreatorOrganization",
     "Feedback",
+    "Notification",
+    "NotificationType",
     "Opportunity",
     "OpportunityCategory",
     "OpportunityStatus",

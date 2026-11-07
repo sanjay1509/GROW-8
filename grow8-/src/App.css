@@ -38,7 +38,7 @@ select {
 }
 
 .grow8-page {
-  width: min(1200px, calc(100% - 18px));
+  width: min(1440px, calc(100% - 32px));
   margin: 10px auto 6px;
   overflow: hidden;
   border: 1px solid rgba(216, 228, 243, 0.9);
