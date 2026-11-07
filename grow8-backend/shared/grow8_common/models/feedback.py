@@ -1,6 +1,15 @@
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+    false,
+)
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -33,6 +42,7 @@ class Feedback(Base):
     )
     rating: Mapped[int] = mapped_column(TINYINT(unsigned=True))
     comment: Mapped[str | None] = mapped_column(Text)
+    reports_discrepancy: Mapped[bool] = mapped_column(Boolean, server_default=false())
     created_at: Mapped[datetime] = created_at_column()
 
 

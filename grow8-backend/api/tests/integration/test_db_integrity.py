@@ -317,3 +317,44 @@ def test_leaderboard_sums_points_and_ranks_contributors(
     )
     assert [(c, int(p), r) for c, p, r in rows] == [(6, 30, 1), (5, 10, 2), (7, 0, 3)]
 
+
+def test_skill_is_verified_only_by_approved_work_that_required_it(
+    db: Exec, seeded_db: pymysql.Connection
+) -> None:
+    """Decision 7: contributor 6 has skills 7, 8 and 9; opportunity 4 requires 7 and 9."""
+
+    def verified() -> list[tuple]:
+        return query(
+            seeded_db,
+            "SELECT skill_id FROM v_contributor_skill "
+            "WHERE contributor_id = 6 AND is_verified ORDER BY skill_id",
+        )
+
+    rejected = submission(db, application(db, contributor_id=6, opportunity_id=4))
+    verification(db, rejected, "rejected")
+    assert verified() == []
+
+    approved = submission(db, application(db, contributor_id=6, opportunity_id=1))
+    verification(db, approved, "approved")
+    assert verified() == []  # opportunity 1 needs skills 1 and 2, which they don't list
+
+    db("DELETE FROM work_verification WHERE submission_id = %s", rejected)
+    verification(db, rejected, "approved")
+    assert verified() == [(7,), (9,)]  # skill 8 was not required, so it stays unverified
+
+
+def test_feedback_can_report_a_discrepancy(db: Exec, seeded_db: pymysql.Connection) -> None:
+    app_id = application(db, contributor_id=5)
+    plain = feedback(db, app_id, author=5, subject=2)
+    flagged = db(
+        "INSERT INTO feedback (application_id, author_user_id, subject_user_id, rating, "
+        "reports_discrepancy) VALUES (%s, 2, 5, 2, TRUE)",
+        app_id,
+    )
+    rows = dict(
+        query(
+            seeded_db,
+            "SELECT feedback_id, reports_discrepancy FROM v_feedback_status ORDER BY feedback_id",
+        )
+    )
+    assert rows == {plain: 0, flagged: 1}

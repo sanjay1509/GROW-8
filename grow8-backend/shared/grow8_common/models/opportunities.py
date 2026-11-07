@@ -24,7 +24,7 @@ from grow8_common.models.base import (
     enum_column,
     updated_at_column,
 )
-from grow8_common.models.enums import CompensationType, OpportunityStatus, SkillSource, WorkMode
+from grow8_common.models.enums import CompensationType, OpportunityStatus, WorkMode
 from grow8_common.models.users import CreatorOrganization
 
 
@@ -156,8 +156,5 @@ class ContributorSkill(Base):
         UnsignedInt,
         ForeignKey("skill.skill_id", name="fk_contributor_skill_skill"),
         primary_key=True,
-    )
-    source: Mapped[SkillSource] = mapped_column(
-        enum_column(SkillSource), server_default=SkillSource.SELF_REPORTED.value
     )
     created_at: Mapped[datetime] = created_at_column()
