@@ -1,0 +1,800 @@
+
+.creator-settings-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 32px;
+  background: #f7f8fa;
+  color: #202b38;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.creator-settings-page * {
+  box-sizing: border-box;
+}
+
+.cs-header {
+  margin-bottom: 28px;
+}
+
+.cs-breadcrumb {
+  color: #8993a1;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.cs-breadcrumb span {
+  padding: 0 8px;
+  color: #b5bdc8;
+}
+
+.cs-header h1 {
+  margin: 0 0 8px;
+  color: #192638;
+  font-size: 29px;
+  font-weight: 750;
+  letter-spacing: -0.7px;
+}
+
+.cs-header p {
+  margin: 0;
+  color: #7d8998;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Notifications */
+
+.cs-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 22px;
+  background: #edf6f0;
+  border: 1px solid #cce6d4;
+  border-radius: 9px;
+  color: #27864f;
+  font-size: 12px;
+}
+
+.cs-message p {
+  flex: 1;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.cs-message > span {
+  font-size: 17px;
+}
+
+.cs-message button {
+  border: none;
+  background: transparent;
+  color: #27864f;
+  font-size: 21px;
+  cursor: pointer;
+}
+
+/* Main layout */
+
+.cs-layout {
+  display: grid;
+  grid-template-columns: 245px minmax(0, 1fr);
+  align-items: start;
+  gap: 22px;
+}
+
+/* Sidebar */
+
+.cs-sidebar {
+  padding: 18px 12px;
+  background: #fff;
+  border: 1px solid #e8edf1;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(22, 37, 56, 0.025);
+}
+
+.cs-sidebar-heading {
+  padding: 5px 10px 16px;
+  color: #a0aab5;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+
+.cs-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 11px;
+  margin-bottom: 5px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #758191;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cs-nav-item:hover {
+  color: #278b58;
+  background: #f5faf6;
+}
+
+.cs-nav-item.active {
+  color: #278b58;
+  background: #edf7f0;
+}
+
+.cs-nav-icon {
+  width: 20px;
+  font-size: 17px;
+  text-align: center;
+}
+
+.cs-nav-arrow {
+  margin-left: auto;
+  font-size: 19px;
+  color: #a5b0bb;
+}
+
+.cs-nav-item.active .cs-nav-arrow {
+  color: #278b58;
+}
+
+/* Main content */
+
+.cs-main {
+  min-width: 0;
+}
+
+.cs-section {
+  padding: 27px;
+  background: #fff;
+  border: 1px solid #e8edf1;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(22, 37, 56, 0.025);
+}
+
+.cs-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding-bottom: 23px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #edf0f3;
+}
+
+.cs-section-heading h2 {
+  margin: 0 0 7px;
+  color: #202d3d;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.cs-section-heading p {
+  margin: 0;
+  color: #8a95a2;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.cs-section-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 43px;
+  height: 43px;
+  border-radius: 11px;
+  background: #eaf5ee;
+  color: #278b58;
+  font-size: 21px;
+}
+
+/* Profile preview */
+
+.cs-profile-preview {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 27px;
+  padding: 16px;
+  background: #f7faf8;
+  border: 1px solid #e4eee7;
+  border-radius: 10px;
+}
+
+.cs-profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: #278b58;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.cs-profile-preview strong,
+.cs-profile-preview span {
+  display: block;
+}
+
+.cs-profile-preview strong {
+  margin-bottom: 5px;
+  color: #293649;
+  font-size: 14px;
+}
+
+.cs-profile-preview span {
+  color: #8a95a2;
+  font-size: 11px;
+}
+
+/* Forms */
+
+.cs-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 21px 18px;
+}
+
+.cs-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 21px;
+}
+
+.cs-form-grid .cs-field {
+  margin-bottom: 0;
+}
+
+.cs-full-width {
+  grid-column: 1 / -1;
+}
+
+.cs-field label {
+  color: #344254;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.cs-field input,
+.cs-field textarea {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid #e1e6eb;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #344254;
+  font-family: inherit;
+  font-size: 12px;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cs-field input {
+  height: 43px;
+}
+
+.cs-field textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.cs-field input:focus,
+.cs-field textarea:focus {
+  border-color: #66ad80;
+  box-shadow: 0 0 0 3px rgba(39, 139, 88, 0.07);
+}
+
+.cs-field input::placeholder,
+.cs-field textarea::placeholder {
+  color: #a5aeb9;
+}
+
+.cs-field small {
+  color: #9aa4b0;
+  font-size: 10px;
+}
+
+/* Password */
+
+.cs-password-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cs-password-input input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cs-password-input button {
+  padding: 10px 13px;
+  border: 1px solid #dfe5e9;
+  border-radius: 7px;
+  background: #fff;
+  color: #278b58;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* Security notice */
+
+.cs-security-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 14px;
+  margin-bottom: 25px;
+  border: 1px solid #e5edf3;
+  border-radius: 8px;
+  background: #f3f7fa;
+}
+
+.cs-security-notice > span {
+  color: #5e91b5;
+  font-size: 17px;
+}
+
+.cs-security-notice p {
+  margin: 0;
+  color: #708091;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* Settings groups */
+
+.cs-settings-group {
+  margin-bottom: 25px;
+}
+
+.cs-settings-group h3 {
+  margin: 0 0 6px;
+  color: #293648;
+  font-size: 14px;
+}
+
+.cs-group-description {
+  margin: 0 0 14px;
+  color: #929daa;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.cs-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 19px 0;
+  border-bottom: 1px solid #f0f2f4;
+}
+
+.cs-toggle-info {
+  min-width: 0;
+}
+
+.cs-toggle-info strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #344254;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.cs-toggle-info p {
+  margin: 0;
+  color: #929daa;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* Toggle switch */
+
+.cs-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 23px;
+  padding: 0;
+  border: none;
+  border-radius: 20px;
+  background: #dce2e7;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.cs-switch.active {
+  background: #278b58;
+}
+
+.cs-switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.cs-switch.active span {
+  transform: translateX(19px);
+}
+
+/* Action buttons */
+
+.cs-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 25px;
+  margin-top: 25px;
+  border-top: 1px solid #edf0f3;
+}
+
+.cs-save-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 12px 20px;
+  border: 1px solid #278b58;
+  border-radius: 9px;
+  background: #278b58;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cs-save-button:hover {
+  background: #207849;
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .cs-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .cs-sidebar-heading {
+    grid-column: 1 / -1;
+  }
+
+  .cs-nav-item {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .creator-settings-page {
+    padding: 20px 15px;
+  }
+
+  .cs-header h1 {
+    font-size: 24px;
+  }
+
+  .cs-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-section {
+    padding: 19px 15px;
+  }
+
+  .cs-section-heading h2 {
+    font-size: 17px;
+  }
+
+  .cs-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-full-width {
+    grid-column: auto;
+  }
+
+  .cs-toggle-row {
+    gap: 12px;
+  }
+
+  .cs-toggle-info p {
+    max-width: 260px;
+  }
+
+  .cs-actions {
+    flex-direction: column;
+  }
+
+  .cs-save-button {
+    width: 100%;
+  }
+}
+
+
+
+.cs-profile-preview small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 7px;
+  color: #278b58;
+  font-size: 10px;
+}
+
+.cs-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 43px;
+  padding: 0 12px;
+  border: 1px solid #e1e6eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #8b96a3;
+}
+
+.cs-input-wrap:focus-within {
+  border-color: #66ad80;
+  box-shadow: 0 0 0 3px rgba(39, 139, 88, 0.07);
+}
+
+.cs-input-wrap input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.cs-input-wrap input:focus {
+  box-shadow: none;
+}
+
+.cs-input-wrap input:disabled {
+  background: transparent;
+  color: #566273;
+  opacity: 1;
+}
+
+.cs-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: 1px solid #dfe4ea;
+  border-radius: 9px;
+  background: #fff;
+  color: #566273;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.cs-secondary-button:disabled,
+.cs-save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cs-security-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 20px 0;
+  border-top: 1px solid #edf0f3;
+}
+
+.cs-security-row strong {
+  color: #344254;
+  font-size: 13px;
+}
+
+.cs-security-row p {
+  margin: 6px 0 0;
+  color: #929daa;
+  font-size: 11px;
+}
+
+.creator-profile-alert {
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.creator-profile-alert.error {
+  color: #bd3d3d;
+  background: #fff0f0;
+  border: 1px solid #f1cccc;
+}
+
+.creator-profile-alert.success {
+  color: #247a46;
+  background: #eaf7ef;
+  border: 1px solid #bce5cb;
+}
+
+.creator-profile-loading {
+  padding: 35px;
+  text-align: center;
+  color: #7d8998;
+  font-size: 13px;
+}
+
+/* Password modal */
+
+.creator-password-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(20, 32, 45, 0.48);
+}
+
+.creator-password-modal {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 30px;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+.creator-password-close {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 7px;
+  background: #f4f6f8;
+  color: #687587;
+  cursor: pointer;
+}
+
+.creator-password-modal-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 17px;
+  border-radius: 12px;
+  background: #eaf5ee;
+  color: #278b58;
+}
+
+.creator-password-modal h2 {
+  margin: 0 0 7px;
+  color: #202d3d;
+  font-size: 20px;
+}
+
+.creator-password-modal-description {
+  margin: 0 0 24px;
+  color: #8a95a2;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.creator-password-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.creator-password-field > span {
+  color: #344254;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.creator-password-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 43px;
+  padding: 0 12px;
+  border: 1px solid #e1e6eb;
+  border-radius: 8px;
+}
+
+.creator-password-input-wrap:focus-within {
+  border-color: #66ad80;
+}
+
+.creator-password-input-wrap input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  color: #344254;
+  font-size: 12px;
+}
+
+.creator-password-input-wrap button {
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: #8a95a2;
+  cursor: pointer;
+}
+
+.creator-password-hint {
+  margin: 0 0 18px;
+  color: #929daa;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.creator-password-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+@media (max-width: 600px) {
+  .cs-security-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cs-security-row button {
+    width: 100%;
+  }
+
+  .creator-password-modal {
+    padding: 24px 18px;
+  }
+
+  .creator-password-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .creator-password-modal-actions button {
+    width: 100%;
+  }
+}
