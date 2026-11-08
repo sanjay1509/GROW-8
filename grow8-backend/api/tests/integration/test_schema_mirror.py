@@ -1,4 +1,4 @@
-"""CLAUDE.md: ORM models must mirror db/init/001_schema.sql exactly.
+"""ORM models must mirror db/init/001_schema.sql exactly.
 This compares the models with the schema actually created from that file."""
 
 import pymysql
