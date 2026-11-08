@@ -11,6 +11,8 @@ import CreatorDashboard from "./pages/CreatorDashboard/CreatorDashboard";
 import CreatorOpportunity from "./pages/CreatorOpportunities/CreatorOpportunity";
 import MyOpportunities from "./pages/CreatorOpportunities/MyOpportunities";
 import CreatorProfile from "./pages/CreatorProfile/CreatorProfile";
+import CreatorFeedback from "./pages/CreatorFeedback/CreatorFeedback";
+import CreatorSettings from "./pages/CreatorSettings/CreatorSettings";
 
 // Contributor components
 import ContributorLayout from "./components/Contributor/ContributorLayout/ContributorLayout";
@@ -43,7 +45,7 @@ export default function App() {
 
         <Route path="dashboard" element={<CreatorDashboard />} />
         <Route path="profile" element={<CreatorProfile />} />
-
+        <Route path="feedback" element={<CreatorFeedback />} />
         <Route
           path="opportunities/create"
           element={<CreatorOpportunity />}
@@ -57,8 +59,7 @@ export default function App() {
         {/* Creator pages not implemented yet */}
         <Route path="applications" element={null} />
         <Route path="submissions" element={null} />
-        <Route path="feedback" element={null} />
-        <Route path="settings" element={null} />
+        <Route path="settings" element={<CreatorSettings/>} />
 
         <Route
           path="*"
