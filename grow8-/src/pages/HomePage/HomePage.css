@@ -1,4 +1,3 @@
-
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root {
@@ -37,8 +36,10 @@ select {
   font: inherit;
 }
 
+/* Main application page container */
 .grow8-page {
-  width: min(1200px, calc(100% - 18px));
+  width: calc(100% - 40px);
+  max-width: 1700px;
   margin: 10px auto 6px;
   overflow: hidden;
   border: 1px solid rgba(216, 228, 243, 0.9);
@@ -47,16 +48,26 @@ select {
   box-shadow: 0 3px 14px rgba(31, 65, 108, 0.035);
 }
 
+/* Main page content */
 .grow8-page-content {
+  width: 100%;
+  min-width: 0;
   padding: 0 47px 16px 56px;
 }
 
+/* Medium screens and tablets */
 @media (max-width: 900px) {
+  .grow8-page {
+    width: calc(100% - 24px);
+    margin-top: 8px;
+  }
+
   .grow8-page-content {
     padding: 0 26px 18px;
   }
 }
 
+/* Mobile screens */
 @media (max-width: 650px) {
   .grow8-page {
     width: calc(100% - 12px);
@@ -69,6 +80,7 @@ select {
   }
 }
 
+/* Respect reduced-motion preferences */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
