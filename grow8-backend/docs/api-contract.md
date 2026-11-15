@@ -22,6 +22,7 @@ Base path: `/api/v1`. JSON bodies, `snake_case` fields. Interactive docs: <http:
 | --- | --- | --- | --- |
 | POST | `/auth/login` | anyone | Body `{email, password}`. Returns `{access_token, token_type, expires_in, user}`. Wrong email or password → 401 `INVALID_CREDENTIALS`. |
 | GET | `/auth/me` | any signed-in user | The caller's `{user_id, email, full_name, role}`. |
+| POST | `/auth/change-password` | any signed-in user | Body `{current_password, new_password}` (new: 8–128 chars). Wrong current password → 401 `INVALID_CURRENT_PASSWORD`; same as current → 422 `PASSWORD_UNCHANGED`. Tokens already issued stay valid until they expire. |
 
 There is no sign-up endpoint yet; use the seeded dev accounts (see [docs.md](../../docs.md)).
 
@@ -46,6 +47,7 @@ Lifecycle: **draft** → (publish) → **open** → closed / cancelled (closing 
 | POST | `/opportunities` | creator | Creates a **draft** for the caller's organization → 201. Drafts may be incomplete. |
 | PATCH | `/opportunities/{id}` | owning creator | Edits a draft; only fields sent are changed. Non-draft → 409 `OPPORTUNITY_NOT_DRAFT`. |
 | POST | `/opportunities/{id}/publish` | owning creator | Validates mandatory fields, sets `status=open` and `published_at`, commits, then emits `OPPORTUNITY_CREATED`. |
+| DELETE | `/opportunities/{id}` | owning creator | Deletes a **draft** → 204. Non-draft → 409 `OPPORTUNITY_NOT_DRAFT` (published opportunities will be closed/cancelled instead). |
 
 ### Search, filter and sort parameters (`GET /opportunities`, `/opportunities/mine`)
 
