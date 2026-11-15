@@ -105,7 +105,8 @@ export default function MyOpportunities() {
       }
 
       const response = await fetch(
-        `${API_BASE_URL}/opportunities/mine`,
+        // The API pages results (default 20); 100 is its maximum page size.
+        `${API_BASE_URL}/opportunities/mine?limit=100`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -195,7 +196,7 @@ export default function MyOpportunities() {
         const data = await response.json().catch(() => null);
 
         throw new Error(
-          data?.detail ||
+          data?.error?.message ||
             `Unable to delete opportunity (HTTP ${response.status}).`
         );
       }
@@ -418,18 +419,21 @@ export default function MyOpportunities() {
                     <Eye size={16} /> View
                   </button>
 
-                  <button
-                    type="button"
-                    className="mo-delete-button"
-                    onClick={() => void deleteOpportunity(item)}
-                    disabled={deletingId !== null}
-                    aria-label={`Delete ${item.title}`}
-                  >
-                    <Trash2 size={16} />
-                    {deletingId === item.opportunity_id
-                      ? "Deleting..."
-                      : "Delete"}
-                  </button>
+                  {/* The API only deletes drafts; published ones are closed instead. */}
+                  {item.status === "draft" && (
+                    <button
+                      type="button"
+                      className="mo-delete-button"
+                      onClick={() => void deleteOpportunity(item)}
+                      disabled={deletingId !== null}
+                      aria-label={`Delete ${item.title}`}
+                    >
+                      <Trash2 size={16} />
+                      {deletingId === item.opportunity_id
+                        ? "Deleting..."
+                        : "Delete"}
+                    </button>
+                  )}
                 </div>
               </div>
             </article>
