@@ -62,7 +62,9 @@ Clients should branch on `code`, never on `message` (messages are for people and
 
 | Status | Code | Endpoint(s) | When |
 | --- | --- | --- | --- |
-| 422 | `PASSWORD_UNCHANGED` | `POST /auth/change-password` | The new password equals the current one ([ADR 0005](adr/0005-password-change.md)). |
+| 422 | `PASSWORD_UNCHANGED` | `POST /auth/change-password` | The new password equals the current one, as bcrypt sees it: the first 72 bytes match ([ADR 0005](adr/0005-password-change.md)). |
+
+A new password shorter than 8 characters or longer than 72 bytes (UTF-8) is a `VALIDATION_ERROR`.
 
 ### Notifications
 

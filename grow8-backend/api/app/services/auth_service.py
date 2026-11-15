@@ -2,7 +2,12 @@ from grow8_common.models import UserAccount
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import UnauthorizedError, UnprocessableError
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.security import (
+    create_access_token,
+    hash_password,
+    same_password,
+    verify_password,
+)
 from app.repositories import user_repository
 from app.schemas.auth import TokenResponse, UserRead
 
@@ -28,7 +33,7 @@ def change_password(
     Tokens already issued stay valid until they expire."""
     if not verify_password(current_password, user.password_hash):
         raise UnauthorizedError("Current password is incorrect", code="INVALID_CURRENT_PASSWORD")
-    if new_password == current_password:
+    if same_password(new_password, current_password):
         raise UnprocessableError(
             "New password must differ from the current password", code="PASSWORD_UNCHANGED"
         )
