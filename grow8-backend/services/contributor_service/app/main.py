@@ -4,12 +4,18 @@ import sys
 
 from grow8_common.config import get_settings
 from grow8_common.db import get_sessionmaker, wait_for_db
-from grow8_common.events import EventEnvelope, EventType, OpportunityCreatedPayload
+from grow8_common.events import (
+    ApplicationDecidedPayload,
+    EventEnvelope,
+    EventType,
+    OpportunityCreatedPayload,
+)
 from grow8_common.logging import configure_logging
 from grow8_common.messaging import Handler, run_consumer
 from grow8_common.models import NotificationType
 from grow8_common.notifications import DbNotifier
 
+from app.handlers.application_decided import handle_application_decided
 from app.handlers.opportunity_created import handle_opportunity_created
 
 SERVICE_NAME = "contributor_service"
@@ -30,9 +36,17 @@ def _on_opportunity_created(envelope: EventEnvelope, payload: OpportunityCreated
         session.commit()
 
 
+def _on_application_decided(envelope: EventEnvelope, payload: ApplicationDecidedPayload) -> None:
+    with get_sessionmaker()() as session:
+        notifier = DbNotifier(session, envelope.event_id, NotificationType.APPLICATION_DECIDED)
+        handle_application_decided(payload, session=session, notifier=notifier)
+        session.commit()
+
+
 # Event type -> handler. Each key becomes a binding on this service's queue.
 HANDLERS: dict[EventType, Handler] = {
     EventType.OPPORTUNITY_CREATED: _on_opportunity_created,
+    EventType.APPLICATION_DECIDED: _on_application_decided,
 }
 
 
