@@ -338,7 +338,7 @@ def delete_opportunity(
 ) -> None:
     """Delete a draft owned by the authenticated creator. Published opportunities have
     been announced to contributors (and may have applications), so they are closed or
-    cancelled instead of deleted (ADR 0001)."""
+    cancelled instead of deleted (ADR 0004)."""
     opportunity = _get_owned_for_update(
         session,
         opportunity_id,
