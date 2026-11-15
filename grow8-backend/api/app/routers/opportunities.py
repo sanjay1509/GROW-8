@@ -16,7 +16,6 @@ from app.schemas.opportunity import (
 )
 from app.services import opportunity_service
 
-
 router = APIRouter(
     prefix="/opportunities",
     tags=["opportunities"],
@@ -132,7 +131,7 @@ def delete_opportunity(
     session: DbSession,
     creator: CurrentCreator,
 ) -> Response:
-    """Delete an opportunity owned by the authenticated creator."""
+    """Delete a draft you own. Published opportunities cannot be deleted."""
     opportunity_service.delete_opportunity(
         session,
         creator,

@@ -56,3 +56,47 @@ def test_me_returns_the_caller(client: TestClient, contributor: dict[str, str]) 
 
     assert response.status_code == 200
     assert response.json()["role"] == "contributor"
+
+
+# --- change password ----------------------------------------------------------
+
+CHANGE = "/api/v1/auth/change-password"
+
+
+def test_change_password_then_login_with_the_new_one(
+    client: TestClient, contributor: dict[str, str]
+) -> None:
+    body = {"current_password": DEV_PASSWORD, "new_password": "BrandNew!2026"}
+    response = client.post(CHANGE, json=body, headers=contributor)
+
+    assert response.status_code == 200
+    old = client.post(LOGIN, json={"email": "alex.chen@grow8.dev", "password": DEV_PASSWORD})
+    new = client.post(LOGIN, json={"email": "alex.chen@grow8.dev", "password": "BrandNew!2026"})
+    assert old.status_code == 401
+    assert new.status_code == 200
+
+
+def test_change_password_requires_the_current_password(
+    client: TestClient, contributor: dict[str, str]
+) -> None:
+    body = {"current_password": "wrong", "new_password": "BrandNew!2026"}
+    response = client.post(CHANGE, json=body, headers=contributor)
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "INVALID_CURRENT_PASSWORD"
+
+
+def test_change_password_rejects_reusing_the_current_password(
+    client: TestClient, contributor: dict[str, str]
+) -> None:
+    body = {"current_password": DEV_PASSWORD, "new_password": DEV_PASSWORD}
+    response = client.post(CHANGE, json=body, headers=contributor)
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "PASSWORD_UNCHANGED"
+
+
+def test_change_password_requires_a_token(client: TestClient) -> None:
+    body = {"current_password": DEV_PASSWORD, "new_password": "BrandNew!2026"}
+
+    assert client.post(CHANGE, json=body).status_code == 401
