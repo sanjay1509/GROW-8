@@ -326,3 +326,33 @@ def test_patch_cannot_null_required_fields(client: TestClient, bakery: dict[str,
     response = client.patch(f"{URL}/14", json={"title": None}, headers=bakery)
 
     assert response.status_code == 422
+
+
+# --- deleting -----------------------------------------------------------------
+
+
+def test_owner_can_delete_a_draft(client: TestClient, bakery: dict[str, str]) -> None:
+    response = client.delete(f"{URL}/14", headers=bakery)
+
+    assert response.status_code == 204
+    assert client.get(f"{URL}/14", headers=bakery).status_code == 404
+
+
+def test_published_opportunity_cannot_be_deleted(
+    client: TestClient, bakery: dict[str, str]
+) -> None:
+    response = client.delete(f"{URL}/1", headers=bakery)
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "OPPORTUNITY_NOT_DRAFT"
+    assert client.get(f"{URL}/1").status_code == 200
+
+
+def test_only_the_owner_can_delete(
+    client: TestClient, bakery: dict[str, str], contributor: dict[str, str]
+) -> None:
+    # someone else's draft looks like it does not exist
+    assert client.delete(f"{URL}/15", headers=bakery).status_code == 404
+    # someone else's public opportunity is visible, so deleting it is forbidden
+    assert client.delete(f"{URL}/8", headers=bakery).status_code == 403
+    assert client.delete(f"{URL}/14", headers=contributor).status_code == 403

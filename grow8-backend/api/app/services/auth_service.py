@@ -1,10 +1,10 @@
+from grow8_common.models import UserAccount
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import UnauthorizedError
+from app.core.exceptions import UnauthorizedError, UnprocessableError
 from app.core.security import create_access_token, hash_password, verify_password
 from app.repositories import user_repository
 from app.schemas.auth import TokenResponse, UserRead
-from grow8_common.models import UserAccount
 
 # Compared against when the email is unknown, so both failure paths cost a bcrypt check.
 _DUMMY_HASH = hash_password("grow8-timing-equalizer")
@@ -20,29 +20,17 @@ def login(session: Session, email: str, password: str) -> TokenResponse:
         access_token=token, expires_in=expires_in, user=UserRead.model_validate(user)
     )
 
+
 def change_password(
-    session: Session,
-    user: UserAccount,
-    current_password: str,
-    new_password: str,
+    session: Session, user: UserAccount, current_password: str, new_password: str
 ) -> None:
+    """Replace the caller's password after re-checking the current one.
+    Tokens already issued stay valid until they expire."""
     if not verify_password(current_password, user.password_hash):
-        raise UnauthorizedError(
-            "Current password is incorrect",
-            code="INVALID_CURRENT_PASSWORD",
+        raise UnauthorizedError("Current password is incorrect", code="INVALID_CURRENT_PASSWORD")
+    if new_password == current_password:
+        raise UnprocessableError(
+            "New password must differ from the current password", code="PASSWORD_UNCHANGED"
         )
-
-    if verify_password(new_password, user.password_hash):
-        from app.core.exceptions import ValidationError
-        raise ValidationError(
-            "New password must differ from the current password",
-            code="PASSWORD_UNCHANGED",
-        )
-
     user.password_hash = hash_password(new_password)
-
-    try:
-        session.commit()
-    except Exception:
-        session.rollback()
-        raise
+    session.commit()
