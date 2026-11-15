@@ -22,7 +22,7 @@ Base path: `/api/v1`. JSON bodies, `snake_case` fields. Interactive docs: <http:
 | --- | --- | --- | --- |
 | POST | `/auth/login` | anyone | Body `{email, password}`. Returns `{access_token, token_type, expires_in, user}`. Wrong email or password → 401 `INVALID_CREDENTIALS`. |
 | GET | `/auth/me` | any signed-in user | The caller's `{user_id, email, full_name, role}`. |
-| POST | `/auth/change-password` | any signed-in user | Body `{current_password, new_password}` (new: 8–128 chars). Wrong current password → 401 `INVALID_CURRENT_PASSWORD`; same as current → 422 `PASSWORD_UNCHANGED`. Tokens already issued stay valid until they expire ([ADR 0005](adr/0005-password-change.md)). |
+| POST | `/auth/change-password` | any signed-in user | Body `{current_password, new_password}` (new: 8 characters to 72 bytes in UTF-8, bcrypt's limit). Wrong current password → 401 `INVALID_CURRENT_PASSWORD`; same as current → 422 `PASSWORD_UNCHANGED`. Tokens already issued stay valid until they expire ([ADR 0005](adr/0005-password-change.md)). |
 
 There is no sign-up endpoint yet; use the seeded dev accounts (see [docs.md](../../docs.md)).
 
