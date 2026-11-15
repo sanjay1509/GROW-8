@@ -124,6 +124,7 @@ def client(
     seeded_db: pymysql.Connection, publisher: FakePublisher, monkeypatch: pytest.MonkeyPatch
 ) -> TestClient:
     monkeypatch.setattr("app.services.opportunity_service.utcnow", lambda: FROZEN_NOW)
+    monkeypatch.setattr("app.services.application_service.utcnow", lambda: FROZEN_NOW)
     return TestClient(app)
 
 
@@ -148,3 +149,15 @@ def events_org(client: TestClient) -> dict[str, str]:
 @pytest.fixture
 def contributor(client: TestClient) -> dict[str, str]:
     return _login(client, "alex.chen@grow8.dev")
+
+
+@pytest.fixture
+def jordan(client: TestClient) -> dict[str, str]:
+    """Second contributor (user 6)."""
+    return _login(client, "jordan.lee@grow8.dev")
+
+
+@pytest.fixture
+def sam(client: TestClient) -> dict[str, str]:
+    """Third contributor (user 7)."""
+    return _login(client, "sam.patel@grow8.dev")

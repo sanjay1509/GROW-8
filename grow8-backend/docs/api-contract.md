@@ -79,6 +79,50 @@ Unknown fields → 422. `end_date` before `start_date` → 422. Unknown category
 
 To publish, these must be set: `requirements`, `start_date`, `end_date`, `expected_hours`, `compensation_type`, `applicant_limit`, `application_deadline`, `working_conditions`, `safety_information`, `accessibility_details`, plus `compensation_amount` when the type is `paid` or `stipend`. Otherwise → 422 `OPPORTUNITY_INCOMPLETE` with `details.missing_fields`. The deadline must be in the future (422 `DEADLINE_PASSED`). The same rule is enforced in MySQL by `chk_opportunity_published_complete`.
 
+## Applications
+
+A contributor applies to an open opportunity; the owning creator accepts or rejects it; the contributor can withdraw. Rules and reasons: [ADR 0006](adr/0006-application-lifecycle.md). All refusals are 409; see [error-codes.md](error-codes.md).
+
+Lifecycle: **pending** → accepted / rejected (creator, once) · pending or accepted → **withdrawn** (contributor, until work is submitted).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| POST | `/opportunities/{id}/applications` | contributor | Body `{motivation?}` (1–5000 chars) → 201. Only while the opportunity is `open`, before its deadline, and while pending + accepted applications are below `applicant_limit`. One application per opportunity, ever. Emits `APPLICATION_SUBMITTED`. |
+| GET | `/opportunities/{id}/applications` | owning creator | Applications to your opportunity, newest first. `status` (repeatable), `limit`, `offset`. |
+| GET | `/applications/mine` | contributor | Your applications, newest first. Same parameters. |
+| GET | `/applications/{id}` | the applicant or the owning creator | Anyone else → 404. |
+| POST | `/applications/{id}/decision` | owning creator | Body `{decision: "accepted" \| "rejected"}`. Pending only (409 `APPLICATION_NOT_PENDING`). Allowed after the deadline. Emits `APPLICATION_DECIDED`. |
+| POST | `/applications/{id}/withdraw` | the applicant | Pending or accepted only (409 `APPLICATION_NOT_ACTIVE`), and not once work is submitted (409 `WORK_ALREADY_SUBMITTED`). Frees the place. No event. |
+
+An application:
+
+```json
+{
+  "application_id": 7,
+  "status": "pending",
+  "motivation": "I type fast and love bread.",
+  "submitted_at": "2026-10-16T12:00:00Z",
+  "decided_at": null,
+  "opportunity": {
+    "opportunity_id": 1,
+    "title": "Digitize paper recipe archive",
+    "status": "open",
+    "application_deadline": "2026-11-20T23:59:59Z",
+    "organization": { "organization_id": 1, "name": "Maple Street Bakery", "organization_type": "small_business", "city": "Calgary" }
+  },
+  "applicant": {
+    "user_id": 5,
+    "full_name": "Alex Chen",
+    "headline": "Software engineering student",
+    "institution": "University of Calgary",
+    "city": "Calgary",
+    "skills": [{ "code": "data-cleaning", "name": "Data cleaning" }, { "code": "spreadsheets", "name": "Spreadsheets" }, { "code": "web-basics", "name": "Web basics (HTML/CSS)" }]
+  }
+}
+```
+
+The applicant's email and other contact details are not included.
+
 ## Notifications
 
 Every signed-in user (any role) has an inbox. The consumer services write the notifications when events happen (see [events.md](events.md) and [ADR 0003](adr/0003-persisted-notifications.md)); the API only reads them and marks them read. You only ever see your own: someone else's `id` → 404, the same as one that doesn't exist.
@@ -109,21 +153,12 @@ A notification:
 | --- | --- | --- |
 | `opportunity_created` | contributors with a matching skill | An opportunity is published. |
 | `opportunity_published` | the creator who owns it | Their opportunity is published. |
+| `application_submitted` | the creator who owns the opportunity | A contributor applied. |
+| `application_decided` | the contributor who applied | Their application was accepted or rejected. |
 
 `opportunity_id` links to `GET /opportunities/{id}`. It is `null` if the opportunity was deleted. `title` and `message` are stored as written and don't change if the opportunity is edited later.
 
 ## Error codes
 
-| Status | Code | When |
-| --- | --- | --- |
-| 401 | `AUTH_REQUIRED` | No token on a protected endpoint. |
-| 401 | `INVALID_TOKEN` | Token invalid, expired, or user inactive. |
-| 401 | `INVALID_CREDENTIALS` | Login failed. |
-| 403 | `ROLE_FORBIDDEN` | Wrong role (e.g. contributor creating an opportunity). |
-| 403 | `NOT_OPPORTUNITY_OWNER` | Changing another organization's (non-draft) opportunity. |
-| 404 | `OPPORTUNITY_NOT_FOUND` | Missing, or a draft you don't own. |
-| 404 | `NOTIFICATION_NOT_FOUND` | Missing, or someone else's notification. |
-| 409 | `OPPORTUNITY_NOT_DRAFT` | Editing or publishing a non-draft. |
-| 409 | `ORGANIZATION_REQUIRED` | Creator account has no organization. |
-| 422 | `VALIDATION_ERROR` | Body or query failed validation (`details` lists each problem). |
-| 422 | `OPPORTUNITY_INCOMPLETE`, `DEADLINE_PASSED`, `UNKNOWN_CATEGORY`, `UNKNOWN_SKILL`, `INVALID_DATES` | See above. |
+Every code, its status and when it happens: **[error-codes.md](error-codes.md)**. In short: 401 identity, 403 role or ownership on something public, 404 missing or hidden, 409 business rule, 422 bad input.
+
