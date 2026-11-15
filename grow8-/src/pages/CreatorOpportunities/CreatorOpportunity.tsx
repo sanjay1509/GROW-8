@@ -147,6 +147,8 @@ export default function CreateOpportunity() {
   const [showReview, setShowReview] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  // Set once the draft exists, so a retry after a failed publish reuses it.
+  const [draftId, setDraftId] = useState<number | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -337,7 +339,7 @@ export default function CreateOpportunity() {
           ? Number(form.applicant_limit)
           : null,
         compensation_type:
-          form.compensation_type === "paid" ? "stipend" : "unpaid",
+          form.compensation_type === "paid" ? "paid" : "unpaid",
         compensation_amount:
           form.compensation_type === "paid"
             ? Number(form.compensation_amount)
@@ -348,15 +350,21 @@ export default function CreateOpportunity() {
           form.accessibility_details.trim() || null,
       };
 
-      // Create the opportunity as a draft first.
-      const response = await fetch(`${API_BASE_URL}/opportunities`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      // Create the draft the first time; on a retry (e.g. publishing failed),
+      // update the draft already created instead of creating a duplicate.
+      const response = await fetch(
+        draftId
+          ? `${API_BASE_URL}/opportunities/${draftId}`
+          : `${API_BASE_URL}/opportunities`,
+        {
+          method: draftId ? "PATCH" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data: unknown = await response.json().catch(() => null);
 
@@ -365,6 +373,10 @@ export default function CreateOpportunity() {
       }
 
       const created = data as CreatedOpportunity;
+
+      if (created.opportunity_id) {
+        setDraftId(created.opportunity_id);
+      }
 
       // Save Draft ends here. Do not publish it.
       if (saveAsDraft) {
@@ -577,7 +589,7 @@ export default function CreateOpportunity() {
               >
                 <option value="remote">Remote</option>
                 <option value="hybrid">Hybrid</option>
-                <option value="onsite">On-site</option>
+                <option value="on_site">On-site</option>
               </select>
             </div>
 
