@@ -1,4 +1,3 @@
-
 from collections.abc import Sequence
 from typing import Any
 
@@ -36,10 +35,10 @@ from app.schemas.opportunity import (
 )
 from app.services import opportunity_rules
 
-
 # ---------------------------------------------------------------------------
 # Reading
 # ---------------------------------------------------------------------------
+
 
 def _filters(params: OpportunitySearchParams) -> dict[str, Any]:
     return {
@@ -52,9 +51,7 @@ def _filters(params: OpportunitySearchParams) -> dict[str, Any]:
         "min_hours": params.min_hours,
         "max_hours": params.max_hours,
         "deadline_before": (
-            to_db_datetime(params.deadline_before)
-            if params.deadline_before
-            else None
+            to_db_datetime(params.deadline_before) if params.deadline_before else None
         ),
     }
 
@@ -112,9 +109,7 @@ def list_mine(
             offset=params.offset,
         )
 
-    filters = _filters(params) | {
-        "organization_id": organization.organization_id
-    }
+    filters = _filters(params) | {"organization_id": organization.organization_id}
 
     query = OpportunityQuery(
         statuses=tuple(params.status),
@@ -128,10 +123,7 @@ def _is_owner(
     opportunity: Opportunity,
     user: UserAccount | None,
 ) -> bool:
-    return (
-        user is not None
-        and opportunity.organization.owner_user_id == user.user_id
-    )
+    return user is not None and opportunity.organization.owner_user_id == user.user_id
 
 
 def get_visible(
@@ -157,6 +149,7 @@ def get_visible(
 # ---------------------------------------------------------------------------
 # Writing
 # ---------------------------------------------------------------------------
+
 
 def _resolve_category(
     session: Session,
@@ -343,12 +336,20 @@ def delete_opportunity(
     creator: UserAccount,
     opportunity_id: int,
 ) -> None:
-    """Delete an opportunity owned by the authenticated creator."""
+    """Delete a draft owned by the authenticated creator. Published opportunities have
+    been announced to contributors (and may have applications), so they are closed or
+    cancelled instead of deleted (ADR 0001)."""
     opportunity = _get_owned_for_update(
         session,
         opportunity_id,
         creator,
     )
+
+    if opportunity.status != OpportunityStatus.DRAFT:
+        raise ConflictError(
+            "Only draft opportunities can be deleted",
+            code="OPPORTUNITY_NOT_DRAFT",
+        )
 
     session.delete(opportunity)
     session.commit()
@@ -399,9 +400,7 @@ def publish(
         organization_id=opportunity.organization_id,
         title=opportunity.title,
         category_code=opportunity.category.code,
-        application_deadline=as_utc(
-            opportunity.application_deadline
-        ),
+        application_deadline=as_utc(opportunity.application_deadline),
         skill_codes=[skill.code for skill in opportunity.skills],
     )
 
