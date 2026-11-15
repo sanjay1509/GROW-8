@@ -74,3 +74,36 @@ def test_handler_error_commits_nothing(calls: list[str], monkeypatch: pytest.Mon
     with pytest.raises(RuntimeError):
         main._on_opportunity_created(_envelope(), PAYLOAD)
     assert calls == ["close"]  # process() then dead-letters the message
+
+
+def test_application_decided_uses_its_own_notification_type(
+    calls: list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from grow8_common.events import ApplicationDecidedPayload
+    from grow8_common.models import NotificationType
+
+    payload = ApplicationDecidedPayload(
+        application_id=41,
+        opportunity_id=1,
+        opportunity_title="Digitize paper recipe archive",
+        contributor_id=5,
+        decision="accepted",
+    )
+    seen = {}
+
+    def fake_handler(payload, *, session, notifier):
+        calls.append("handle")
+        seen["notifier"] = notifier
+
+    monkeypatch.setattr(main, "handle_application_decided", fake_handler)
+
+    main._on_application_decided(
+        EventEnvelope.build(payload, EventType.APPLICATION_DECIDED, "req-9"), payload
+    )
+
+    assert calls == ["handle", "commit", "close"]
+    assert seen["notifier"]._type == NotificationType.APPLICATION_DECIDED
+
+
+def test_subscribes_to_its_events() -> None:
+    assert set(main.HANDLERS) == {EventType.OPPORTUNITY_CREATED, EventType.APPLICATION_DECIDED}

@@ -253,8 +253,32 @@ Full reference: [`grow8-backend/docs/api-contract.md`](grow8-backend/docs/api-co
 | Edit a draft (owner) | `PATCH /api/v1/opportunities/{id}` |
 | Publish (owner) | `POST /api/v1/opportunities/{id}/publish` |
 | My opportunities, incl. drafts (creator) | `GET /api/v1/opportunities/mine?status=draft` |
+| Delete a draft (owner) | `DELETE /api/v1/opportunities/{id}` |
 
 Opportunities start as **drafts**, which can be incomplete. Publishing checks that every mandatory disclosure is filled in (requirements, dates, hours, compensation, applicant limit, deadline, working conditions, safety and accessibility information). If anything is missing, the response lists it.
+
+### 3.3 Applications at a glance
+
+| Task | Request |
+| --- | --- |
+| Apply (contributor) | `POST /api/v1/opportunities/{id}/applications` with `{"motivation": "..."}` (optional) |
+| My applications (contributor) | `GET /api/v1/applications/mine?status=pending` |
+| Applications to my opportunity (creator) | `GET /api/v1/opportunities/{id}/applications` |
+| Accept or reject (owner) | `POST /api/v1/applications/{id}/decision` with `{"decision": "accepted"}` |
+| Withdraw (applicant) | `POST /api/v1/applications/{id}/withdraw` |
+
+Try it on the dev data (with the stack running, since the notifications come from the consumer services):
+
+1. Sign in as `alex.chen@grow8.dev` and apply to opportunity **4** (holiday market booth, 3 places, no applications yet).
+2. Sign in as `maple.bakery@grow8.dev`: `GET /api/v1/notifications` shows "New application: Holiday market booth assistant". Accept it with the `application_id` from step 1.
+3. Back as Alex, the notifications show "You were accepted: …".
+4. Opportunity **1** already has two pending applications for its two places (from `004_seed_workflow.sql`), so Alex applying there gets 409 `APPLICANT_LIMIT_REACHED`.
+
+Seeded deadlines are real dates, so this works until opportunity 4 closes on 2026-12-01.
+
+### 3.4 When something is refused
+
+Every error has the body `{"error": {"code": "...", "message": "..."}}`. All codes are listed in [`grow8-backend/docs/error-codes.md`](grow8-backend/docs/error-codes.md).
 
 ---
 

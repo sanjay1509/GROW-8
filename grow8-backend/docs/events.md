@@ -25,8 +25,8 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 | Queue | Bound to (routing keys) | Dead-letter queue |
 | --- | --- | --- |
-| `grow8.contributor_service` | `opportunity.created` | `grow8.contributor_service.dlq` |
-| `grow8.creator_service` | `opportunity.created` | `grow8.creator_service.dlq` |
+| `grow8.contributor_service` | `opportunity.created`, `application.decided` | `grow8.contributor_service.dlq` |
+| `grow8.creator_service` | `opportunity.created`, `application.submitted` | `grow8.creator_service.dlq` |
 
 - A message is **acked only after its handler returns**, so a crash mid-handler means RabbitMQ redelivers it.
 - A message that can't be processed (unreadable JSON, no handler, payload fails its schema, handler raises) is **rejected without requeue** and moves to the service's `.dlq` via the `grow8.events.dlx` exchange. Inspect or replay it from the RabbitMQ UI (Queues → `…dlq` → Get messages / Move messages).
@@ -52,6 +52,37 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 | `application_deadline` | ISO-8601 UTC | |
 | `skill_codes` | string[] | Sorted by code. |
 
+### `APPLICATION_SUBMITTED` (v1)
+
+- **When:** a contributor applies (`POST /api/v1/opportunities/{id}/applications`), after the application is committed ([ADR 0006](adr/0006-application-lifecycle.md)).
+- **Consumed by:** **creator_service** → `app/handlers/application_submitted.py`. It looks up the organization's owner (skipped if their account is inactive) and stores one `application_submitted` notification: `New application: <opportunity title>`, message `<contributor name> applied. …`, linked to the opportunity. Commit-then-ack and `INSERT IGNORE` as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `organization_id` | int | Used to find whom to notify. |
+| `opportunity_title` | string | As it was when the contributor applied. |
+| `contributor_id` | int | |
+| `contributor_name` | string | |
+
+### `APPLICATION_DECIDED` (v1)
+
+- **When:** the owning creator accepts or rejects a pending application (`POST /api/v1/applications/{id}/decision`). Each application is decided once, so this is sent at most once per application.
+- **Consumed by:** **contributor_service** → `app/handlers/application_decided.py`. It stores one `application_decided` notification for the applicant: `You were accepted: <title>` or `Application update: <title>`, linked to the opportunity. The decision is taken from the event, not re-read: it is final.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `opportunity_title` | string | |
+| `contributor_id` | int | Whom to notify. |
+| `decision` | string | `accepted` \| `rejected` |
+
+Withdrawing an application publishes no event (there is none in the catalog yet).
+
 ### Seeing it end to end (Check-in I demo)
 
 1. `make reset-db` (fresh seed: draft 15 back, no notifications; **wipes local data**), then `docker compose logs -f contributor_service creator_service` in a second terminal.
@@ -66,4 +97,4 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 ## Not yet implemented
 
-`APPLICATION_SUBMITTED`, `APPLICATION_DECIDED`, `WORK_SUBMITTED`, `WORK_VERIFIED`, `WORK_REJECTED`, `FEEDBACK_SUBMITTED`, `FEEDBACK_APPROVED`, `FEEDBACK_REJECTED` exist in `EventType` but have no payload schema or producer yet. Queues, bindings and dead-lettering per service come with the consumers.
+`WORK_SUBMITTED`, `WORK_VERIFIED`, `WORK_REJECTED`, `FEEDBACK_SUBMITTED`, `FEEDBACK_APPROVED`, `FEEDBACK_REJECTED` exist in `EventType` but have no payload schema or producer yet. admin_service has no handlers, so it declares no queue yet; it gets one (with its dead-letter queue) when its first handler is added.

@@ -58,3 +58,4 @@ def require_roles(*roles: UserRole) -> Callable[[UserAccount], UserAccount]:
 CurrentUser = Annotated[UserAccount, Depends(get_current_user)]
 OptionalUser = Annotated[UserAccount | None, Depends(get_optional_user)]
 CurrentCreator = Annotated[UserAccount, Depends(require_roles(UserRole.CREATOR))]
+CurrentContributor = Annotated[UserAccount, Depends(require_roles(UserRole.CONTRIBUTOR))]
