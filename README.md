@@ -95,7 +95,7 @@ The database stores:
 - Feedback
 - Ratings
 
-Failed event publications are retried. A transactional outbox is considered future work.
+Failed event publications are retried. A consumer whose handler fails retries the event after 5 s, 30 s and 120 s (through RabbitMQ retry queues) before moving it to its dead-letter queue. A transactional outbox is considered future work.
 
 ---
 

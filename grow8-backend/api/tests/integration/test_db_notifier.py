@@ -13,6 +13,7 @@ from grow8_common.models import Notification, NotificationType, UserAccount
 from grow8_common.notifications import DbNotifier
 from grow8_common.queries import find_active_owner, find_matching_contributors
 from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 
@@ -54,6 +55,28 @@ def test_redelivered_event_adds_nothing(session: Session) -> None:
     _deliver(session, event_id, [6])
     _deliver(session, event_id, [6])
     assert len(_stored(session)) == 1
+
+
+def test_redelivery_keeps_the_first_row_unchanged(session: Session) -> None:
+    event_id = uuid4()
+    _deliver(session, event_id, [6])
+    [first] = _stored(session)
+    first_id, first_created = first.notification_id, first.created_at
+    session.expire_all()
+
+    _deliver(session, event_id, [6])
+
+    [again] = _stored(session)
+    assert (again.notification_id, again.created_at) == (first_id, first_created)
+
+
+def test_unknown_user_raises_instead_of_being_silently_dropped(session: Session) -> None:
+    # INSERT IGNORE would turn this FK violation into a warning and store nothing,
+    # hiding the failure from the consumer's retry and dead-letter handling.
+    with pytest.raises(IntegrityError):
+        _deliver(session, uuid4(), [999_999])
+    session.rollback()
+    assert _stored(session) == []
 
 
 def test_a_new_event_for_the_same_user_is_a_new_notification(session: Session) -> None:
