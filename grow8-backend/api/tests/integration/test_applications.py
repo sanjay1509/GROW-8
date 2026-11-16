@@ -145,6 +145,19 @@ def test_drafts_and_unknown_opportunities_are_404(
     assert _error(_apply(client, contributor, 9999), 404) == "OPPORTUNITY_NOT_FOUND"
 
 
+def test_contributor_without_a_profile_cannot_apply(
+    client: TestClient,
+    sam: dict[str, str],
+    seeded_db: pymysql.Connection,
+    publisher: FakePublisher,
+) -> None:
+    with seeded_db.cursor() as cur:  # sign-up always creates one; remove it directly
+        cur.execute("DELETE FROM contributor_profile WHERE user_id = 7")
+
+    assert _error(_apply(client, sam, 8), 409) == "CONTRIBUTOR_PROFILE_REQUIRED"
+    assert publisher.events == []
+
+
 def test_only_contributors_can_apply(client: TestClient, bakery: dict[str, str]) -> None:
     assert _error(_apply(client, bakery, 8), 403) == "ROLE_FORBIDDEN"
     assert _error(client.post(f"{OPPS}/8/applications", json={}), 401) == "AUTH_REQUIRED"

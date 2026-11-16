@@ -4,6 +4,7 @@ an application (ADRs 0007, 0008). Files go to a temporary folder (`storage_dir`)
 from pathlib import Path
 from typing import Any
 
+import pymysql
 import pytest
 from fastapi.testclient import TestClient
 
@@ -248,3 +249,13 @@ def test_nobody_else_can_open_it(
     assert _error(client.get(url, headers=events_org), 404) == "APPLICATION_NOT_FOUND"
     assert _error(client.get(url, headers=jordan), 404) == "APPLICATION_NOT_FOUND"
     assert _error(client.get(url), 401) == "AUTH_REQUIRED"
+
+
+def test_contributor_without_a_profile_cannot_upload(
+    client: TestClient, sam: dict[str, str], seeded_db: pymysql.Connection, storage_dir: Path
+) -> None:
+    with seeded_db.cursor() as cur:  # sign-up always creates one; remove it directly
+        cur.execute("DELETE FROM contributor_profile WHERE user_id = 7")
+
+    assert _error(_upload(client, sam), 409) == "CONTRIBUTOR_PROFILE_REQUIRED"
+    assert _stored_files(storage_dir) == []  # checked before anything is written
