@@ -12,7 +12,16 @@ logger = logging.getLogger(__name__)
 
 @lru_cache
 def get_engine() -> Engine:
-    return create_engine(get_settings().database_url, pool_pre_ping=True, pool_recycle=3600)
+    # Every DATETIME is UTC: the code writes utcnow(), and the triggers and column
+    # defaults use NOW()/CURRENT_TIMESTAMP, which follow the session time zone. Pin it
+    # to UTC so a server with a local time zone can't make a fresh application look
+    # "future dated" to trg_application_bi (or date defaults in local time).
+    return create_engine(
+        get_settings().database_url,
+        pool_pre_ping=True,
+        pool_recycle=3600,
+        connect_args={"init_command": "SET time_zone = '+00:00'"},
+    )
 
 
 @lru_cache
