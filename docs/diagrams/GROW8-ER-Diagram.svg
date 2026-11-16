@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2120" height="1660" viewBox="0 0 2120 1660">
-<rect width="2120" height="1660" fill="#FFFFFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="2120" height="1780" viewBox="0 0 2120 1780">
+<rect width="2120" height="1780" fill="#FFFFFF"/>
 <text x="40.0" y="48.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="30" font-weight="800" fill="#0F172A" text-anchor="start">GROW8 — Entity-Relationship Diagram</text>
-<text x="40.0" y="74.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13.5" font-weight="400" fill="#475569" text-anchor="start">MySQL 8.4 · 18 tables · 124 columns · 26 foreign keys · 17 integrity triggers · 5 derived-value views · all tables in BCNF</text>
+<text x="40.0" y="74.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13.5" font-weight="400" fill="#475569" text-anchor="start">MySQL 8.4 · 19 tables · 130 columns · 27 foreign keys · 17 integrity triggers · 5 derived-value views · all tables in BCNF</text>
 <text x="2080.0" y="46.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="end">ENSF 608 · Group 2</text>
-<text x="2080.0" y="70.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#64748B" text-anchor="end">Generated from db/init/001_schema.sql · Nov 7, 2026</text>
+<text x="2080.0" y="70.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#64748B" text-anchor="end">Generated from db/init/001_schema.sql · Nov 16, 2026</text>
 <line x1="40" y1="88" x2="2080" y2="88" stroke="#E2E8F0" stroke-width="1.2"/>
 <path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L1665,985 L1665,805.5 L1707,805.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="363" y1="1140.5" x2="363" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="368" y1="1140.5" x2="368" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
@@ -26,6 +26,9 @@
 <path d="M356,1148.5 L498,1148.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="363" y1="1140.5" x2="363" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="368" y1="1140.5" x2="368" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
 <line x1="491" y1="1140.5" x2="491" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="481" cy="1148.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
+<path d="M498,1148.5 L470,1148.5 L470,1378.5 L498,1378.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
+<line x1="491" y1="1140.5" x2="491" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="486" y1="1140.5" x2="486" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
+<line x1="491" y1="1370.5" x2="491" y2="1386.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="481" cy="1378.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
 <path d="M760,1148.5 L885,1148.5 L885,854.5 L933,854.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="767" y1="1140.5" x2="767" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="772" y1="1140.5" x2="772" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
 <path d="M933,847.5 L922,854.5 L933,861.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="933" y1="854.5" x2="922" y2="854.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="915" cy="854.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
@@ -284,14 +287,14 @@
 <rect x="941" y="848.0" width="20" height="13" rx="3" fill="#FDE68A"/><text x="951.0" y="857.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
 <rect x="964" y="848.0" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="974.0" y="857.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
 <text x="991.0" y="858.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">contributor_id</text>
-<text x="1088.5" y="858.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="1088.4" y="858.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
 <rect x="934" y="865.0" width="246" height="21" fill="#FFFBEB"/>
 <rect x="941" y="869.0" width="20" height="13" rx="3" fill="#FDE68A"/><text x="951.0" y="878.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
 <rect x="964" y="869.0" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="974.0" y="878.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
 <text x="991.0" y="879.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">skill_id</text>
-<text x="1088.5" y="879.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="1088.4" y="879.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
 <text x="991.0" y="900.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">created_at</text>
-<text x="1088.5" y="900.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
+<text x="1088.4" y="900.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
 <rect x="1338" y="379" width="230" height="97" rx="6" fill="#0F172A" opacity="0.06"/>
 <rect x="1336" y="376" width="230" height="97" rx="6" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.6"/>
 <path d="M1336,404 v-22 a6,6 0 0 1 6,-6 h218 a6,6 0 0 1 6,6 v22 z" fill="#7C3AED"/>
@@ -357,21 +360,21 @@
 <rect x="1708" y="295.0" width="273" height="21" fill="#FFFBEB"/>
 <rect x="1715" y="299.0" width="20" height="13" rx="3" fill="#FDE68A"/><text x="1725.0" y="308.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
 <text x="1765.0" y="309.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">attachment_id</text>
-<text x="1863.3" y="309.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="1863.6" y="309.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
 <rect x="1715" y="320.0" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="1725.0" y="329.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
 <text x="1765.0" y="330.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">submission_id</text>
-<text x="1863.3" y="330.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="1863.6" y="330.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
 <text x="1765.0" y="351.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">file_name</text>
-<text x="1863.3" y="351.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(255)</text>
+<text x="1863.6" y="351.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(255)</text>
 <text x="1765.0" y="372.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">content_type</text>
-<text x="1863.3" y="372.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(100)</text>
+<text x="1863.6" y="372.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(100)</text>
 <text x="1765.0" y="393.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">size_bytes</text>
-<text x="1863.3" y="393.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">BIGINT</text>
+<text x="1863.6" y="393.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">BIGINT</text>
 <rect x="1715" y="404.0" width="20" height="13" rx="3" fill="#EDE9FE"/><text x="1725.0" y="413.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#5B21B6" text-anchor="middle">UK</text>
 <text x="1765.0" y="414.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">storage_key</text>
-<text x="1863.3" y="414.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(512)</text>
+<text x="1863.6" y="414.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(512)</text>
 <text x="1765.0" y="435.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">uploaded_at</text>
-<text x="1863.3" y="435.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
+<text x="1863.6" y="435.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
 <rect x="1709" y="497" width="300" height="181" rx="6" fill="#0F172A" opacity="0.06"/>
 <rect x="1707" y="494" width="300" height="181" rx="6" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.6"/>
 <path d="M1707,522 v-22 a6,6 0 0 1 6,-6 h288 a6,6 0 0 1 6,6 v22 z" fill="#DC2626"/>
@@ -493,6 +496,26 @@
 <text x="634.8" y="1257.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
 <text x="556.0" y="1278.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">updated_at</text>
 <text x="634.8" y="1278.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
+<rect x="500" y="1343" width="266" height="160" rx="6" fill="#0F172A" opacity="0.06"/>
+<rect x="498" y="1340" width="266" height="160" rx="6" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
+<path d="M498,1368 v-22 a6,6 0 0 1 6,-6 h254 a6,6 0 0 1 6,6 v22 z" fill="#2563EB"/>
+<text x="508.0" y="1358.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="start">contributor_resume</text>
+<rect x="499" y="1368.0" width="264" height="21" fill="#FFFBEB"/>
+<rect x="506" y="1372.0" width="20" height="13" rx="3" fill="#FDE68A"/><text x="516.0" y="1381.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
+<rect x="529" y="1372.0" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="539.0" y="1381.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
+<text x="556.0" y="1382.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">user_id</text>
+<text x="645.7" y="1382.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="556.0" y="1403.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">file_name</text>
+<text x="645.7" y="1403.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(255)</text>
+<text x="556.0" y="1424.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">content_type</text>
+<text x="645.7" y="1424.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(100)</text>
+<text x="556.0" y="1445.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">size_bytes</text>
+<text x="645.7" y="1445.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">BIGINT</text>
+<rect x="506" y="1456.0" width="20" height="13" rx="3" fill="#EDE9FE"/><text x="516.0" y="1465.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#5B21B6" text-anchor="middle">UK</text>
+<text x="556.0" y="1466.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">storage_key</text>
+<text x="645.7" y="1466.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(512)</text>
+<text x="556.0" y="1487.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">uploaded_at</text>
+<text x="645.7" y="1487.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
 <rect x="935" y="1113" width="248" height="97" rx="6" fill="#0F172A" opacity="0.06"/>
 <rect x="933" y="1110" width="248" height="97" rx="6" fill="#FFFFFF" stroke="#0891B2" stroke-width="1.6"/>
 <path d="M933,1138 v-22 a6,6 0 0 1 6,-6 h236 a6,6 0 0 1 6,6 v22 z" fill="#0891B2"/>
@@ -501,14 +524,14 @@
 <rect x="941" y="1142.0" width="20" height="13" rx="3" fill="#FDE68A"/><text x="951.0" y="1151.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
 <rect x="964" y="1142.0" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="974.0" y="1151.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
 <text x="991.0" y="1152.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">contributor_id</text>
-<text x="1088.5" y="1152.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="1088.4" y="1152.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
 <rect x="934" y="1159.0" width="246" height="21" fill="#FFFBEB"/>
 <rect x="941" y="1163.0" width="20" height="13" rx="3" fill="#FDE68A"/><text x="951.0" y="1172.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
 <rect x="964" y="1163.0" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="974.0" y="1172.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
 <text x="991.0" y="1173.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">badge_id</text>
-<text x="1088.5" y="1173.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="1088.4" y="1173.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
 <text x="991.0" y="1194.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">awarded_at</text>
-<text x="1088.5" y="1194.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
+<text x="1088.4" y="1194.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
 <rect x="935" y="1249" width="325" height="160" rx="6" fill="#0F172A" opacity="0.06"/>
 <rect x="933" y="1246" width="325" height="160" rx="6" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.6"/>
 <path d="M933,1274 v-22 a6,6 0 0 1 6,-6 h313 a6,6 0 0 1 6,6 v22 z" fill="#7C3AED"/>
@@ -516,80 +539,80 @@
 <rect x="934" y="1274.0" width="323" height="21" fill="#FFFBEB"/>
 <rect x="941" y="1278.0" width="20" height="13" rx="3" fill="#FDE68A"/><text x="951.0" y="1287.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
 <text x="991.0" y="1288.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">badge_id</text>
-<text x="1139.8" y="1288.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="1139.7" y="1288.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
 <rect x="941" y="1299.0" width="20" height="13" rx="3" fill="#EDE9FE"/><text x="951.0" y="1308.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#5B21B6" text-anchor="middle">UK</text>
 <text x="991.0" y="1309.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">code</text>
-<text x="1139.8" y="1309.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(50)</text>
+<text x="1139.7" y="1309.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(50)</text>
 <rect x="941" y="1320.0" width="20" height="13" rx="3" fill="#EDE9FE"/><text x="951.0" y="1329.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#5B21B6" text-anchor="middle">UK</text>
 <text x="991.0" y="1330.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">name</text>
-<text x="1139.8" y="1330.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(100)</text>
+<text x="1139.7" y="1330.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(100)</text>
 <text x="991.0" y="1351.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">description</text>
-<text x="1139.8" y="1351.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(255)</text>
+<text x="1139.7" y="1351.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(255)</text>
 <text x="1249.0" y="1351.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="10" font-weight="400" fill="#94A3B8" text-anchor="end" font-style="italic">null</text>
 <text x="991.0" y="1372.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">points</text>
-<text x="1139.8" y="1372.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="1139.7" y="1372.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
 <text x="991.0" y="1393.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">required_verified_hours</text>
-<text x="1139.8" y="1393.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DECIMAL(6,2)</text>
+<text x="1139.7" y="1393.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DECIMAL(6,2)</text>
 <text x="1249.0" y="1393.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="10" font-weight="400" fill="#94A3B8" text-anchor="end" font-style="italic">null</text>
-<line x1="40" y1="1440" x2="2080" y2="1440" stroke="#E2E8F0" stroke-width="1.2"/>
-<text x="40.0" y="1470.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#0F172A" text-anchor="start">Cardinality (crow's foot)</text>
-<line x1="40" y1="1498" x2="96" y2="1498" stroke="#334155" stroke-width="1.6"/>
-<rect x="96" y="1488" width="4" height="20" fill="#334155"/>
-<line x1="89" y1="1490" x2="89" y2="1506" stroke="#334155" stroke-width="1.6" fill="none"/><line x1="84" y1="1490" x2="84" y2="1506" stroke="#334155" stroke-width="1.6" fill="none"/>
-<text x="114.0" y="1502.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">Exactly one</text>
-<text x="202.0" y="1502.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">parent side, FK is NOT NULL</text>
-<line x1="40" y1="1528" x2="96" y2="1528" stroke="#334155" stroke-width="1.6"/>
-<rect x="96" y="1518" width="4" height="20" fill="#334155"/>
-<line x1="89" y1="1520" x2="89" y2="1536" stroke="#334155" stroke-width="1.6" fill="none"/><circle cx="79" cy="1528" r="4.5" fill="#FFFFFF" stroke="#334155" stroke-width="1.6"/>
-<text x="114.0" y="1532.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">Zero or one</text>
-<text x="202.0" y="1532.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">parent side if FK is nullable; child side if FK is UNIQUE</text>
-<line x1="40" y1="1558" x2="96" y2="1558" stroke="#334155" stroke-width="1.6"/>
-<rect x="96" y="1548" width="4" height="20" fill="#334155"/>
-<path d="M96,1551 L85,1558 L96,1565" stroke="#334155" stroke-width="1.6" fill="none"/><line x1="96" y1="1558" x2="85" y2="1558" stroke="#334155" stroke-width="1.6" fill="none"/><circle cx="78" cy="1558" r="4.5" fill="#FFFFFF" stroke="#334155" stroke-width="1.6"/>
-<text x="114.0" y="1562.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">Zero or many</text>
-<text x="202.0" y="1562.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">child side of an ordinary FK</text>
-<path d="M40,1590 L62,1590 A7,7 0 0 1 76,1590 L98,1590" fill="none" stroke="#334155" stroke-width="1.6"/><line x1="69" y1="1578" x2="69" y2="1602" stroke="#94A3B8" stroke-width="1.6"/>
-<text x="110.0" y="1594.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">Hop</text>
-<text x="144.0" y="1594.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">lines cross, not connected</text>
-<line x1="340" y1="1590" x2="396" y2="1590" stroke="#334155" stroke-width="1.6"/><line x1="368" y1="1590" x2="368" y2="1604" stroke="#334155" stroke-width="1.6"/><circle cx="368" cy="1590" r="3.4" fill="#334155"/>
-<text x="408.0" y="1594.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">Branch</text>
-<text x="460.0" y="1594.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">one key, several tables</text>
-<text x="640.0" y="1470.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#0F172A" text-anchor="start">Columns</text>
-<rect x="640" y="1491.5" width="20" height="13" rx="3" fill="#FDE68A"/><text x="650.0" y="1501.2" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
-<text x="672.0" y="1502.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Primary key</text>
-<rect x="640" y="1517.5" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="650.0" y="1527.2" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
-<text x="672.0" y="1528.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Foreign key</text>
-<rect x="640" y="1543.5" width="20" height="13" rx="3" fill="#EDE9FE"/><text x="650.0" y="1553.2" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#5B21B6" text-anchor="middle">UK</text>
-<text x="672.0" y="1554.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Unique key</text>
-<text x="640.0" y="1580.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="10" font-weight="400" fill="#94A3B8" text-anchor="start" font-style="italic">null</text>
-<text x="672.0" y="1580.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Nullable (every other column is NOT NULL)</text>
-<text x="640.0" y="1606.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="400" fill="#64748B" text-anchor="start">INT = INT UNSIGNED · DATETIME in UTC · BOOLEAN = TINYINT(1)</text>
-<text x="640.0" y="1624.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="400" fill="#64748B" text-anchor="start">Lines run from the parent key to the exact FK column.</text>
-<text x="640.0" y="1642.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="400" fill="#64748B" text-anchor="start">point_transaction → contributor_badge is the composite key (contributor_id, badge_id).</text>
-<text x="1180.0" y="1470.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#0F172A" text-anchor="start">Table groups (line colour = parent group)</text>
-<rect x="1180" y="1491" width="14" height="14" rx="3" fill="#2563EB"/>
-<text x="1202.0" y="1502.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Identity and profiles</text>
-<rect x="1180" y="1517" width="14" height="14" rx="3" fill="#7C3AED"/>
-<text x="1202.0" y="1528.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Reference data</text>
-<rect x="1180" y="1543" width="14" height="14" rx="3" fill="#059669"/>
-<text x="1202.0" y="1554.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Opportunities and skills</text>
-<rect x="1180" y="1569" width="14" height="14" rx="3" fill="#D97706"/>
-<text x="1202.0" y="1580.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Applications and work</text>
-<rect x="1390" y="1491" width="14" height="14" rx="3" fill="#DC2626"/>
-<text x="1412.0" y="1502.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Verification and feedback</text>
-<rect x="1390" y="1517" width="14" height="14" rx="3" fill="#0891B2"/>
-<text x="1412.0" y="1528.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Rewards</text>
-<rect x="1390" y="1543" width="14" height="14" rx="3" fill="#475569"/>
-<text x="1412.0" y="1554.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Notifications</text>
-<text x="1640.0" y="1470.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#0F172A" text-anchor="start">Derived values: views, never stored</text>
-<text x="1640.0" y="1496.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_contributor_skill</text>
-<text x="1640.0" y="1511.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">verified once approved work used the skill</text>
-<text x="1640.0" y="1528.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_contributor_verified_hours</text>
-<text x="1640.0" y="1543.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">SUM(verified_hours) of approved work_verification rows</text>
-<text x="1640.0" y="1560.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_feedback_status</text>
-<text x="1640.0" y="1575.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">pending until an admin_review row exists</text>
-<text x="1640.0" y="1592.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_leaderboard</text>
-<text x="1640.0" y="1607.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">SUM(points) from point_transaction, RANK() OVER</text>
-<text x="1640.0" y="1624.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_user_rating</text>
-<text x="1640.0" y="1639.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">AVG(rating) of feedback approved in admin_review</text>
+<line x1="40" y1="1560" x2="2080" y2="1560" stroke="#E2E8F0" stroke-width="1.2"/>
+<text x="40.0" y="1590.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#0F172A" text-anchor="start">Cardinality (crow's foot)</text>
+<line x1="40" y1="1618" x2="96" y2="1618" stroke="#334155" stroke-width="1.6"/>
+<rect x="96" y="1608" width="4" height="20" fill="#334155"/>
+<line x1="89" y1="1610" x2="89" y2="1626" stroke="#334155" stroke-width="1.6" fill="none"/><line x1="84" y1="1610" x2="84" y2="1626" stroke="#334155" stroke-width="1.6" fill="none"/>
+<text x="114.0" y="1622.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">Exactly one</text>
+<text x="202.0" y="1622.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">parent side, FK is NOT NULL</text>
+<line x1="40" y1="1648" x2="96" y2="1648" stroke="#334155" stroke-width="1.6"/>
+<rect x="96" y="1638" width="4" height="20" fill="#334155"/>
+<line x1="89" y1="1640" x2="89" y2="1656" stroke="#334155" stroke-width="1.6" fill="none"/><circle cx="79" cy="1648" r="4.5" fill="#FFFFFF" stroke="#334155" stroke-width="1.6"/>
+<text x="114.0" y="1652.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">Zero or one</text>
+<text x="202.0" y="1652.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">parent side if FK is nullable; child side if FK is UNIQUE</text>
+<line x1="40" y1="1678" x2="96" y2="1678" stroke="#334155" stroke-width="1.6"/>
+<rect x="96" y="1668" width="4" height="20" fill="#334155"/>
+<path d="M96,1671 L85,1678 L96,1685" stroke="#334155" stroke-width="1.6" fill="none"/><line x1="96" y1="1678" x2="85" y2="1678" stroke="#334155" stroke-width="1.6" fill="none"/><circle cx="78" cy="1678" r="4.5" fill="#FFFFFF" stroke="#334155" stroke-width="1.6"/>
+<text x="114.0" y="1682.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">Zero or many</text>
+<text x="202.0" y="1682.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">child side of an ordinary FK</text>
+<path d="M40,1710 L62,1710 A7,7 0 0 1 76,1710 L98,1710" fill="none" stroke="#334155" stroke-width="1.6"/><line x1="69" y1="1698" x2="69" y2="1722" stroke="#94A3B8" stroke-width="1.6"/>
+<text x="110.0" y="1714.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">Hop</text>
+<text x="144.0" y="1714.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">lines cross, not connected</text>
+<line x1="340" y1="1710" x2="396" y2="1710" stroke="#334155" stroke-width="1.6"/><line x1="368" y1="1710" x2="368" y2="1724" stroke="#334155" stroke-width="1.6"/><circle cx="368" cy="1710" r="3.4" fill="#334155"/>
+<text x="408.0" y="1714.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">Branch</text>
+<text x="460.0" y="1714.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">one key, several tables</text>
+<text x="640.0" y="1590.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#0F172A" text-anchor="start">Columns</text>
+<rect x="640" y="1611.5" width="20" height="13" rx="3" fill="#FDE68A"/><text x="650.0" y="1621.2" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
+<text x="672.0" y="1622.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Primary key</text>
+<rect x="640" y="1637.5" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="650.0" y="1647.2" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
+<text x="672.0" y="1648.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Foreign key</text>
+<rect x="640" y="1663.5" width="20" height="13" rx="3" fill="#EDE9FE"/><text x="650.0" y="1673.2" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#5B21B6" text-anchor="middle">UK</text>
+<text x="672.0" y="1674.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Unique key</text>
+<text x="640.0" y="1700.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="10" font-weight="400" fill="#94A3B8" text-anchor="start" font-style="italic">null</text>
+<text x="672.0" y="1700.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Nullable (every other column is NOT NULL)</text>
+<text x="640.0" y="1726.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="400" fill="#64748B" text-anchor="start">INT = INT UNSIGNED · DATETIME in UTC · BOOLEAN = TINYINT(1)</text>
+<text x="640.0" y="1744.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="400" fill="#64748B" text-anchor="start">Lines run from the parent key to the exact FK column.</text>
+<text x="640.0" y="1762.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="400" fill="#64748B" text-anchor="start">point_transaction → contributor_badge is the composite key (contributor_id, badge_id).</text>
+<text x="1180.0" y="1590.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#0F172A" text-anchor="start">Table groups (line colour = parent group)</text>
+<rect x="1180" y="1611" width="14" height="14" rx="3" fill="#2563EB"/>
+<text x="1202.0" y="1622.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Identity and profiles</text>
+<rect x="1180" y="1637" width="14" height="14" rx="3" fill="#7C3AED"/>
+<text x="1202.0" y="1648.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Reference data</text>
+<rect x="1180" y="1663" width="14" height="14" rx="3" fill="#059669"/>
+<text x="1202.0" y="1674.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Opportunities and skills</text>
+<rect x="1180" y="1689" width="14" height="14" rx="3" fill="#D97706"/>
+<text x="1202.0" y="1700.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Applications and work</text>
+<rect x="1390" y="1611" width="14" height="14" rx="3" fill="#DC2626"/>
+<text x="1412.0" y="1622.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Verification and feedback</text>
+<rect x="1390" y="1637" width="14" height="14" rx="3" fill="#0891B2"/>
+<text x="1412.0" y="1648.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Rewards</text>
+<rect x="1390" y="1663" width="14" height="14" rx="3" fill="#475569"/>
+<text x="1412.0" y="1674.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Notifications</text>
+<text x="1640.0" y="1590.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#0F172A" text-anchor="start">Derived values: views, never stored</text>
+<text x="1640.0" y="1616.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_contributor_skill</text>
+<text x="1640.0" y="1631.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">verified once approved work used the skill</text>
+<text x="1640.0" y="1648.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_contributor_verified_hours</text>
+<text x="1640.0" y="1663.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">SUM(verified_hours) of approved work_verification rows</text>
+<text x="1640.0" y="1680.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_feedback_status</text>
+<text x="1640.0" y="1695.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">pending until an admin_review row exists</text>
+<text x="1640.0" y="1712.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_leaderboard</text>
+<text x="1640.0" y="1727.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">SUM(points) from point_transaction, RANK() OVER</text>
+<text x="1640.0" y="1744.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_user_rating</text>
+<text x="1640.0" y="1759.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">AVG(rating) of feedback approved in admin_review</text>
 </svg>

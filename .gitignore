@@ -11,3 +11,4 @@
 **/node_modules/
 **/.DS_Store
 .env
+grow8-backend/CLAUDE.md

@@ -46,6 +46,16 @@ class UnprocessableError(AppError):
     code = "VALIDATION_ERROR"
 
 
+class PayloadTooLargeError(AppError):
+    status_code = 413
+    code = "PAYLOAD_TOO_LARGE"
+
+
+class UnsupportedMediaTypeError(AppError):
+    status_code = 415
+    code = "UNSUPPORTED_MEDIA_TYPE"
+
+
 def error_body(code: str, message: str, details: Any = None) -> dict[str, Any]:
     error: dict[str, Any] = {"code": code, "message": message}
     if details is not None:
