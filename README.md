@@ -56,31 +56,34 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 
 ### Architecture Components
 
-| Component           | Responsibility                                                                                |
-| ------------------- | --------------------------------------------------------------------------------------------- |
-| React Frontend      | Provides the user interface for Creators, Contributors, and Admins.                           |
-| FastAPI Backend     | Validates requests, handles business logic, exposes REST APIs, and publishes events.          |
-| MySQL Database      | Stores users, opportunities, applications, submissions, hours, skills, feedback, and ratings. |
-| RabbitMQ            | Routes published events to subscribed consumer services.                                      |
-| Creator Service     | Handles notifications about applications and work awaiting verification.                      |
-| Contributor Service | Handles opportunity notifications, application decisions, and verified experience updates.    |
-| Admin Service       | Handles feedback awaiting review and administrative feedback decisions.                       |
+| Component | Responsibility |
+| --- | --- |
+| React Frontend | Provides the user interface for Creators, Contributors, and Admins. |
+| FastAPI Backend | Validates requests, handles business logic, exposes REST APIs, and publishes events. |
+| MySQL Database | Stores users, opportunities, applications, submissions, hours, skills, feedback, ratings, and notifications. |
+| File Storage | A Docker volume for uploaded files (contributor resumes), behind a storage interface that could later be swapped for cloud storage. |
+| RabbitMQ | Routes published events to subscribed consumer services, with delayed retries and a dead-letter queue per service. |
+| Creator Service | Notifies creators when their opportunity is published, when someone applies or withdraws, and (planned) when work awaits verification. |
+| Contributor Service | Notifies contributors of matching opportunities, application decisions, and cancellations; (planned) updates verified hours and skills. |
+| Admin Service | (Planned) Handles feedback awaiting review and administrative feedback decisions. |
 
 ### Event Flow
 
-| Producer Action | Event | Consumer Service | Resulting Behaviour |
-|---|---|---|---|
-| Creator actions | `OPPORTUNITY_CREATED` | Contributor Service, Creator Service | Notifies matching contributors about the new opportunity, and confirms to the creator that it was published. |
-| Creator actions | `APPLICATION_DECIDED` | Contributor Service | Notifies contributors of application decisions. |
-| Creator actions | `OPPORTUNITY_CANCELLED` | Contributor Service | Notifies pending and accepted applicants that the opportunity was cancelled. |
-| Creator actions | `WORK_VERIFIED` | Contributor Service | Updates verified hours and skills. |
-| Creator actions | `WORK_REJECTED` | Contributor Service | Notifies contributors about rejected work. |
-| Contributor actions | `APPLICATION_SUBMITTED` | Creator Service | Notifies creators about new applications. |
-| Contributor actions | `APPLICATION_WITHDRAWN` | Creator Service | Notifies creators when an applicant withdraws, and whether a place opened up. |
-| Contributor actions | `WORK_SUBMITTED` | Creator Service | Notifies creators about work awaiting verification. |
-| Creator or Contributor actions | `FEEDBACK_SUBMITTED` | Admin Service | Alerts admins to feedback awaiting review. |
-| Admin actions | `FEEDBACK_APPROVED` | All three services | Updates public ratings and notifies the feedback author and subject. |
-| Admin actions | `FEEDBACK_REJECTED` | All three services | Records the rejection and notifies the feedback author and subject. |
+| Producer Action | Event | Consumer Service | Resulting Behaviour | Status |
+| --- | --- | --- | --- | --- |
+| Creator actions | `OPPORTUNITY_CREATED` | Contributor Service, Creator Service | Notifies matching contributors about the new opportunity, and confirms to the creator that it was published. | Implemented |
+| Creator actions | `APPLICATION_DECIDED` | Contributor Service | Notifies contributors of application decisions. | Implemented |
+| Creator actions | `OPPORTUNITY_CANCELLED` | Contributor Service | Notifies pending and accepted applicants that the opportunity was cancelled. | Implemented |
+| Creator actions | `WORK_VERIFIED` | Contributor Service | Updates verified hours and skills. | Planned |
+| Creator actions | `WORK_REJECTED` | Contributor Service | Notifies contributors about rejected work. | Planned |
+| Contributor actions | `APPLICATION_SUBMITTED` | Creator Service | Notifies creators about new applications. | Implemented |
+| Contributor actions | `APPLICATION_WITHDRAWN` | Creator Service | Notifies creators when an applicant withdraws, and whether a place opened up. | Implemented |
+| Contributor actions | `WORK_SUBMITTED` | Creator Service | Notifies creators about work awaiting verification. | Planned |
+| Creator or Contributor actions | `FEEDBACK_SUBMITTED` | Admin Service | Alerts admins to feedback awaiting review. | Planned |
+| Admin actions | `FEEDBACK_APPROVED` | All three services | Updates public ratings and notifies the feedback author and subject. | Planned |
+| Admin actions | `FEEDBACK_REJECTED` | All three services | Records the rejection and notifies the feedback author and subject. | Planned |
+
+Event payloads, queues and failure handling are documented in [grow8-backend/docs/events.md](grow8-backend/docs/events.md).
 
 ### Database
 
@@ -91,11 +94,15 @@ The database stores:
 - Users and roles
 - Opportunities
 - Applications
+- Contributor resumes (metadata; the files themselves are on the file storage volume)
 - Work submissions
 - Verified hours
 - Skills
 - Feedback
 - Ratings
+- Notifications
+
+The schema has 19 tables. Business rules (such as applicant limits and deadlines) are enforced by both the API and database triggers. See the [data dictionary](docs/db/data-dictionary.md) and [relational schema](docs/db/relational-schema.md).
 
 Failed event publications are retried. A consumer whose handler fails retries the event after 5 s, 30 s and 120 s (through RabbitMQ retry queues) before moving it to its dead-letter queue. A transactional outbox is considered future work.
 
@@ -103,15 +110,16 @@ Failed event publications are retried. A consumer whose handler fails retries th
 
 ## 3. Technology Stack
 
-| Component       | Technology                                 |
-| --------------- | ------------------------------------------ |
-| Frontend        | React, TypeScript, Tailwind CSS            |
-| Backend         | Python, FastAPI, REST APIs                 |
-| Database        | MySQL                                      |
-| Event Broker    | RabbitMQ                                   |
-| Testing         | Postman, manual testing, execution reports |
-| Version Control | GitHub                                     |
-| Deployment      | Docker                                     |
+| Component | Technology |
+| --- | --- |
+| Frontend | React, TypeScript, Vite, CSS, lucide-react icons |
+| Backend | Python, FastAPI, SQLAlchemy, Pydantic, REST APIs |
+| Database | MySQL 8.4 |
+| Event Broker | RabbitMQ |
+| File Storage | Docker volume |
+| Testing | pytest (about 300 automated API and consumer tests against a real MySQL), Postman/Newman end-to-end collection, manual testing, execution reports |
+| Version Control | GitHub |
+| Deployment | Docker Compose |
 
 ---
 
@@ -167,11 +175,21 @@ The following features may be considered as future enhancements, subject to proj
 
 ## 8. Project Status
 
-GROW8 is being developed as a team project for ENSF 607/ ENSF 608.
+GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole stack runs locally with Docker Compose.
 
-The application will combine a React-based frontend, FastAPI backend, MySQL database, and RabbitMQ event broker to support opportunity management, applications, work verification, feedback, and administrative review.
+**Implemented (backend):**
 
-More implementation details, setup instructions, and usage documentation can be added as development progresses.
+- Sign-in with JWT, role-based access (creator, contributor, admin), and password change.
+- Opportunities: drafts, validation of mandatory disclosures, publishing, public browse with search, filters and sorting, closing and cancelling.
+- Applications: apply, review, accept or reject, withdraw, and the creator's view of applications received, with applicant limits and deadlines enforced.
+- Optional PDF resume upload for contributors, visible to creators they applied to.
+- Event-driven notifications for publishing, applications, decisions, withdrawals and cancellations, with delayed retries and dead-letter queues.
+
+**In progress:** connecting the frontend to the applications, close and cancel endpoints.
+
+**Planned:** work submission and verification, verified hours and skills, feedback and admin review, and the stretch goals below.
+
+**Getting started:** setup, dev accounts, everyday commands and an API walkthrough are in [docs.md](docs.md).
 
 ---
 
@@ -179,8 +197,27 @@ More implementation details, setup instructions, and usage documentation can be 
 
 - [ENSF 607 Submission]()
 - [ENSF 607 Submission]()
-- [Class diagram](docs/diagrams/class-diagram.drawio.svg)
-- [Architecture diagram](docs/diagrams/architectureDiagram607Project.png)
+- [Developer guide: setup and usage](docs.md)
 - [User Stories](https://docs.google.com/document/d/1muAfw88L-geIDE3aOM3-dn9aTc-V78F9JkT1dOCExAI/edit?usp=sharing "Google Doc File")
-- [ER Diagram](docs/diagrams/ER-diagram.drawio.svg)
-- [Data Dictionary](https://docs.google.com/spreadsheets/d/10z_qGlHWLnbuE7DJr4je_tGaTtfz8Kyzln5PdvFpMBU/edit?usp=sharing "Google Sheet File")
+
+### Design and diagrams
+
+- [Architecture diagram](docs/diagrams/architectureDiagram607Project.png)
+- [Class diagram](docs/diagrams/class-diagram.drawio.svg)
+- [ER diagram, generated from the live schema](docs/diagrams/GROW8-ER-Diagram.svg) ([PDF](docs/diagrams/GROW8-ER-Diagram.pdf)); original hand-drawn version: [ER-diagram.drawio.svg](docs/diagrams/ER-diagram.drawio.svg)
+- [Relational schema diagram](docs/diagrams/GROW8-Relational-Schema.svg)
+
+### Database (ENSF 608)
+
+- [Data dictionary](docs/db/data-dictionary.md) (original [Google Sheet](https://docs.google.com/spreadsheets/d/10z_qGlHWLnbuE7DJr4je_tGaTtfz8Kyzln5PdvFpMBU/edit?usp=sharing "Google Sheet File"))
+- [Relational schema](docs/db/relational-schema.md)
+- [Functional dependencies and normalization](docs/db/functional-dependencies.md)
+- [Relationship validation](docs/db/relationship-validation.md)
+- [Database test report](docs/db/test-report.md)
+
+### Backend
+
+- [API contract](grow8-backend/docs/api-contract.md)
+- [Events](grow8-backend/docs/events.md)
+- [Error codes](grow8-backend/docs/error-codes.md)
+- [Architecture decision records](grow8-backend/docs/adr/)
