@@ -19,4 +19,4 @@ Opportunities have ten mandatory disclosures (requirements, duration, expected h
 
 - Duration is stored as `start_date` + `end_date` (both required to publish).
 - Location and work mode are optional because they are not in the mandatory list.
-- Changing a published opportunity, closing and cancelling will need their own endpoints and events later.
+- Changing a published opportunity, closing and cancelling will need their own endpoints and events later. *Closing and cancelling: [ADR 0011](0011-close-and-cancel-opportunities.md).*

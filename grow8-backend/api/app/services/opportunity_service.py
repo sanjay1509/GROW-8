@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-from grow8_common.events import EventType, OpportunityCreatedPayload
+from grow8_common.events import EventType, OpportunityCancelledPayload, OpportunityCreatedPayload
 from grow8_common.models import (
     Opportunity,
     OpportunityCategory,
@@ -20,6 +20,7 @@ from app.core.exceptions import (
 from app.core.time import as_utc, to_db_datetime, utcnow
 from app.events.publisher import EventPublisher
 from app.repositories import (
+    application_repository,
     opportunity_repository,
     reference_repository,
     user_repository,
@@ -413,4 +414,66 @@ def publish(
         correlation_id,
     )
 
+    return opportunity
+
+
+# ---------------------------------------------------------------------------
+# Closing and cancelling (ADR 0011)
+# ---------------------------------------------------------------------------
+
+
+def close(session: Session, creator: UserAccount, opportunity_id: int) -> Opportunity:
+    """Stop taking applications. Pending ones stay pending for the creator to decide;
+    nobody is notified. Closed is final for now (no reopening)."""
+    opportunity = _get_owned_for_update(session, opportunity_id, creator)
+
+    if opportunity.status != OpportunityStatus.OPEN:
+        raise ConflictError(
+            f"Only open opportunities can be closed (this one is {opportunity.status.value})",
+            code="OPPORTUNITY_NOT_OPEN",
+        )
+
+    opportunity.status = OpportunityStatus.CLOSED
+    session.commit()
+    session.refresh(opportunity)
+    return opportunity
+
+
+def cancel(
+    session: Session,
+    creator: UserAccount,
+    opportunity_id: int,
+    publisher: EventPublisher,
+    correlation_id: str | None,
+) -> Opportunity:
+    """Call off an open or closed opportunity, unless work was submitted for it.
+    Application statuses are kept; pending and accepted applicants are notified
+    through OPPORTUNITY_CANCELLED, and no application can be decided afterwards."""
+    opportunity = _get_owned_for_update(session, opportunity_id, creator)
+
+    if opportunity.status == OpportunityStatus.DRAFT:
+        raise ConflictError(
+            "A draft has not been published; delete it instead",
+            code="OPPORTUNITY_NOT_PUBLISHED",
+        )
+    if opportunity.status == OpportunityStatus.CANCELLED:
+        raise ConflictError(
+            "This opportunity is already cancelled", code="OPPORTUNITY_CANCELLED"
+        )
+    if application_repository.opportunity_has_submission(session, opportunity_id):
+        raise ConflictError(
+            "Work has already been submitted for this opportunity",
+            code="WORK_ALREADY_SUBMITTED",
+        )
+
+    opportunity.status = OpportunityStatus.CANCELLED
+    payload = OpportunityCancelledPayload(
+        opportunity_id=opportunity.opportunity_id,
+        organization_id=opportunity.organization_id,
+        title=opportunity.title,
+    )
+    session.commit()
+    session.refresh(opportunity)
+
+    publisher.publish(payload, EventType.OPPORTUNITY_CANCELLED, correlation_id)
     return opportunity

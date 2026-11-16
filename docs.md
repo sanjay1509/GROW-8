@@ -254,6 +254,8 @@ Full reference: [`grow8-backend/docs/api-contract.md`](grow8-backend/docs/api-co
 | Publish (owner) | `POST /api/v1/opportunities/{id}/publish` |
 | My opportunities, incl. drafts (creator) | `GET /api/v1/opportunities/mine?status=draft` |
 | Delete a draft (owner) | `DELETE /api/v1/opportunities/{id}` |
+| Close: stop taking applications (owner) | `POST /api/v1/opportunities/{id}/close` |
+| Cancel: call it off, applicants are told (owner) | `POST /api/v1/opportunities/{id}/cancel` |
 
 Opportunities start as **drafts**, which can be incomplete. Publishing checks that every mandatory disclosure is filled in (requirements, dates, hours, compensation, applicant limit, deadline, working conditions, safety and accessibility information). If anything is missing, the response lists it.
 
@@ -264,6 +266,7 @@ Opportunities start as **drafts**, which can be incomplete. Publishing checks th
 | Apply (contributor) | `POST /api/v1/opportunities/{id}/applications` with `{"motivation": "..."}` (optional) |
 | My applications (contributor) | `GET /api/v1/applications/mine?status=pending` |
 | Applications to my opportunity (creator) | `GET /api/v1/opportunities/{id}/applications` |
+| Applications to all my opportunities (creator) | `GET /api/v1/applications/received?status=pending` |
 | Accept or reject (owner) | `POST /api/v1/applications/{id}/decision` with `{"decision": "accepted"}` |
 | Withdraw (applicant) | `POST /api/v1/applications/{id}/withdraw` |
 
