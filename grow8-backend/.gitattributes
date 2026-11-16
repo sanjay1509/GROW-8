@@ -1,2 +1,4 @@
 # Files used inside Linux containers must keep LF line endings on Windows checkouts.
 * text=auto eol=lf
+# Uploaded-file fixtures must stay byte-for-byte identical.
+*.pdf binary

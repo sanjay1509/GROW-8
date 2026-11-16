@@ -75,8 +75,12 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       JWT_SECRET: ${JWT_SECRET:-}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      FILE_STORAGE_DIR: ${FILE_STORAGE_DIR:-/app/storage}
     ports:
       - "${API_HOST_PORT}:8000"
+    volumes:
+      # uploaded files (resumes); only the API mounts it (ADR 0007)
+      - file_storage:/app/storage
     depends_on: *app-depends
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
@@ -115,3 +119,4 @@ services:
 volumes:
   mysql_data:
   rabbitmq_data:
+  file_storage:
