@@ -2,7 +2,7 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Generated Nov 7, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`) by `docs/diagrams/generate_er_diagram.py`: 18 relations, 124 attributes, 26 foreign keys. The same schema is drawn as an ER diagram in `docs/diagrams/GROW8-ER-Diagram.pdf` (page 1) and as this notation on page 2.
+> Generated Nov 16, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`) by `docs/diagrams/generate_er_diagram.py`: 19 relations, 130 attributes, 27 foreign keys. The same schema is drawn as an ER diagram in `docs/diagrams/GROW8-ER-Diagram.pdf` (page 1) and as this notation on page 2.
 
 Notation: primary-key attributes are <ins>underlined</ins>, foreign-key attributes are *in italics*, and each foreign key is listed under its relation as `columns → relation(key)`. Types, nullability and meanings are in `data-dictionary.md`; functional dependencies and the BCNF check are in `functional-dependencies.md`.
 
@@ -15,6 +15,11 @@ Notation: primary-key attributes are <ins>underlined</ins>, foreign-key attribut
 **contributor_profile**(<ins>*user_id*</ins>, headline, bio, institution, city, created_at, updated_at)
 
 - FK `user_id` → `user_account(user_id)`
+
+**contributor_resume**(<ins>*user_id*</ins>, file_name, content_type, size_bytes, storage_key, uploaded_at)
+
+- FK `user_id` → `contributor_profile(user_id)`
+- Candidate key `(storage_key)`
 
 **creator_organization**(<ins>organization_id</ins>, *owner_user_id*, name, organization_type, description, website, city, created_at, updated_at)
 

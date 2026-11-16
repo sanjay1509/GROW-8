@@ -57,3 +57,7 @@ class NotificationType(StrEnum):
 
     OPPORTUNITY_CREATED = "opportunity_created"  # to matching contributors
     OPPORTUNITY_PUBLISHED = "opportunity_published"  # to the creator who published it
+    APPLICATION_SUBMITTED = "application_submitted"  # to the creator who owns the opportunity
+    APPLICATION_DECIDED = "application_decided"  # to the contributor who applied
+    APPLICATION_WITHDRAWN = "application_withdrawn"  # to the creator who owns the opportunity
+    OPPORTUNITY_CANCELLED = "opportunity_cancelled"  # to its pending and accepted applicants

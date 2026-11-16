@@ -39,10 +39,11 @@ logs:
 ps:
 	$(COMPOSE) ps
 
-# DESTRUCTIVE: deletes all MySQL data so db/init/*.sql re-runs on next start.
+# DESTRUCTIVE: deletes all MySQL data so db/init/*.sql re-runs on next start, and the
+# uploaded files with it (their metadata lives in MySQL; ADR 0007).
 reset-db: env
-	$(COMPOSE) rm -sf mysql
-	docker volume rm grow8_mysql_data || true
+	$(COMPOSE) rm -sf mysql api
+	docker volume rm grow8_mysql_data grow8_file_storage || true
 	$(COMPOSE) up -d --build
 
 test:

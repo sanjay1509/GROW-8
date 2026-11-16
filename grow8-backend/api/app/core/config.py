@@ -14,6 +14,8 @@ class ApiSettings(Settings):
     cors_origins: str = ""
     jwt_secret: str = ""
     access_token_expire_minutes: int = 60
+    # Root of the file_storage volume inside the container (ADR 0007).
+    file_storage_dir: str = "/app/storage"
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -210,7 +210,7 @@ Every issue is now enforced by the database itself, so it holds whichever servic
 | I7 open, deadline and applicant limit | `trg_application_bi/bu` (procedure `grow8_require_application_capacity`): opportunity must be `open`, `submitted_at` on or before the deadline, and active applications below `applicant_limit`. The opportunity row is locked with `SELECT … FOR UPDATE`, so concurrent applications cannot both take the last place (tested with two connections). Contributor, opportunity and `submitted_at` cannot change afterwards. |
 | Decision 7 verified skills | Not stored; `v_contributor_skill` derives `is_verified` from approved work on an opportunity that required the skill. |
 | I9 badge once | Composite PK `(contributor_id, badge_id)` on `contributor_badge`. |
-| R21 one notification per user per event | `uq_notification_event_user`; consumers insert with `INSERT IGNORE`. |
+| R21 one notification per user per event | `uq_notification_event_user`; consumers insert with a no-op `ON DUPLICATE KEY UPDATE` (not `INSERT IGNORE`, which would also hide FK errors). |
 | R21 who receives which notification type | Not a data-integrity rule: the consumer chooses recipients (matching contributors, the opportunity's creator). Covered by the service tests, not a trigger. |
 
 Trigger violations raise SQLSTATE `45000` (MySQL error 1644) with a message that starts with the rule name, for example `reviewer_role: user 2 must have role admin`. An API endpoint that writes these tables should validate first and return a clear 4xx, and treat error 1644 as a conflict rather than a server error.

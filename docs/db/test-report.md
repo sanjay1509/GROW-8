@@ -26,7 +26,7 @@ How to run: `make test` and `make test-services` from `grow8-backend/` with the 
 | `test_db_integrity.py` | 15 | Every cross-table rule (I1–I9 in `relationship-validation.md`) is refused by MySQL when broken and accepted when followed, plus the derived views and decision 7 (verified skills). |
 | `test_db_applications.py` | 8 | Decision 4: open status, deadline, applicant limit, freed places, immutable applications, and a two-connection race for the last place. |
 | `test_db_workflow_seed.py` | 11 | `004_seed_workflow.sql` loads with every trigger active, the views return its history, and each of the eight database questions returns the documented answer. |
-| `test_schema_mirror.py` | 19 | The ORM models match `001_schema.sql` exactly: same tables, columns, types, keys and constraints, for all 18 tables. |
+| `test_schema_mirror.py` | 20 | The ORM models match `001_schema.sql` exactly: same tables, columns, types, keys and constraints, for all 19 tables. |
 | `test_notification_schema.py` | 4 | One notification per user per event, and notifications survive their opportunity being deleted. |
 
 ## Rules covered

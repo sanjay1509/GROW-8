@@ -9,10 +9,15 @@ from uuid import UUID, uuid4
 import pymysql
 import pytest
 from grow8_common.db import get_sessionmaker
-from grow8_common.models import Notification, NotificationType, UserAccount
+from grow8_common.models import ApplicationStatus, Notification, NotificationType, UserAccount
 from grow8_common.notifications import DbNotifier
-from grow8_common.queries import find_active_owner, find_matching_contributors
+from grow8_common.queries import (
+    find_active_applicants,
+    find_active_owner,
+    find_matching_contributors,
+)
 from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 
@@ -54,6 +59,28 @@ def test_redelivered_event_adds_nothing(session: Session) -> None:
     _deliver(session, event_id, [6])
     _deliver(session, event_id, [6])
     assert len(_stored(session)) == 1
+
+
+def test_redelivery_keeps_the_first_row_unchanged(session: Session) -> None:
+    event_id = uuid4()
+    _deliver(session, event_id, [6])
+    [first] = _stored(session)
+    first_id, first_created = first.notification_id, first.created_at
+    session.expire_all()
+
+    _deliver(session, event_id, [6])
+
+    [again] = _stored(session)
+    assert (again.notification_id, again.created_at) == (first_id, first_created)
+
+
+def test_unknown_user_raises_instead_of_being_silently_dropped(session: Session) -> None:
+    # INSERT IGNORE would turn this FK violation into a warning and store nothing,
+    # hiding the failure from the consumer's retry and dead-letter handling.
+    with pytest.raises(IntegrityError):
+        _deliver(session, uuid4(), [999_999])
+    session.rollback()
+    assert _stored(session) == []
 
 
 def test_a_new_event_for_the_same_user_is_a_new_notification(session: Session) -> None:
@@ -115,3 +142,28 @@ def test_inactive_owner_is_not_found(session: Session) -> None:
     session.execute(update(UserAccount).where(UserAccount.user_id == 4).values(is_active=False))
     session.commit()
     assert find_active_owner(session, 3) is None
+
+
+def test_find_active_applicants(session: Session, seeded_db: pymysql.Connection) -> None:
+    """Pending and accepted applicants with active accounts, for OPPORTUNITY_CANCELLED."""
+    with seeded_db.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO application (opportunity_id, contributor_id, status, submitted_at, "
+            "decided_at) VALUES (1, %s, %s, '2026-10-10 10:00:00', %s)",
+            [
+                (5, "pending", None),
+                (6, "accepted", "2026-10-11 10:00:00"),
+                (7, "withdrawn", None),
+            ],
+        )
+    seeded_db.commit()
+
+    assert find_active_applicants(session, 1) == [
+        (5, ApplicationStatus.PENDING),
+        (6, ApplicationStatus.ACCEPTED),
+    ]
+    assert find_active_applicants(session, 8) == []
+
+    session.execute(update(UserAccount).where(UserAccount.user_id == 6).values(is_active=False))
+    session.commit()
+    assert find_active_applicants(session, 1) == [(5, ApplicationStatus.PENDING)]

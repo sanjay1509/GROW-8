@@ -7,10 +7,12 @@ from fastapi.responses import JSONResponse
 from grow8_common import db, messaging
 from grow8_common.logging import configure_logging
 
+from app.core.body_limit import BodySizeLimitMiddleware
 from app.core.config import get_api_settings
 from app.core.exceptions import register_exception_handlers
 from app.dependencies.request import REQUEST_ID_HEADER, register_request_id_middleware
-from app.routers import auth, notifications, opportunities, reference
+from app.routers import applications, auth, contributors, notifications, opportunities, reference
+from app.services.resume_service import MAX_BYTES as RESUME_MAX_BYTES
 
 API_PREFIX = "/api/v1"
 
@@ -36,6 +38,14 @@ def create_app() -> FastAPI:
     _ = settings.effective_jwt_secret  # fail fast if production has no JWT_SECRET
 
     app = FastAPI(title="GROW8 API", version="0.1.0")
+    # Added before CORS so CORS wraps it and its 411/413 responses stay readable.
+    app.add_middleware(
+        BodySizeLimitMiddleware,
+        # the file plus room for the multipart boundaries and part headers
+        limits={("PUT", f"{API_PREFIX}{contributors.RESUME_PATH}"): RESUME_MAX_BYTES + 64 * 1024},
+        code="RESUME_TOO_LARGE",
+        message="A resume can be at most 10 MB",
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
@@ -50,6 +60,8 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix=API_PREFIX)
     app.include_router(reference.router, prefix=API_PREFIX)
     app.include_router(opportunities.router, prefix=API_PREFIX)
+    app.include_router(applications.router, prefix=API_PREFIX)
+    app.include_router(contributors.router, prefix=API_PREFIX)
     app.include_router(notifications.router, prefix=API_PREFIX)
 
     @app.get("/health", tags=["health"])
