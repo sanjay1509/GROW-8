@@ -4,7 +4,7 @@ per event, which the API serves to the frontend (ADR 0003)."""
 from typing import Protocol
 from uuid import UUID
 
-from sqlalchemy import insert
+from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import Session
 
 from grow8_common.models import Notification, NotificationType
@@ -27,7 +27,10 @@ class DbNotifier:
     """Adds notification rows to `session` for one event. It does not commit: the
     caller commits once the whole event is handled, before the message is acked.
 
-    UNIQUE (event_id, user_id) + INSERT IGNORE makes a redelivered event a no-op.
+    UNIQUE (event_id, user_id) + a no-op ON DUPLICATE KEY UPDATE makes a redelivered
+    event a no-op. Not INSERT IGNORE: MySQL's IGNORE also turns other errors, such as a
+    user_id that doesn't exist (FK), into warnings and silently drops the row. Those
+    must raise so the consumer retries and finally dead-letters the event (ADR 0010).
     """
 
     def __init__(
@@ -40,15 +43,13 @@ class DbNotifier:
     def notify(
         self, user_id: int, title: str, message: str, *, opportunity_id: int | None = None
     ) -> None:
-        self._session.execute(
-            insert(Notification)
-            .prefix_with("IGNORE")
-            .values(
-                user_id=user_id,
-                event_id=self._event_id,
-                notification_type=self._type,
-                title=_fit(title, TITLE_MAX),
-                message=_fit(message, MESSAGE_MAX),
-                opportunity_id=opportunity_id,
-            )
+        stmt = insert(Notification).values(
+            user_id=user_id,
+            event_id=self._event_id,
+            notification_type=self._type,
+            title=_fit(title, TITLE_MAX),
+            message=_fit(message, MESSAGE_MAX),
+            opportunity_id=opportunity_id,
         )
+        # Duplicate (event_id, user_id): keep the existing row unchanged.
+        self._session.execute(stmt.on_duplicate_key_update(event_id=Notification.event_id))
