@@ -367,7 +367,7 @@ One message per user per event, written by the consumer services and read by the
 | `notification_id` | `int unsigned` | NO |  | PK | Surrogate key. |
 | `user_id` | `int unsigned` | NO |  | FK → user_account.user_id, UQ* | Who receives it. Rows are deleted with the account. |
 | `event_id` | `char(36)` | NO |  | UQ* | The RabbitMQ event that caused it (UUID). Unique together with `user_id`, so a redelivered event adds nothing. |
-| `notification_type` | `enum('opportunity_created','opportunity_published','application_submitted','application_decided')` | NO |  |  | `opportunity_created` (to matching contributors), `opportunity_published` (to the creator), `application_submitted` (to the creator when someone applies), `application_decided` (to the applicant). Gains a value per notifying event. |
+| `notification_type` | `enum('opportunity_created','opportunity_published','application_submitted','application_decided','application_withdrawn')` | NO |  |  | `opportunity_created` (to matching contributors), `opportunity_published` (to the creator), `application_submitted` (to the creator when someone applies), `application_decided` (to the applicant), `application_withdrawn` (to the creator when an applicant withdraws). Gains a value per notifying event. |
 | `title` | `varchar(200)` | NO |  |  | Headline as shown to the user, stored as written. |
 | `message` | `varchar(500)` | NO |  |  | Body as shown to the user, stored as written. |
 | `opportunity_id` | `int unsigned` | YES |  | FK → opportunity.opportunity_id | Related opportunity, if any. Set to empty if the opportunity is deleted. |
@@ -452,5 +452,5 @@ Every contributor skill, with whether it is verified (decision 7). A skill is ve
 | `work_verification.decision` | `approved`, `rejected` |
 | `admin_review.decision` | `approved`, `rejected` |
 | `point_transaction.source` | `work_verified`, `badge_awarded` |
-| `notification.notification_type` | `opportunity_created`, `opportunity_published`, `application_submitted`, `application_decided` |
+| `notification.notification_type` | `opportunity_created`, `opportunity_published`, `application_submitted`, `application_decided`, `application_withdrawn` |
 

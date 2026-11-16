@@ -47,7 +47,11 @@ def _envelope() -> EventEnvelope:
 
 
 def test_service_subscribes_to_its_events() -> None:
-    assert list(main.HANDLERS) == [EventType.OPPORTUNITY_CREATED, EventType.APPLICATION_SUBMITTED]
+    assert list(main.HANDLERS) == [
+        EventType.OPPORTUNITY_CREATED,
+        EventType.APPLICATION_SUBMITTED,
+        EventType.APPLICATION_WITHDRAWN,
+    ]
 
 
 def test_handles_with_db_notifier_then_commits(
@@ -109,3 +113,33 @@ def test_application_submitted_uses_its_own_notification_type(
 
     assert calls == ["handle", "commit", "close"]
     assert seen["notifier"]._type == NotificationType.APPLICATION_SUBMITTED
+
+
+def test_application_withdrawn_uses_its_own_notification_type(
+    calls: list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from grow8_common.events import ApplicationWithdrawnPayload
+
+    payload = ApplicationWithdrawnPayload(
+        application_id=41,
+        opportunity_id=1,
+        organization_id=1,
+        opportunity_title="Digitize paper recipe archive",
+        contributor_id=5,
+        contributor_name="Alex Chen",
+        previous_status="accepted",
+    )
+    seen = {}
+
+    def fake_handler(payload, *, session, notifier):
+        calls.append("handle")
+        seen["notifier"] = notifier
+
+    monkeypatch.setattr(main, "handle_application_withdrawn", fake_handler)
+
+    main._on_application_withdrawn(
+        EventEnvelope.build(payload, EventType.APPLICATION_WITHDRAWN, "req-10"), payload
+    )
+
+    assert calls == ["handle", "commit", "close"]
+    assert seen["notifier"]._type == NotificationType.APPLICATION_WITHDRAWN

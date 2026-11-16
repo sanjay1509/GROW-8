@@ -355,30 +355,57 @@ def test_deciding_is_allowed_after_the_deadline(
 # --- withdrawing --------------------------------------------------------------
 
 
-def test_contributor_withdraws_a_pending_or_accepted_application(
-    client: TestClient, contributor: dict[str, str], bakery: dict[str, str]
+def test_contributor_withdraws_and_the_creator_is_told(
+    client: TestClient,
+    contributor: dict[str, str],
+    bakery: dict[str, str],
+    publisher: FakePublisher,
 ) -> None:
     pending = _applied(client, contributor, 1)
     accepted = _applied(client, contributor, 2)
     client.post(f"{APPS}/{accepted}/decision", json={"decision": "accepted"}, headers=bakery)
 
-    for application_id in (pending, accepted):
-        response = client.post(f"{APPS}/{application_id}/withdraw", headers=contributor)
+    for application_id, opportunity_id, title, previous in (
+        (pending, 1, "Digitize paper recipe archive", "pending"),
+        (accepted, 2, "Inventory spreadsheet cleanup", "accepted"),
+    ):
+        response = client.post(
+            f"{APPS}/{application_id}/withdraw",
+            headers={**contributor, "X-Request-ID": f"withdraw-{application_id}"},
+        )
         assert response.status_code == 200, response.text
         assert response.json()["status"] == "withdrawn"
 
+        event = publisher.events[-1]
+        assert event.event_type == "APPLICATION_WITHDRAWN"
+        assert event.correlation_id == f"withdraw-{application_id}"
+        assert event.payload == {
+            "application_id": application_id,
+            "opportunity_id": opportunity_id,
+            "organization_id": 1,
+            "opportunity_title": title,
+            "contributor_id": 5,
+            "contributor_name": "Alex Chen",
+            "previous_status": previous,
+        }
+
 
 def test_rejected_or_withdrawn_applications_cannot_be_withdrawn(
-    client: TestClient, contributor: dict[str, str], bakery: dict[str, str]
+    client: TestClient,
+    contributor: dict[str, str],
+    bakery: dict[str, str],
+    publisher: FakePublisher,
 ) -> None:
     rejected = _applied(client, contributor, 1)
     client.post(f"{APPS}/{rejected}/decision", json={"decision": "rejected"}, headers=bakery)
     withdrawn = _applied(client, contributor, 8)
     client.post(f"{APPS}/{withdrawn}/withdraw", headers=contributor)
+    sent = len(publisher.events)
 
     for application_id in (rejected, withdrawn):
         response = client.post(f"{APPS}/{application_id}/withdraw", headers=contributor)
         assert _error(response, 409) == "APPLICATION_NOT_ACTIVE"
+    assert len(publisher.events) == sent  # a refused withdrawal sends nothing
 
 
 def test_cannot_withdraw_once_work_is_submitted(
@@ -402,10 +429,15 @@ def test_cannot_withdraw_once_work_is_submitted(
 
 
 def test_only_the_applicant_withdraws(
-    client: TestClient, contributor: dict[str, str], jordan: dict[str, str], bakery: dict[str, str]
+    client: TestClient,
+    contributor: dict[str, str],
+    jordan: dict[str, str],
+    bakery: dict[str, str],
+    publisher: FakePublisher,
 ) -> None:
     application_id = _applied(client, contributor, 1)
     url = f"{APPS}/{application_id}/withdraw"
 
     assert _error(client.post(url, headers=jordan), 404) == "APPLICATION_NOT_FOUND"
     assert _error(client.post(url, headers=bakery), 403) == "ROLE_FORBIDDEN"
+    assert [e.event_type for e in publisher.events] == ["APPLICATION_SUBMITTED"]

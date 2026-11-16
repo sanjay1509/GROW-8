@@ -2172,6 +2172,58 @@
           ]
         },
         {
+          "name": "Creator gets 'Application withdrawn'",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?unread_only=true&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications?unread_only=true&limit=100"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Written by creator_service just after the API responds: retry until it shows up.",
+                  "const draftId = Number(pm.collectionVariables.get(\"draftId\"));",
+                  "const found = pm.response.json().items.find(",
+                  "  (n) => n.opportunity_id === draftId && n.notification_type === \"application_withdrawn\"",
+                  ");",
+                  "const tries = Number(pm.collectionVariables.get(\"creatorWithdrawnTries\") || 0);",
+                  "if (!found && tries < 10) {",
+                  "  pm.collectionVariables.set(\"creatorWithdrawnTries\", tries + 1);",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "  setTimeout(() => {}, 500);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(\"creatorWithdrawnTries\");",
+                  "  pm.test(\"200 and an unread application_withdrawn notification\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(found, \"notification for draftId \" + draftId).to.be.an(\"object\");",
+                  "    pm.expect(found.title).to.include(\"Application withdrawn\");",
+                  "    pm.expect(found.message).to.include(\"place is open again\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Withdrawing freed a place: third contributor applies",
           "request": {
             "method": "POST",
