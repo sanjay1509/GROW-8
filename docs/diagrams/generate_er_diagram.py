@@ -29,7 +29,7 @@ import pymysql
 HERE = Path(__file__).resolve().parent
 DOCS_DB = HERE.parent / "db"
 FONT = "Inter, 'DejaVu Sans', sans-serif"
-W, H = 2120, 1660
+W, H = 2120, 1780
 HEADER_H, ROW_H, PAD_B = 28, 21, 6
 
 try:  # exact text widths when Pillow and Inter are installed
@@ -54,7 +54,7 @@ except Exception:  # noqa: BLE001 - fall back to an average glyph width
 # --- groups, colours and layout -------------------------------------------------
 
 GROUPS = [
-    ("Identity and profiles", "#2563EB", ["user_account", "contributor_profile", "creator_organization"]),
+    ("Identity and profiles", "#2563EB", ["user_account", "contributor_profile", "contributor_resume", "creator_organization"]),
     ("Reference data", "#7C3AED", ["opportunity_category", "skill", "badge"]),
     ("Opportunities and skills", "#059669", ["opportunity", "opportunity_skill", "contributor_skill"]),
     ("Applications and work", "#D97706", ["application", "work_submission", "submission_attachment"]),
@@ -82,6 +82,7 @@ POS = {
     "point_transaction": (1707, 1026, 262),
     "user_account": (75, 1110, 250),
     "contributor_profile": (498, 1110, 262),
+    "contributor_resume": (498, 1340, 262),
     "contributor_badge": (933, 1110, 232),
     "badge": (933, 1246, 320),
 }
@@ -102,6 +103,7 @@ ROUTES = {
     "fk_opportunity_skill_skill": ("Z", "L", 1240, "R"),
     "fk_contributor_skill_skill": ("Z", "L", 1240, "R"),
     "fk_contributor_profile_user": ("Z", "R", 420, "L"),
+    "fk_contributor_resume_contributor": ("Z", "L", 470, "L"),
     "fk_application_contributor": ("Z", "R", 885, "L"),
     "fk_contributor_skill_contributor": ("Z", "R", 885, "L"),
     "fk_contributor_badge_contributor": ("Z", "R", 885, "L"),
@@ -420,7 +422,7 @@ def draw_edges(edges: list[Edge]) -> str:
 
 
 def draw_legend(stats) -> str:
-    ly = 1440
+    ly = H - 220  # the legend block is 220 px tall, at the bottom of the page
     out = [f'<line x1="40" y1="{ly}" x2="{W - 40}" y2="{ly}" stroke="#E2E8F0" stroke-width="1.2"/>']
     h1 = lambda x, s: text(x, ly + 30, s, 13, 700, "#0F172A")  # noqa: E731
     lx = 40
