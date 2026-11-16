@@ -9,6 +9,7 @@ from datetime import datetime
 from grow8_common.events import (
     ApplicationDecidedPayload,
     ApplicationSubmittedPayload,
+    ApplicationWithdrawnPayload,
     EventType,
 )
 from grow8_common.models import (
@@ -185,9 +186,15 @@ def list_mine(
     return _page(list(items), total, params)
 
 
-def withdraw(session: Session, contributor: UserAccount, application_id: int) -> ApplicationRead:
+def withdraw(
+    session: Session,
+    contributor: UserAccount,
+    application_id: int,
+    publisher: EventPublisher,
+    correlation_id: str | None,
+) -> ApplicationRead:
     """Withdraw your own pending or accepted application, unless work was submitted.
-    Withdrawing frees the place it held."""
+    Withdrawing frees the place it held, and the owning creator is told."""
     application = application_repository.get_for_update(session, application_id)
     if application is None or application.contributor_id != contributor.user_id:
         raise _not_found()
@@ -202,8 +209,23 @@ def withdraw(session: Session, contributor: UserAccount, application_id: int) ->
             code="WORK_ALREADY_SUBMITTED",
         )
 
+    previous_status = application.status
     application.status = ApplicationStatus.WITHDRAWN
     _commit(session)
+
+    publisher.publish(
+        ApplicationWithdrawnPayload(
+            application_id=application.application_id,
+            opportunity_id=application.opportunity_id,
+            organization_id=application.opportunity.organization_id,
+            opportunity_title=application.opportunity.title,
+            contributor_id=contributor.user_id,
+            contributor_name=contributor.full_name,
+            previous_status=previous_status.value,
+        ),
+        EventType.APPLICATION_WITHDRAWN,
+        correlation_id,
+    )
     return ApplicationRead.from_model(application)
 
 

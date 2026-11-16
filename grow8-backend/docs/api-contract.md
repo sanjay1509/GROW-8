@@ -92,7 +92,7 @@ Lifecycle: **pending** → accepted / rejected (creator, once) · pending or acc
 | GET | `/applications/mine` | contributor | Your applications, newest first. Same parameters. |
 | GET | `/applications/{id}` | the applicant or the owning creator | Anyone else → 404. |
 | POST | `/applications/{id}/decision` | owning creator | Body `{decision: "accepted" \| "rejected"}`. Pending only (409 `APPLICATION_NOT_PENDING`). Allowed after the deadline. Emits `APPLICATION_DECIDED`. |
-| POST | `/applications/{id}/withdraw` | the applicant | Pending or accepted only (409 `APPLICATION_NOT_ACTIVE`), and not once work is submitted (409 `WORK_ALREADY_SUBMITTED`). Frees the place. No event. |
+| POST | `/applications/{id}/withdraw` | the applicant | Pending or accepted only (409 `APPLICATION_NOT_ACTIVE`), and not once work is submitted (409 `WORK_ALREADY_SUBMITTED`). Frees the place. Emits `APPLICATION_WITHDRAWN` (the owning creator is notified). |
 
 An application:
 
@@ -186,6 +186,7 @@ A notification:
 | `opportunity_published` | the creator who owns it | Their opportunity is published. |
 | `application_submitted` | the creator who owns the opportunity | A contributor applied. |
 | `application_decided` | the contributor who applied | Their application was accepted or rejected. |
+| `application_withdrawn` | the creator who owns the opportunity | An applicant withdrew; the message says if an accepted place opened up. |
 
 `opportunity_id` links to `GET /opportunities/{id}`. It is `null` if the opportunity was deleted. `title` and `message` are stored as written and don't change if the opportunity is edited later.
 
