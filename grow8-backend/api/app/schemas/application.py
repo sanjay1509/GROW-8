@@ -49,6 +49,7 @@ class Applicant(BaseModel):
     institution: str | None
     city: str | None
     skills: list[SkillRead]
+    has_resume: bool = False  # download via GET /applications/{id}/resume
 
 
 class ApplicationRead(BaseModel):
@@ -77,6 +78,7 @@ class ApplicationRead(BaseModel):
                 institution=profile.institution,
                 city=profile.city,
                 skills=[SkillRead.model_validate(s) for s in profile.skills],
+                has_resume=profile.resume is not None,
             ),
         )
 

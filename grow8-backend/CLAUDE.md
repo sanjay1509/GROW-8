@@ -74,7 +74,7 @@ make env          # create .env from .env.example if missing
 make up           # build + start mysql, rabbitmq, api, 3 consumers (detached)
 make down
 make logs
-make reset-db     # destroys the MySQL volume so db/init/*.sql re-runs
+make reset-db     # destroys the MySQL and file_storage volumes so db/init/*.sql re-runs
 make test         # pytest inside the api container
 make mysql        # MySQL shell
 ```
@@ -149,6 +149,7 @@ Routing key = event type lower-cased with dots, e.g. `work.verified`. Define typ
 - No duplicate applications: unique (`contributor`, `opportunity`). Reject applications after the deadline, when the opportunity is not open, or when applicant capacity is reached. Capacity checks must be race-safe (transaction + row lock, e.g. `SELECT ... FOR UPDATE`).
 - Only the owning Creator may decide applications and verify work.
 - Work submission only for **accepted** applications; at most one submission per application in the MVP; attachments are metadata + storage key only (files are stored outside MySQL).
+- **Uploaded files** (resumes, attachments) go through the `FileStorage` interface onto the `file_storage` Docker volume (ADR 0007): server-generated keys only, write the file before committing its row, delete replaced files after the commit.
 - Verified hours count **only for approved work** (a `WorkVerification` with approved status). Verifying twice must not double count.
 - Feedback only between participants of a real application. **Only Admin-approved feedback affects public Creator ratings.** Compute average ratings from approved feedback only.
 - Admin reviews feedback once; unreviewed feedback is "pending".
@@ -185,5 +186,4 @@ Routing key = event type lower-cased with dots, e.g. `work.verified`. Define typ
 
 - **Notification storage:** the 17-entity schema has no `Notification` table. Until told otherwise, consumers emit structured log lines for "notify" behaviours. If persisted in-app notifications are wanted, propose a `Notification` table first.
 - **Public rating storage:** README lists "Ratings" as stored, the proposal says compute from approved feedback. Default: compute on read via query; add a cached column only if asked.
-- **File storage backend** for attachments (local volume vs S3-compatible, e.g. MinIO): not decided. Until then store metadata and a storage key only; no upload endpoint.
 - Whether rewards/leaderboard are built in this term (stretch goal) or schema-only.

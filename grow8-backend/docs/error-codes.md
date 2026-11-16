@@ -16,6 +16,7 @@ Clients should branch on `code`, never on `message` (messages are for people and
 | 403 | You are signed in, but your role or ownership doesn't allow this. Used when the target is public, so hiding it would be pointless. |
 | 404 | Doesn't exist, **or** exists but you may not know about it (someone else's draft, application or notification). The two cases are deliberately indistinguishable. |
 | 409 | The request is valid, but the current state doesn't allow it (a business rule). Retrying won't help until the state changes. |
+| 411 / 413 / 415 | Upload problems: no `Content-Length`, file too large, wrong file type. |
 | 422 | The request itself is malformed or incomplete. Fix the input and retry. |
 
 ## Codes
@@ -53,10 +54,23 @@ Clients should branch on `code`, never on `message` (messages are for people and
 | 409 | `APPLICATION_DEADLINE_PASSED` | `POST /opportunities/{id}/applications` | The application deadline has passed. |
 | 409 | `APPLICANT_LIMIT_REACHED` | `POST /opportunities/{id}/applications` | Pending + accepted applications already fill `applicant_limit`. A place frees up if one is rejected or withdrawn. |
 | 409 | `APPLICATION_DUPLICATE` | `POST /opportunities/{id}/applications` | You already applied (in any status, including withdrawn); `details.application_id` points to it when known. |
-| 409 | `CONTRIBUTOR_PROFILE_REQUIRED` | `POST /opportunities/{id}/applications` | The contributor account has no profile to apply with. |
+| 409 | `CONTRIBUTOR_PROFILE_REQUIRED` | `POST /opportunities/{id}/applications`, `PUT /contributors/me/resume` | The contributor account has no profile. |
 | 409 | `APPLICATION_NOT_PENDING` | `POST /applications/{id}/decision` | It was already decided or withdrawn; each application is decided once. |
 | 409 | `APPLICATION_NOT_ACTIVE` | `POST /applications/{id}/withdraw` | It is already rejected or withdrawn. |
 | 409 | `WORK_ALREADY_SUBMITTED` | `POST /applications/{id}/withdraw` | Work was submitted for it, so it must stay accepted. |
+
+### Resumes ([ADR 0008](adr/0008-contributor-resume.md))
+
+| Status | Code | Endpoint(s) | When |
+| --- | --- | --- | --- |
+| 404 | `RESUME_NOT_FOUND` | `/contributors/me/resume…`, `GET /applications/{id}/resume` | The contributor has no resume (or its file is missing from storage). |
+| 409 | `CONTRIBUTOR_PROFILE_REQUIRED` | `PUT /contributors/me/resume` | The contributor account has no profile to attach it to. |
+| 411 | `LENGTH_REQUIRED` | `PUT /contributors/me/resume` | The upload was sent without `Content-Length` (e.g. chunked). Browsers always send it. |
+| 413 | `RESUME_TOO_LARGE` | `PUT /contributors/me/resume` | Over 10 MB. Refused before the body is read when `Content-Length` shows it. |
+| 415 | `UNSUPPORTED_FILE_TYPE` | `PUT /contributors/me/resume` | Not a PDF. Decided by the file's content, not its name or `Content-Type`. |
+| 422 | `EMPTY_FILE` | `PUT /contributors/me/resume` | The file has no bytes. |
+
+`GET /applications/{id}/resume` also returns `APPLICATION_NOT_FOUND` (404) when the application isn't yours to see.
 
 ### Account
 
@@ -86,5 +100,5 @@ An unexpected server error returns a plain-text 500 without this body or an `X-R
 ## Adding a code
 
 1. Raise the matching `AppError` subclass from `api/app/core/exceptions.py` with an explicit `code=` in `SCREAMING_SNAKE_CASE`, named after the rule (not the HTTP status).
-2. Pick the status from the table above (409 for business rules, 422 for bad input).
+2. Pick the status from the table above (409 for business rules, 422 for bad input, 411/413/415 for uploads).
 3. Add a row here and a test that asserts the code.
