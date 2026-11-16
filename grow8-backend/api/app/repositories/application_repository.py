@@ -15,7 +15,9 @@ ACTIVE_STATUSES = (ApplicationStatus.PENDING, ApplicationStatus.ACCEPTED)
 _EAGER = (
     joinedload(Application.opportunity).joinedload(Opportunity.organization),
     joinedload(Application.contributor).options(
-        joinedload(ContributorProfile.user), selectinload(ContributorProfile.skills)
+        joinedload(ContributorProfile.user),
+        selectinload(ContributorProfile.skills),
+        selectinload(ContributorProfile.resume),
     ),
 )
 

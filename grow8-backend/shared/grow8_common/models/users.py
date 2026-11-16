@@ -1,7 +1,17 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, ForeignKey, Index, String, Text, UniqueConstraint, true
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+    true,
+)
+from sqlalchemy.dialects.mysql import BIGINT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from grow8_common.models.base import (
@@ -56,6 +66,33 @@ class ContributorProfile(Base):
     skills: Mapped[list["Skill"]] = relationship(
         secondary="contributor_skill", order_by="Skill.code", viewonly=True
     )
+    resume: Mapped["ContributorResume | None"] = relationship(viewonly=True)
+
+
+class ContributorResume(Base):
+    """A contributor's optional resume: metadata here, bytes on the file_storage
+    volume under storage_key (ADRs 0007, 0008)."""
+
+    __tablename__ = "contributor_resume"
+    __table_args__ = (
+        UniqueConstraint("storage_key", name="uq_contributor_resume_storage_key"),
+        CheckConstraint("size_bytes > 0", name="chk_contributor_resume_size"),
+    )
+
+    user_id: Mapped[int] = mapped_column(
+        UnsignedInt,
+        ForeignKey(
+            "contributor_profile.user_id",
+            name="fk_contributor_resume_contributor",
+            ondelete="CASCADE",
+        ),
+        primary_key=True,
+    )
+    file_name: Mapped[str] = mapped_column(String(255))
+    content_type: Mapped[str] = mapped_column(String(100))
+    size_bytes: Mapped[int] = mapped_column(BIGINT(unsigned=True))
+    storage_key: Mapped[str] = mapped_column(String(512))
+    uploaded_at: Mapped[datetime] = created_at_column()
 
 
 class CreatorOrganization(Base):
