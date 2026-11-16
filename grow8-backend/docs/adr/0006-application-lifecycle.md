@@ -17,7 +17,7 @@ Applications connect a contributor to an opportunity, and everything later in th
       └─(contributor withdraws)─▶ withdrawn ◀─(contributor withdraws)── accepted
    ```
 
-   - The **owning creator** decides each application **once**, while it is `pending`. Deciding is allowed after the deadline and after the opportunity closes: the window applies to applying, not to choosing.
+   - The **owning creator** decides each application **once**, while it is `pending`. Deciding is allowed after the deadline and after the opportunity closes: the window applies to applying, not to choosing. *Not after it is cancelled: [ADR 0011](0011-close-and-cancel-opportunities.md).*
    - The **applicant** may withdraw while the application is `pending` or `accepted`, **until work is submitted** for it. After that, R9 keeps it `accepted` (verified hours, skills and feedback rely on it), so withdrawing returns 409 `WORK_ALREADY_SUBMITTED`. `rejected` and `withdrawn` are final: 409 `APPLICATION_NOT_ACTIVE`.
    - **No auto-reject.** When the last place is filled, the remaining pending applications stay pending; the creator decides each one.
    - **No re-applying.** The unique key means a contributor who withdrew (or was rejected) cannot apply to the same opportunity again. Re-opening an application is future work.

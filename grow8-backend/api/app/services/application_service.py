@@ -32,6 +32,7 @@ from app.schemas.application import (
     ApplicationListParams,
     ApplicationRead,
     Decision,
+    ReceivedApplicationParams,
 )
 from app.schemas.common import Page
 from app.services import application_rules
@@ -257,6 +258,22 @@ def list_for_opportunity(
     return _page(list(items), total, params)
 
 
+def list_received(
+    session: Session, creator: UserAccount, params: ReceivedApplicationParams
+) -> Page[ApplicationRead]:
+    """Applications to every opportunity the creator owns, newest first. An
+    `opportunity_id` that isn't theirs simply matches nothing."""
+    items, total = application_repository.list_received(
+        session,
+        creator.user_id,
+        params.opportunity_id,
+        params.status,
+        params.limit,
+        params.offset,
+    )
+    return _page(list(items), total, params)
+
+
 def decide(
     session: Session,
     creator: UserAccount,
@@ -266,7 +283,8 @@ def decide(
     correlation_id: str | None,
 ) -> ApplicationRead:
     """Accept or reject a pending application to an opportunity you own. Each one is
-    decided once; deciding is allowed after the deadline or once the opportunity closes."""
+    decided once; deciding is allowed after the deadline or once the opportunity closes,
+    but not once it is cancelled (ADR 0011)."""
     application = application_repository.get_for_update(session, application_id)
     if application is None or not _owns(application.opportunity, creator):
         raise _not_found()
@@ -274,6 +292,15 @@ def decide(
         raise ConflictError(
             f"Only pending applications can be decided (this one is {application.status.value})",
             code="APPLICATION_NOT_PENDING",
+        )
+    # Shared lock: a concurrent cancel waits for this decision, or this sees it.
+    if (
+        opportunity_repository.lock_status_for_share(session, application.opportunity_id)
+        == OpportunityStatus.CANCELLED
+    ):
+        raise ConflictError(
+            "This opportunity was cancelled, so its applications can't be decided",
+            code="OPPORTUNITY_CANCELLED",
         )
 
     application.status = ApplicationStatus(decision.value)

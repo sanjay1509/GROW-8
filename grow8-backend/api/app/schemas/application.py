@@ -91,3 +91,9 @@ class ApplicationListParams(BaseModel):
     )
     limit: int = Field(20, ge=1, le=100)
     offset: int = Field(0, ge=0)
+
+
+class ReceivedApplicationParams(ApplicationListParams):
+    opportunity_id: int | None = Field(
+        None, ge=1, description="Only this one of your opportunities (default: all of them)"
+    )
