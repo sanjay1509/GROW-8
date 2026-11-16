@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2120" height="1660" viewBox="0 0 2120 1660">
-<rect width="2120" height="1660" fill="#FFFFFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="2120" height="1780" viewBox="0 0 2120 1780">
+<rect width="2120" height="1780" fill="#FFFFFF"/>
 <text x="40.0" y="48.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="30" font-weight="800" fill="#0F172A" text-anchor="start">GROW8 — Relational Schema</text>
 <text x="40.0" y="74.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13.5" font-weight="400" fill="#475569" text-anchor="start">Primary keys underlined · foreign keys in blue italics, each listed under its relation as columns → relation(key) · all relations in BCNF</text>
 <text x="2080.0" y="46.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="end">ENSF 608 · Group 2</text>
-<text x="2080.0" y="70.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#64748B" text-anchor="end">Generated from db/init/001_schema.sql · Nov 7, 2026</text>
+<text x="2080.0" y="70.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#64748B" text-anchor="end">Generated from db/init/001_schema.sql · Nov 16, 2026</text>
 <line x1="40" y1="88" x2="2080" y2="88" stroke="#E2E8F0" stroke-width="1.2"/>
 <rect x="40.0" y="117" width="12" height="12" rx="3" fill="#2563EB"/>
 <text x="60.0" y="128.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="700" fill="#2563EB" text-anchor="start">IDENTITY AND PROFILES</text>
@@ -27,82 +27,98 @@
 <text x="68.0" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">updated_at</text>
 <text x="146.5" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
 <text x="40.0" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">contributor_profile</text>
-<text x="175.5" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
+<text x="175.4" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
 <text x="181.0" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#1E40AF" text-anchor="start" font-style="italic">user_id</text>
 <line x1="181.0" y1="231.5" x2="233.9" y2="231.5" stroke="#1E40AF" stroke-width="1.3"/>
 <text x="233.9" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="242.5" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">headline</text>
-<text x="302.8" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="311.3" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">bio</text>
+<text x="242.4" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">headline</text>
+<text x="302.7" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="311.2" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">bio</text>
 <text x="333.1" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="341.7" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">institution</text>
+<text x="341.6" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">institution</text>
 <text x="410.8" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="419.4" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">city</text>
+<text x="419.3" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">city</text>
 <text x="445.2" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="453.8" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">created_at</text>
+<text x="453.7" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">created_at</text>
 <text x="527.9" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="536.5" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">updated_at</text>
+<text x="536.4" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">updated_at</text>
 <text x="615.0" y="228.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
 <text x="68.0" y="251.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">user_id → user_account(user_id)</text>
-<text x="40.0" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">creator_organization</text>
-<text x="189.7" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
-<text x="195.3" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">organization_id</text>
-<line x1="195.3" y1="293.5" x2="306.4" y2="293.5" stroke="#0F172A" stroke-width="1.3"/>
-<text x="306.4" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="315.0" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">owner_user_id</text>
-<text x="417.5" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="426.0" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">name</text>
-<text x="465.2" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="473.7" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">organization_type</text>
-<text x="599.8" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="68.0" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">description</text>
-<text x="147.5" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="156.1" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">website</text>
-<text x="211.1" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="219.7" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">city</text>
-<text x="245.5" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="254.0" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">created_at</text>
-<text x="328.2" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="336.7" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">updated_at</text>
-<text x="415.3" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
-<text x="68.0" y="338.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">owner_user_id → user_account(user_id)</text>
-<rect x="40.0" y="372" width="12" height="12" rx="3" fill="#7C3AED"/>
-<text x="60.0" y="383.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="700" fill="#7C3AED" text-anchor="start">REFERENCE DATA</text>
-<text x="40.0" y="417.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">opportunity_category</text>
-<text x="196.1" y="417.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
-<text x="201.7" y="417.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">category_id</text>
-<line x1="201.7" y1="420.5" x2="286.2" y2="420.5" stroke="#0F172A" stroke-width="1.3"/>
-<text x="286.2" y="417.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="294.8" y="417.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">code</text>
-<text x="330.3" y="417.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="338.8" y="417.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">name</text>
-<text x="378.0" y="417.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="386.5" y="417.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">description</text>
-<text x="466.1" y="417.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
-<text x="40.0" y="458.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">skill</text>
-<text x="68.5" y="458.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
-<text x="74.1" y="458.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">skill_id</text>
-<line x1="74.1" y1="461.5" x2="123.5" y2="461.5" stroke="#0F172A" stroke-width="1.3"/>
-<text x="123.5" y="458.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="132.1" y="458.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">code</text>
-<text x="167.6" y="458.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="176.1" y="458.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">name</text>
-<text x="215.3" y="458.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
-<text x="40.0" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">badge</text>
-<text x="85.7" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
-<text x="91.3" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">badge_id</text>
-<line x1="91.3" y1="502.5" x2="157.7" y2="502.5" stroke="#0F172A" stroke-width="1.3"/>
-<text x="157.7" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="166.2" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">code</text>
-<text x="201.7" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="210.3" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">name</text>
-<text x="249.4" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="258.0" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">description</text>
-<text x="337.5" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="346.1" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">points</text>
-<text x="389.4" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="398.0" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">required_verified_hours</text>
-<text x="564.0" y="499.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
+<text x="40.0" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">contributor_resume</text>
+<text x="182.9" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
+<text x="188.5" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#1E40AF" text-anchor="start" font-style="italic">user_id</text>
+<line x1="188.5" y1="293.5" x2="241.4" y2="293.5" stroke="#1E40AF" stroke-width="1.3"/>
+<text x="241.4" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="250.0" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">file_name</text>
+<text x="318.1" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="326.6" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">content_type</text>
+<text x="418.7" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="427.3" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">size_bytes</text>
+<text x="502.0" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="510.5" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">storage_key</text>
+<text x="596.4" y="290.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="68.0" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">uploaded_at</text>
+<text x="154.6" y="315.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
+<text x="68.0" y="338.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">user_id → contributor_profile(user_id)</text>
+<text x="40.0" y="377.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">creator_organization</text>
+<text x="189.7" y="377.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
+<text x="195.3" y="377.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">organization_id</text>
+<line x1="195.3" y1="380.5" x2="306.4" y2="380.5" stroke="#0F172A" stroke-width="1.3"/>
+<text x="306.4" y="377.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="315.0" y="377.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">owner_user_id</text>
+<text x="417.5" y="377.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="426.0" y="377.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">name</text>
+<text x="465.2" y="377.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="473.7" y="377.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">organization_type</text>
+<text x="599.8" y="377.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="68.0" y="402.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">description</text>
+<text x="147.4" y="402.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="156.0" y="402.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">website</text>
+<text x="211.0" y="402.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="219.6" y="402.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">city</text>
+<text x="245.4" y="402.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="254.0" y="402.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">created_at</text>
+<text x="328.1" y="402.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="336.6" y="402.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">updated_at</text>
+<text x="415.2" y="402.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
+<text x="68.0" y="425.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">owner_user_id → user_account(user_id)</text>
+<rect x="40.0" y="459" width="12" height="12" rx="3" fill="#7C3AED"/>
+<text x="60.0" y="470.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="700" fill="#7C3AED" text-anchor="start">REFERENCE DATA</text>
+<text x="40.0" y="504.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">opportunity_category</text>
+<text x="196.1" y="504.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
+<text x="201.7" y="504.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">category_id</text>
+<line x1="201.7" y1="507.5" x2="286.2" y2="507.5" stroke="#0F172A" stroke-width="1.3"/>
+<text x="286.2" y="504.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="294.8" y="504.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">code</text>
+<text x="330.3" y="504.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="338.8" y="504.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">name</text>
+<text x="378.0" y="504.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="386.5" y="504.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">description</text>
+<text x="466.0" y="504.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
+<text x="40.0" y="545.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">skill</text>
+<text x="68.5" y="545.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
+<text x="74.1" y="545.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">skill_id</text>
+<line x1="74.1" y1="548.5" x2="123.5" y2="548.5" stroke="#0F172A" stroke-width="1.3"/>
+<text x="123.5" y="545.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="132.1" y="545.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">code</text>
+<text x="167.6" y="545.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="176.1" y="545.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">name</text>
+<text x="215.3" y="545.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
+<text x="40.0" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">badge</text>
+<text x="85.7" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
+<text x="91.3" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">badge_id</text>
+<line x1="91.3" y1="589.5" x2="157.7" y2="589.5" stroke="#0F172A" stroke-width="1.3"/>
+<text x="157.7" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="166.2" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">code</text>
+<text x="201.7" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="210.3" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">name</text>
+<text x="249.4" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="258.0" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">description</text>
+<text x="337.4" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="346.0" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">points</text>
+<text x="389.3" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="397.9" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">required_verified_hours</text>
+<text x="563.8" y="586.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
 <rect x="733.3333333333334" y="117" width="12" height="12" rx="3" fill="#059669"/>
 <text x="753.3" y="128.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="700" fill="#059669" text-anchor="start">OPPORTUNITIES AND SKILLS</text>
 <text x="733.3" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">opportunity</text>
@@ -117,8 +133,8 @@
 <text x="1144.5" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">title</text>
 <text x="1170.3" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="1178.8" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">description</text>
-<text x="1258.4" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1266.9" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">requirements</text>
+<text x="1258.3" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1266.8" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">requirements</text>
 <text x="1360.3" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="761.3" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">location</text>
 <text x="817.5" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
@@ -167,15 +183,15 @@
 <text x="761.3" y="368.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">opportunity_id → opportunity(opportunity_id)</text>
 <text x="761.3" y="389.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">skill_id → skill(skill_id)</text>
 <text x="733.3" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">contributor_skill</text>
-<text x="850.1" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
-<text x="855.7" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#1E40AF" text-anchor="start" font-style="italic">contributor_id</text>
-<line x1="855.7" y1="431.5" x2="957.5" y2="431.5" stroke="#1E40AF" stroke-width="1.3"/>
-<text x="957.5" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="966.0" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#1E40AF" text-anchor="start" font-style="italic">skill_id</text>
-<line x1="966.0" y1="431.5" x2="1015.4" y2="431.5" stroke="#1E40AF" stroke-width="1.3"/>
-<text x="1015.4" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1023.9" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">created_at</text>
-<text x="1098.1" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
+<text x="850.0" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
+<text x="855.6" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#1E40AF" text-anchor="start" font-style="italic">contributor_id</text>
+<line x1="855.6" y1="431.5" x2="957.4" y2="431.5" stroke="#1E40AF" stroke-width="1.3"/>
+<text x="957.4" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="965.9" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#1E40AF" text-anchor="start" font-style="italic">skill_id</text>
+<line x1="965.9" y1="431.5" x2="1015.3" y2="431.5" stroke="#1E40AF" stroke-width="1.3"/>
+<text x="1015.3" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1023.8" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">created_at</text>
+<text x="1098.0" y="428.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
 <text x="761.3" y="451.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">contributor_id → contributor_profile(user_id)</text>
 <text x="761.3" y="472.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">skill_id → skill(skill_id)</text>
 <rect x="733.3333333333334" y="506" width="12" height="12" rx="3" fill="#D97706"/>
@@ -188,13 +204,13 @@
 <text x="928.5" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">opportunity_id</text>
 <text x="1029.6" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="1038.2" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">contributor_id</text>
-<text x="1136.7" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1145.2" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">status</text>
-<text x="1188.3" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1196.8" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">motivation</text>
-<text x="1270.7" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1279.2" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">submitted_at</text>
-<text x="1369.4" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1136.6" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1145.1" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">status</text>
+<text x="1188.2" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1196.7" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">motivation</text>
+<text x="1270.6" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1279.1" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">submitted_at</text>
+<text x="1369.7" y="551.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="761.3" y="576.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">decided_at</text>
 <text x="838.8" y="576.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
 <text x="761.3" y="599.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">contributor_id → contributor_profile(user_id)</text>
@@ -207,23 +223,23 @@
 <text x="977.2" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">application_id</text>
 <text x="1075.0" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="1083.5" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">description</text>
-<text x="1163.1" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1171.6" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">hours_claimed</text>
-<text x="1274.1" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1163.0" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1171.5" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">hours_claimed</text>
+<text x="1274.0" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="1282.6" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">submitted_at</text>
-<text x="1372.8" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
+<text x="1373.1" y="659.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
 <text x="761.3" y="682.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">application_id → application(application_id)</text>
 <text x="733.3" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">submission_attachment</text>
-<text x="905.5" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
-<text x="911.1" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">attachment_id</text>
-<line x1="911.1" y1="724.5" x2="1013.9" y2="724.5" stroke="#0F172A" stroke-width="1.3"/>
-<text x="1013.9" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1022.4" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">submission_id</text>
-<text x="1122.7" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1131.3" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">file_name</text>
-<text x="1199.3" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1207.9" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">content_type</text>
-<text x="1300.0" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="905.8" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
+<text x="911.4" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">attachment_id</text>
+<line x1="911.4" y1="724.5" x2="1014.6" y2="724.5" stroke="#0F172A" stroke-width="1.3"/>
+<text x="1014.6" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1023.1" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">submission_id</text>
+<text x="1123.4" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1132.0" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">file_name</text>
+<text x="1200.1" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1208.6" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">content_type</text>
+<text x="1300.7" y="721.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="761.3" y="746.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">size_bytes</text>
 <text x="836.0" y="746.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="844.6" y="746.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">storage_key</text>
@@ -236,20 +252,20 @@
 <text x="1426.7" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">work_verification</text>
 <text x="1551.0" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
 <text x="1556.6" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">verification_id</text>
-<line x1="1556.6" y1="165.5" x2="1659.5" y2="165.5" stroke="#0F172A" stroke-width="1.3"/>
-<text x="1659.5" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1668.1" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">submission_id</text>
-<text x="1768.3" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1776.9" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">verified_by_user_id</text>
-<text x="1912.1" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1920.7" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">decision</text>
-<text x="1980.2" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<line x1="1556.6" y1="165.5" x2="1659.4" y2="165.5" stroke="#0F172A" stroke-width="1.3"/>
+<text x="1659.4" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1668.0" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">submission_id</text>
+<text x="1768.2" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1776.8" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">verified_by_user_id</text>
+<text x="1911.9" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1920.5" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">decision</text>
+<text x="1980.0" y="162.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="1454.7" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">verified_hours</text>
-<text x="1555.9" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1564.4" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">comment</text>
-<text x="1630.8" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1639.3" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">verified_at</text>
-<text x="1713.0" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
+<text x="1555.8" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1564.3" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">comment</text>
+<text x="1630.7" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1639.2" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">verified_at</text>
+<text x="1712.8" y="187.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
 <text x="1454.7" y="210.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">submission_id → work_submission(submission_id)</text>
 <text x="1454.7" y="231.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">verified_by_user_id → user_account(user_id)</text>
 <text x="1426.7" y="270.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">feedback</text>
@@ -294,15 +310,15 @@
 <rect x="1426.6666666666667" y="477" width="12" height="12" rx="3" fill="#0891B2"/>
 <text x="1446.7" y="488.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="700" fill="#0891B2" text-anchor="start">REWARDS</text>
 <text x="1426.7" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">contributor_badge</text>
-<text x="1561.1" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
-<text x="1566.7" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#1E40AF" text-anchor="start" font-style="italic">contributor_id</text>
-<line x1="1566.7" y1="525.5" x2="1668.5" y2="525.5" stroke="#1E40AF" stroke-width="1.3"/>
-<text x="1668.5" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1677.0" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#1E40AF" text-anchor="start" font-style="italic">badge_id</text>
-<line x1="1677.0" y1="525.5" x2="1743.4" y2="525.5" stroke="#1E40AF" stroke-width="1.3"/>
-<text x="1743.4" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1751.9" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">awarded_at</text>
-<text x="1833.7" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
+<text x="1561.0" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">(</text>
+<text x="1566.6" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#1E40AF" text-anchor="start" font-style="italic">contributor_id</text>
+<line x1="1566.6" y1="525.5" x2="1668.4" y2="525.5" stroke="#1E40AF" stroke-width="1.3"/>
+<text x="1668.4" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1676.9" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#1E40AF" text-anchor="start" font-style="italic">badge_id</text>
+<line x1="1676.9" y1="525.5" x2="1743.3" y2="525.5" stroke="#1E40AF" stroke-width="1.3"/>
+<text x="1743.3" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1751.8" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">awarded_at</text>
+<text x="1833.6" y="522.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
 <text x="1454.7" y="545.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">badge_id → badge(badge_id)</text>
 <text x="1454.7" y="566.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">contributor_id → contributor_profile(user_id)</text>
 <text x="1426.7" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">point_transaction</text>
@@ -311,15 +327,15 @@
 <line x1="1558.2" y1="608.5" x2="1660.8" y2="608.5" stroke="#0F172A" stroke-width="1.3"/>
 <text x="1660.8" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="1669.4" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">contributor_id</text>
-<text x="1767.9" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1776.4" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">points</text>
-<text x="1819.8" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1828.3" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">source</text>
-<text x="1876.8" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1885.4" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">verification_id</text>
-<text x="1984.7" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
-<text x="1993.2" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">badge_id</text>
-<text x="2058.3" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1767.8" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1776.3" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">points</text>
+<text x="1819.7" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1828.2" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">source</text>
+<text x="1876.7" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1885.3" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">verification_id</text>
+<text x="1984.5" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
+<text x="1993.0" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#1E40AF" text-anchor="start" font-style="italic">badge_id</text>
+<text x="2058.1" y="605.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">, </text>
 <text x="1454.7" y="630.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">created_at</text>
 <text x="1528.8" y="630.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="15" font-weight="400" fill="#0F172A" text-anchor="start">)</text>
 <text x="1454.7" y="653.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">contributor_id → contributor_profile(user_id)</text>

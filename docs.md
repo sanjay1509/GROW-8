@@ -171,7 +171,7 @@ The database is defined by three files in [`grow8-backend/db/init/`](grow8-backe
 
 | File | What it does |
 | --- | --- |
-| `001_schema.sql` | Creates all 18 tables (the 17 from the ENSF 608 proposal plus `notification`, see [ADR 0003](grow8-backend/docs/adr/0003-persisted-notifications.md)), the integrity triggers and the derived-value views. It is the single source of truth for the schema. |
+| `001_schema.sql` | Creates all 19 tables (the 17 from the ENSF 608 proposal plus `notification`, see [ADR 0003](grow8-backend/docs/adr/0003-persisted-notifications.md), and `contributor_resume`, see [ADR 0008](grow8-backend/docs/adr/0008-contributor-resume.md)), the integrity triggers and the derived-value views. It is the single source of truth for the schema. |
 | `002_seed.sql` | Fills them with **development-only** placeholder data. It uses fixed IDs and dates, so every developer gets identical rows. |
 | `003_test_database.sh` | Creates an empty `grow8_test` database that `make test` uses, so tests never change your dev data. |
 
@@ -186,7 +186,7 @@ cd grow8-backend
 make reset-db
 ```
 
-⚠️ This deletes everything in **your** local database and recreates it from the files. It does not affect anyone else.
+⚠️ This deletes everything in **your** local database, and the files uploaded to it (resumes, kept on the `file_storage` volume), then recreates the database from the files. It does not affect anyone else.
 
 If the pull also changed `docker-compose.yml`, run `make up` first so MySQL restarts with the new settings.
 
@@ -253,8 +253,53 @@ Full reference: [`grow8-backend/docs/api-contract.md`](grow8-backend/docs/api-co
 | Edit a draft (owner) | `PATCH /api/v1/opportunities/{id}` |
 | Publish (owner) | `POST /api/v1/opportunities/{id}/publish` |
 | My opportunities, incl. drafts (creator) | `GET /api/v1/opportunities/mine?status=draft` |
+| Delete a draft (owner) | `DELETE /api/v1/opportunities/{id}` |
+| Close: stop taking applications (owner) | `POST /api/v1/opportunities/{id}/close` |
+| Cancel: call it off, applicants are told (owner) | `POST /api/v1/opportunities/{id}/cancel` |
 
 Opportunities start as **drafts**, which can be incomplete. Publishing checks that every mandatory disclosure is filled in (requirements, dates, hours, compensation, applicant limit, deadline, working conditions, safety and accessibility information). If anything is missing, the response lists it.
+
+### 3.3 Applications at a glance
+
+| Task | Request |
+| --- | --- |
+| Apply (contributor) | `POST /api/v1/opportunities/{id}/applications` with `{"motivation": "..."}` (optional) |
+| My applications (contributor) | `GET /api/v1/applications/mine?status=pending` |
+| Applications to my opportunity (creator) | `GET /api/v1/opportunities/{id}/applications` |
+| Applications to all my opportunities (creator) | `GET /api/v1/applications/received?status=pending` |
+| Accept or reject (owner) | `POST /api/v1/applications/{id}/decision` with `{"decision": "accepted"}` |
+| Withdraw (applicant) | `POST /api/v1/applications/{id}/withdraw` |
+
+Try it on the dev data (with the stack running, since the notifications come from the consumer services):
+
+1. Sign in as `alex.chen@grow8.dev` and apply to opportunity **4** (holiday market booth, 3 places, no applications yet).
+2. Sign in as `maple.bakery@grow8.dev`: `GET /api/v1/notifications` shows "New application: Holiday market booth assistant". Accept it with the `application_id` from step 1.
+3. Back as Alex, the notifications show "You were accepted: …". Withdraw it (`POST /api/v1/applications/{id}/withdraw`).
+4. As Maple Street Bakery again, the notifications show "Application withdrawn: …", saying the place is open again.
+5. Opportunity **1** already has two pending applications for its two places (from `004_seed_workflow.sql`), so Alex applying there gets 409 `APPLICANT_LIMIT_REACHED`.
+
+Seeded deadlines are real dates, so this works until opportunity 4 closes on 2026-12-01.
+
+### 3.4 Resumes
+
+A contributor can keep one PDF resume (at most 10 MB); creators download it from an application. In Swagger, `PUT /api/v1/contributors/me/resume` shows a file picker. With curl:
+
+```bash
+curl -X PUT http://localhost:8000/api/v1/contributors/me/resume   -H "Authorization: Bearer <contributor token>" -F "file=@my-cv.pdf"
+```
+
+| Task | Request |
+| --- | --- |
+| Upload or replace (contributor) | `PUT /api/v1/contributors/me/resume` (multipart field `file`) |
+| See or download your own | `GET /api/v1/contributors/me/resume` · `GET /api/v1/contributors/me/resume/file` |
+| Delete it | `DELETE /api/v1/contributors/me/resume` |
+| Download an applicant's (creator) | `GET /api/v1/applications/{id}/resume` |
+
+Files are stored on the `file_storage` Docker volume, never in MySQL ([ADR 0007](grow8-backend/docs/adr/0007-local-file-storage.md)). A file that isn't really a PDF gets 415, even if it's named `.pdf`.
+
+### 3.5 When something is refused
+
+Every error has the body `{"error": {"code": "...", "message": "..."}}`. All codes are listed in [`grow8-backend/docs/error-codes.md`](grow8-backend/docs/error-codes.md).
 
 ---
 

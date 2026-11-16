@@ -122,6 +122,32 @@ def publish_opportunity(
     return OpportunityRead.model_validate(opportunity)
 
 
+@router.post("/{opportunity_id}/close", response_model=OpportunityRead)
+def close_opportunity(
+    opportunity_id: OpportunityId,
+    session: DbSession,
+    creator: CurrentCreator,
+) -> OpportunityRead:
+    """Stop taking applications. Pending applications can still be decided."""
+    return OpportunityRead.model_validate(
+        opportunity_service.close(session, creator, opportunity_id)
+    )
+
+
+@router.post("/{opportunity_id}/cancel", response_model=OpportunityRead)
+def cancel_opportunity(
+    opportunity_id: OpportunityId,
+    session: DbSession,
+    creator: CurrentCreator,
+    publisher: Publisher,
+    request_id: RequestId,
+) -> OpportunityRead:
+    """Call the opportunity off; its pending and accepted applicants are notified."""
+    return OpportunityRead.model_validate(
+        opportunity_service.cancel(session, creator, opportunity_id, publisher, request_id)
+    )
+
+
 @router.delete(
     "/{opportunity_id}",
     status_code=status.HTTP_204_NO_CONTENT,

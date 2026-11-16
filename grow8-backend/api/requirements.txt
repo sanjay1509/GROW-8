@@ -5,3 +5,5 @@ uvicorn[standard]==0.34.2
 PyJWT==2.10.1
 # password hashing
 bcrypt==4.3.0
+# multipart/form-data parsing for file uploads (FastAPI UploadFile); ADR 0007
+python-multipart==0.0.33

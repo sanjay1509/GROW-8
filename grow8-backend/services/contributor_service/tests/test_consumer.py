@@ -54,11 +54,11 @@ def test_invalid_payload_is_dead_lettered_without_calling_handler() -> None:
     assert called == []
 
 
-def test_handler_error_is_dead_lettered() -> None:
+def test_handler_error_is_retried_not_dead_lettered() -> None:
     def broken(env, payload):
         raise RuntimeError("database down")
 
-    assert process(_body(), {EventType.OPPORTUNITY_CREATED: broken}) is Outcome.DEAD_LETTER
+    assert process(_body(), {EventType.OPPORTUNITY_CREATED: broken}) is Outcome.RETRY
 
 
 def test_service_subscribes_to_opportunity_created() -> None:

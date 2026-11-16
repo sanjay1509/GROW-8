@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     CheckConstraint,
@@ -12,10 +13,14 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects.mysql import BIGINT
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from grow8_common.models.base import Base, UnsignedInt, created_at_column, enum_column
 from grow8_common.models.enums import ApplicationStatus, ReviewDecision
+
+if TYPE_CHECKING:
+    from grow8_common.models.opportunities import Opportunity
+    from grow8_common.models.users import ContributorProfile
 
 
 class Application(Base):
@@ -46,6 +51,9 @@ class Application(Base):
     motivation: Mapped[str | None] = mapped_column(Text)
     submitted_at: Mapped[datetime] = created_at_column()
     decided_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+    opportunity: Mapped["Opportunity"] = relationship()
+    contributor: Mapped["ContributorProfile"] = relationship()
 
 
 class WorkSubmission(Base):
