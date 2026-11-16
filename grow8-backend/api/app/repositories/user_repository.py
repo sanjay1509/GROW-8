@@ -1,4 +1,4 @@
-from grow8_common.models import CreatorOrganization, UserAccount
+from grow8_common.models import ContributorProfile, CreatorOrganization, UserAccount
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -14,3 +14,7 @@ def get_by_email(session: Session, email: str) -> UserAccount | None:
 def get_organization_of(session: Session, owner_user_id: int) -> CreatorOrganization | None:
     stmt = select(CreatorOrganization).where(CreatorOrganization.owner_user_id == owner_user_id)
     return session.scalars(stmt).first()
+
+
+def get_contributor_profile(session: Session, user_id: int) -> ContributorProfile | None:
+    return session.get(ContributorProfile, user_id)

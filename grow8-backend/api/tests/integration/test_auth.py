@@ -1,3 +1,6 @@
+from typing import Any
+
+import bcrypt
 from fastapi.testclient import TestClient
 
 LOGIN = "/api/v1/auth/login"
@@ -100,3 +103,46 @@ def test_change_password_requires_a_token(client: TestClient) -> None:
     body = {"current_password": DEV_PASSWORD, "new_password": "BrandNew!2026"}
 
     assert client.post(CHANGE, json=body).status_code == 401
+
+
+def test_new_password_is_limited_to_72_bytes(
+    client: TestClient, contributor: dict[str, str]
+) -> None:
+    accented = "é" * 37  # 37 characters but 74 bytes
+    body = {"current_password": DEV_PASSWORD, "new_password": accented}
+
+    response = client.post(CHANGE, json=body, headers=contributor)
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+    assert "72 bytes" in response.text
+
+
+def test_a_72_byte_password_works(client: TestClient, contributor: dict[str, str]) -> None:
+    longest = "Aa1!" * 18  # exactly 72 bytes
+    body = {"current_password": DEV_PASSWORD, "new_password": longest}
+
+    assert client.post(CHANGE, json=body, headers=contributor).status_code == 200
+    login = client.post(LOGIN, json={"email": "alex.chen@grow8.dev", "password": longest})
+    assert login.status_code == 200
+
+
+def test_user_with_an_over_long_password_from_before_the_cap(
+    client: TestClient, seeded_db: Any
+) -> None:
+    """A hash bcrypt 4.x made from a 100-character password (it used the first 72 bytes)
+    still signs in, and "changing" to those 72 bytes counts as unchanged."""
+    long_password = "Long-pass-" * 10
+    old_hash = bcrypt.hashpw(long_password.encode()[:72], bcrypt.gensalt()).decode()
+    with seeded_db.cursor() as cur:
+        cur.execute("UPDATE user_account SET password_hash = %s WHERE user_id = 5", (old_hash,))
+
+    login = client.post(LOGIN, json={"email": "alex.chen@grow8.dev", "password": long_password})
+    assert login.status_code == 200
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    body = {"current_password": long_password, "new_password": long_password[:72]}
+    response = client.post(CHANGE, json=body, headers=headers)
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "PASSWORD_UNCHANGED"

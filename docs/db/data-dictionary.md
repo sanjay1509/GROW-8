@@ -2,7 +2,7 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Generated Oct 27, 2026 and updated Nov 7, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`): 18 tables, 124 columns, 5 views, 17 triggers, 9 procedures. Types, nullability, defaults and keys are read from MySQL's `information_schema`, so they match the DDL exactly; descriptions are written by hand. Rules referenced as R1–R22 and I1–I9 are explained in `relationship-validation.md`; keys and normal forms are in `functional-dependencies.md`.
+> Generated Oct 27, 2026 and updated Nov 15, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`): 19 tables, 130 columns, 5 views, 17 triggers, 9 procedures. Types, nullability, defaults and keys are read from MySQL's `information_schema`, so they match the DDL exactly; descriptions are written by hand. Rules referenced as R1–R22 and I1–I9 are explained in `relationship-validation.md`; keys and normal forms are in `functional-dependencies.md`.
 
 ## How to read this
 
@@ -34,6 +34,7 @@
 | 16 | [`contributor_badge`](#contributor_badge) | Badges a contributor has earned. Each badge is earned once. | 3 |
 | 17 | [`point_transaction`](#point_transaction) | Ledger of points awarded, either for approved work or for a badge. Leaderboard totals are summed from it, never stored. | 7 |
 | 18 | [`notification`](#notification) | One message per user per event, written by the consumer services and read by the frontend through `/api/v1/notifications` (ADR 0003). Not in the original 17-entity proposal. | 9 |
+| 19 | [`contributor_resume`](#contributor_resume) | A contributor's optional resume: metadata only, the PDF itself is on the file storage volume (ADRs 0007, 0008). 1 : 0..1 with `contributor_profile`. Not in the original 17-entity proposal. | 6 |
 
 ## 1. Accounts and organizations
 
@@ -71,6 +72,23 @@ Extra details for a contributor account (shared primary key with `user_account`,
 
 - **Foreign keys:** `fk_contributor_profile_user` (user_id) → `user_account` (cascade on delete)
 - **Triggers:** `trg_contributor_profile_bi`, `trg_contributor_profile_bu`
+
+### contributor_resume
+
+A contributor's optional resume (shared primary key with `contributor_profile`, 1 : 0..1). Only metadata is stored; the PDF is on the file storage volume under `storage_key` (ADRs 0007, 0008). Uploading again updates the row. Not in the original 17-entity proposal.
+
+| Column | Type | Null | Default | Key | Description |
+|---|---|---|---|---|---|
+| `user_id` | `int unsigned` | NO |  | PK, FK → contributor_profile.user_id | The contributor. The row is deleted with the profile. |
+| `file_name` | `varchar(255)` | NO |  |  | Display name only, cleaned by the API (never used as a path). |
+| `content_type` | `varchar(100)` | NO |  |  | Always `application/pdf` in the MVP (checked by file signature). |
+| `size_bytes` | `bigint unsigned` | NO |  |  | File size in bytes; above 0. The 10 MB cap is enforced by the API. |
+| `storage_key` | `varchar(512)` | NO |  | UQ | Server-generated key of the file (`resumes/<uuid>`); unique. |
+| `uploaded_at` | `datetime` | NO | now |  | When the current file was uploaded. |
+
+- **Unique:** `uq_contributor_resume_storage_key` (storage_key)
+- **Foreign keys:** `fk_contributor_resume_contributor` (user_id) → `contributor_profile` (cascade on delete)
+- **Checks:** `chk_contributor_resume_size`
 
 ### creator_organization
 
@@ -349,7 +367,7 @@ One message per user per event, written by the consumer services and read by the
 | `notification_id` | `int unsigned` | NO |  | PK | Surrogate key. |
 | `user_id` | `int unsigned` | NO |  | FK → user_account.user_id, UQ* | Who receives it. Rows are deleted with the account. |
 | `event_id` | `char(36)` | NO |  | UQ* | The RabbitMQ event that caused it (UUID). Unique together with `user_id`, so a redelivered event adds nothing. |
-| `notification_type` | `enum('opportunity_created','opportunity_published')` | NO |  |  | `opportunity_created` (to matching contributors) or `opportunity_published` (to the creator). Gains a value per notifying event. |
+| `notification_type` | `enum('opportunity_created','opportunity_published','application_submitted','application_decided','application_withdrawn','opportunity_cancelled')` | NO |  |  | `opportunity_created` (to matching contributors), `opportunity_published` (to the creator), `application_submitted` (to the creator when someone applies), `application_decided` (to the applicant), `application_withdrawn` (to the creator when an applicant withdraws), `opportunity_cancelled` (to pending and accepted applicants). Gains a value per notifying event. |
 | `title` | `varchar(200)` | NO |  |  | Headline as shown to the user, stored as written. |
 | `message` | `varchar(500)` | NO |  |  | Body as shown to the user, stored as written. |
 | `opportunity_id` | `int unsigned` | YES |  | FK → opportunity.opportunity_id | Related opportunity, if any. Set to empty if the opportunity is deleted. |
@@ -434,5 +452,5 @@ Every contributor skill, with whether it is verified (decision 7). A skill is ve
 | `work_verification.decision` | `approved`, `rejected` |
 | `admin_review.decision` | `approved`, `rejected` |
 | `point_transaction.source` | `work_verified`, `badge_awarded` |
-| `notification.notification_type` | `opportunity_created`, `opportunity_published` |
+| `notification.notification_type` | `opportunity_created`, `opportunity_published`, `application_submitted`, `application_decided`, `application_withdrawn`, `opportunity_cancelled` |
 

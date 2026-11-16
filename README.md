@@ -68,31 +68,19 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 
 ### Event Flow
 
-<<<<<<<<< Temporary merge branch 1
-| Producer Action                | Event                   | Consumer Service    | Resulting Behaviour                                                  |
-| ------------------------------ | ----------------------- | ------------------- | -------------------------------------------------------------------- |
-| Creator actions                | `OPPORTUNITY_CREATED`   | Contributor Service, Creator Service | Notifies matching contributors about the new opportunity, and confirms to the creator that it was published.                       |
-| Creator actions                | `APPLICATION_DECIDED`   | Contributor Service | Notifies contributors of application decisions.                      |
-| Creator actions                | `WORK_VERIFIED`         | Contributor Service | Updates verified hours and skills.                                   |
-| Creator actions                | `WORK_REJECTED`         | Contributor Service | Notifies contributors about rejected work.                           |
-| Contributor actions            | `APPLICATION_SUBMITTED` | Creator Service     | Notifies creators about new applications.                            |
-| Contributor actions            | `WORK_SUBMITTED`        | Creator Service     | Notifies creators about work awaiting verification.                  |
-| Creator or Contributor actions | `FEEDBACK_SUBMITTED`    | Admin Service       | Alerts admins to feedback awaiting review.                            |
-| Admin actions                  | `FEEDBACK_APPROVED`     | All three services  | Updates public ratings and notifies the feedback author and subject. |
-| Admin actions                  | `FEEDBACK_REJECTED`     | All three services  | Records the rejection and notifies the feedback author and subject.  |
-=========
 | Producer Action | Event | Consumer Service | Resulting Behaviour |
 |---|---|---|---|
 | Creator actions | `OPPORTUNITY_CREATED` | Contributor Service, Creator Service | Notifies matching contributors about the new opportunity, and confirms to the creator that it was published. |
 | Creator actions | `APPLICATION_DECIDED` | Contributor Service | Notifies contributors of application decisions. |
+| Creator actions | `OPPORTUNITY_CANCELLED` | Contributor Service | Notifies pending and accepted applicants that the opportunity was cancelled. |
 | Creator actions | `WORK_VERIFIED` | Contributor Service | Updates verified hours and skills. |
 | Creator actions | `WORK_REJECTED` | Contributor Service | Notifies contributors about rejected work. |
 | Contributor actions | `APPLICATION_SUBMITTED` | Creator Service | Notifies creators about new applications. |
+| Contributor actions | `APPLICATION_WITHDRAWN` | Creator Service | Notifies creators when an applicant withdraws, and whether a place opened up. |
 | Contributor actions | `WORK_SUBMITTED` | Creator Service | Notifies creators about work awaiting verification. |
 | Creator or Contributor actions | `FEEDBACK_SUBMITTED` | Admin Service | Alerts admins to feedback awaiting review. |
 | Admin actions | `FEEDBACK_APPROVED` | All three services | Updates public ratings and notifies the feedback author and subject. |
 | Admin actions | `FEEDBACK_REJECTED` | All three services | Records the rejection and notifies the feedback author and subject. |
->>>>>>>>> Temporary merge branch 2
 
 ### Database
 
@@ -109,7 +97,7 @@ The database stores:
 - Feedback
 - Ratings
 
-Failed event publications are retried. A transactional outbox is considered future work.
+Failed event publications are retried. A consumer whose handler fails retries the event after 5 s, 30 s and 120 s (through RabbitMQ retry queues) before moving it to its dead-letter queue. A transactional outbox is considered future work.
 
 ---
 

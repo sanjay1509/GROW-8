@@ -46,8 +46,12 @@ def _envelope() -> EventEnvelope:
     return EventEnvelope.build(PAYLOAD, EventType.OPPORTUNITY_CREATED, "req-123")
 
 
-def test_service_subscribes_to_opportunity_created() -> None:
-    assert list(main.HANDLERS) == [EventType.OPPORTUNITY_CREATED]
+def test_service_subscribes_to_its_events() -> None:
+    assert list(main.HANDLERS) == [
+        EventType.OPPORTUNITY_CREATED,
+        EventType.APPLICATION_SUBMITTED,
+        EventType.APPLICATION_WITHDRAWN,
+    ]
 
 
 def test_handles_with_db_notifier_then_commits(
@@ -80,3 +84,62 @@ def test_handler_error_commits_nothing(calls: list[str], monkeypatch: pytest.Mon
     with pytest.raises(RuntimeError):
         main._on_opportunity_created(_envelope(), PAYLOAD)
     assert calls == ["close"]  # process() then dead-letters the message
+
+
+def test_application_submitted_uses_its_own_notification_type(
+    calls: list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from grow8_common.events import ApplicationSubmittedPayload
+
+    payload = ApplicationSubmittedPayload(
+        application_id=41,
+        opportunity_id=1,
+        organization_id=1,
+        opportunity_title="Digitize paper recipe archive",
+        contributor_id=5,
+        contributor_name="Alex Chen",
+    )
+    seen = {}
+
+    def fake_handler(payload, *, session, notifier):
+        calls.append("handle")
+        seen["notifier"] = notifier
+
+    monkeypatch.setattr(main, "handle_application_submitted", fake_handler)
+
+    main._on_application_submitted(
+        EventEnvelope.build(payload, EventType.APPLICATION_SUBMITTED, "req-9"), payload
+    )
+
+    assert calls == ["handle", "commit", "close"]
+    assert seen["notifier"]._type == NotificationType.APPLICATION_SUBMITTED
+
+
+def test_application_withdrawn_uses_its_own_notification_type(
+    calls: list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from grow8_common.events import ApplicationWithdrawnPayload
+
+    payload = ApplicationWithdrawnPayload(
+        application_id=41,
+        opportunity_id=1,
+        organization_id=1,
+        opportunity_title="Digitize paper recipe archive",
+        contributor_id=5,
+        contributor_name="Alex Chen",
+        previous_status="accepted",
+    )
+    seen = {}
+
+    def fake_handler(payload, *, session, notifier):
+        calls.append("handle")
+        seen["notifier"] = notifier
+
+    monkeypatch.setattr(main, "handle_application_withdrawn", fake_handler)
+
+    main._on_application_withdrawn(
+        EventEnvelope.build(payload, EventType.APPLICATION_WITHDRAWN, "req-10"), payload
+    )
+
+    assert calls == ["handle", "commit", "close"]
+    assert seen["notifier"]._type == NotificationType.APPLICATION_WITHDRAWN

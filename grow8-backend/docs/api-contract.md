@@ -22,7 +22,7 @@ Base path: `/api/v1`. JSON bodies, `snake_case` fields. Interactive docs: <http:
 | --- | --- | --- | --- |
 | POST | `/auth/login` | anyone | Body `{email, password}`. Returns `{access_token, token_type, expires_in, user}`. Wrong email or password → 401 `INVALID_CREDENTIALS`. |
 | GET | `/auth/me` | any signed-in user | The caller's `{user_id, email, full_name, role}`. |
-| POST | `/auth/change-password` | any signed-in user | Body `{current_password, new_password}` (new: 8–128 chars). Wrong current password → 401 `INVALID_CURRENT_PASSWORD`; same as current → 422 `PASSWORD_UNCHANGED`. Tokens already issued stay valid until they expire ([ADR 0005](adr/0005-password-change.md)). |
+| POST | `/auth/change-password` | any signed-in user | Body `{current_password, new_password}` (new: 8 characters to 72 bytes in UTF-8, bcrypt's limit). Wrong current password → 401 `INVALID_CURRENT_PASSWORD`; same as current → 422 `PASSWORD_UNCHANGED`. Tokens already issued stay valid until they expire ([ADR 0005](adr/0005-password-change.md)). |
 
 There is no sign-up endpoint yet; use the seeded dev accounts (see [docs.md](../../docs.md)).
 
@@ -37,7 +37,7 @@ Use the `code` values in filters and when creating opportunities.
 
 ## Opportunities
 
-Lifecycle: **draft** → (publish) → **open** → closed / cancelled (closing is not built yet).
+Lifecycle: **draft** → (publish) → **open** → (close) → **closed**; open or closed → (cancel) → **cancelled** ([ADR 0011](adr/0011-close-and-cancel-opportunities.md)).
 
 | Method | Path | Who | Notes |
 | --- | --- | --- | --- |
@@ -47,7 +47,9 @@ Lifecycle: **draft** → (publish) → **open** → closed / cancelled (closing 
 | POST | `/opportunities` | creator | Creates a **draft** for the caller's organization → 201. Drafts may be incomplete. |
 | PATCH | `/opportunities/{id}` | owning creator | Edits a draft; only fields sent are changed. Non-draft → 409 `OPPORTUNITY_NOT_DRAFT`. |
 | POST | `/opportunities/{id}/publish` | owning creator | Validates mandatory fields, sets `status=open` and `published_at`, commits, then emits `OPPORTUNITY_CREATED`. |
-| DELETE | `/opportunities/{id}` | owning creator | Deletes a **draft** → 204. Non-draft → 409 `OPPORTUNITY_NOT_DRAFT` (published opportunities will be closed/cancelled instead, [ADR 0004](adr/0004-only-drafts-can-be-deleted.md)). |
+| POST | `/opportunities/{id}/close` | owning creator | `open` → `closed`: no new applications; pending ones can still be decided. No event. Not open → 409 `OPPORTUNITY_NOT_OPEN`. |
+| POST | `/opportunities/{id}/cancel` | owning creator | `open`/`closed` → `cancelled`. Application statuses are kept; deciding is refused afterwards. Emits `OPPORTUNITY_CANCELLED` (pending and accepted applicants are notified). Draft → 409 `OPPORTUNITY_NOT_PUBLISHED`; already cancelled → 409 `OPPORTUNITY_CANCELLED`; work submitted → 409 `WORK_ALREADY_SUBMITTED`. |
+| DELETE | `/opportunities/{id}` | owning creator | Deletes a **draft** → 204. Non-draft → 409 `OPPORTUNITY_NOT_DRAFT` (published opportunities are closed or cancelled instead, [ADR 0004](adr/0004-only-drafts-can-be-deleted.md)). |
 
 ### Search, filter and sort parameters (`GET /opportunities`, `/opportunities/mine`)
 
@@ -79,6 +81,82 @@ Unknown fields → 422. `end_date` before `start_date` → 422. Unknown category
 
 To publish, these must be set: `requirements`, `start_date`, `end_date`, `expected_hours`, `compensation_type`, `applicant_limit`, `application_deadline`, `working_conditions`, `safety_information`, `accessibility_details`, plus `compensation_amount` when the type is `paid` or `stipend`. Otherwise → 422 `OPPORTUNITY_INCOMPLETE` with `details.missing_fields`. The deadline must be in the future (422 `DEADLINE_PASSED`). The same rule is enforced in MySQL by `chk_opportunity_published_complete`.
 
+## Applications
+
+A contributor applies to an open opportunity; the owning creator accepts or rejects it; the contributor can withdraw. Rules and reasons: [ADR 0006](adr/0006-application-lifecycle.md). All refusals are 409; see [error-codes.md](error-codes.md).
+
+Lifecycle: **pending** → accepted / rejected (creator, once) · pending or accepted → **withdrawn** (contributor, until work is submitted).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| POST | `/opportunities/{id}/applications` | contributor | Body `{motivation?}` (1–5000 chars) → 201. Only while the opportunity is `open`, before its deadline, and while pending + accepted applications are below `applicant_limit`. One application per opportunity, ever. Emits `APPLICATION_SUBMITTED`. |
+| GET | `/opportunities/{id}/applications` | owning creator | Applications to your opportunity, newest first. `status` (repeatable), `limit`, `offset`. |
+| GET | `/applications/mine` | contributor | Your applications, newest first. Same parameters. |
+| GET | `/applications/received` | creator | Applications to all your opportunities, newest first. Same parameters plus `opportunity_id` (one of yours; another's matches nothing). |
+| GET | `/applications/{id}` | the applicant or the owning creator | Anyone else → 404. |
+| POST | `/applications/{id}/decision` | owning creator | Body `{decision: "accepted" \| "rejected"}`. Pending only (409 `APPLICATION_NOT_PENDING`). Allowed after the deadline and after closing, not after cancelling (409 `OPPORTUNITY_CANCELLED`). Emits `APPLICATION_DECIDED`. |
+| POST | `/applications/{id}/withdraw` | the applicant | Pending or accepted only (409 `APPLICATION_NOT_ACTIVE`), and not once work is submitted (409 `WORK_ALREADY_SUBMITTED`). Frees the place. Emits `APPLICATION_WITHDRAWN` (the owning creator is notified). |
+
+An application:
+
+```json
+{
+  "application_id": 7,
+  "status": "pending",
+  "motivation": "I type fast and love bread.",
+  "submitted_at": "2026-10-16T12:00:00Z",
+  "decided_at": null,
+  "opportunity": {
+    "opportunity_id": 1,
+    "title": "Digitize paper recipe archive",
+    "status": "open",
+    "application_deadline": "2026-11-20T23:59:59Z",
+    "organization": { "organization_id": 1, "name": "Maple Street Bakery", "organization_type": "small_business", "city": "Calgary" }
+  },
+  "applicant": {
+    "user_id": 5,
+    "full_name": "Alex Chen",
+    "headline": "Software engineering student",
+    "institution": "University of Calgary",
+    "city": "Calgary",
+    "skills": [{ "code": "data-cleaning", "name": "Data cleaning" }, { "code": "spreadsheets", "name": "Spreadsheets" }, { "code": "web-basics", "name": "Web basics (HTML/CSS)" }],
+    "has_resume": true
+  }
+}
+```
+
+The applicant's email and other contact details are not included. `applicant.has_resume` says whether `GET /applications/{id}/resume` has a file to return.
+
+## Resumes
+
+A contributor can keep one optional PDF resume (at most 10 MB). Creators can download it through an application to one of their opportunities. Rules: [ADR 0008](adr/0008-contributor-resume.md); storage: [ADR 0007](adr/0007-local-file-storage.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| PUT | `/contributors/me/resume` | contributor | `multipart/form-data` with one field, `file`. Creates or replaces your resume → 200 with its metadata. Must be a PDF (checked by content: 415 `UNSUPPORTED_FILE_TYPE`), non-empty (422 `EMPTY_FILE`), at most 10 MB (413 `RESUME_TOO_LARGE`), and sent with `Content-Length` (411 `LENGTH_REQUIRED`). |
+| GET | `/contributors/me/resume` | contributor | Your resume's metadata, or 404 `RESUME_NOT_FOUND`. |
+| GET | `/contributors/me/resume/file` | contributor | Downloads the PDF. |
+| DELETE | `/contributors/me/resume` | contributor | → 204. Creators lose access too. |
+| GET | `/applications/{id}/resume` | owning creator (or the applicant) | Downloads the applicant's **current** resume. Works for any application status. Anyone else → 404 `APPLICATION_NOT_FOUND`; no resume → 404 `RESUME_NOT_FOUND`. |
+
+Metadata:
+
+```json
+{ "file_name": "Alex Chen CV.pdf", "content_type": "application/pdf", "size_bytes": 48213, "uploaded_at": "2026-11-15T22:10:04Z" }
+```
+
+`file_name` is for display only (cleaned, always ends in `.pdf`). Downloads are `application/pdf` with `Content-Disposition: attachment` (the name also sent as UTF-8 `filename*`), `X-Content-Type-Options: nosniff` and `Cache-Control: private, no-store`.
+
+From a browser:
+
+```js
+const form = new FormData();
+form.append("file", fileInput.files[0]);
+await fetch(`${API}/contributors/me/resume`, { method: "PUT", body: form, headers: { Authorization: `Bearer ${token}` } });
+```
+
+Don't set `Content-Type` yourself; the browser adds the multipart boundary and `Content-Length`.
+
 ## Notifications
 
 Every signed-in user (any role) has an inbox. The consumer services write the notifications when events happen (see [events.md](events.md) and [ADR 0003](adr/0003-persisted-notifications.md)); the API only reads them and marks them read. You only ever see your own: someone else's `id` → 404, the same as one that doesn't exist.
@@ -109,21 +187,14 @@ A notification:
 | --- | --- | --- |
 | `opportunity_created` | contributors with a matching skill | An opportunity is published. |
 | `opportunity_published` | the creator who owns it | Their opportunity is published. |
+| `application_submitted` | the creator who owns the opportunity | A contributor applied. |
+| `application_decided` | the contributor who applied | Their application was accepted or rejected. |
+| `application_withdrawn` | the creator who owns the opportunity | An applicant withdrew; the message says if an accepted place opened up. |
+| `opportunity_cancelled` | each pending or accepted applicant | The opportunity was cancelled. |
 
 `opportunity_id` links to `GET /opportunities/{id}`. It is `null` if the opportunity was deleted. `title` and `message` are stored as written and don't change if the opportunity is edited later.
 
 ## Error codes
 
-| Status | Code | When |
-| --- | --- | --- |
-| 401 | `AUTH_REQUIRED` | No token on a protected endpoint. |
-| 401 | `INVALID_TOKEN` | Token invalid, expired, or user inactive. |
-| 401 | `INVALID_CREDENTIALS` | Login failed. |
-| 403 | `ROLE_FORBIDDEN` | Wrong role (e.g. contributor creating an opportunity). |
-| 403 | `NOT_OPPORTUNITY_OWNER` | Changing another organization's (non-draft) opportunity. |
-| 404 | `OPPORTUNITY_NOT_FOUND` | Missing, or a draft you don't own. |
-| 404 | `NOTIFICATION_NOT_FOUND` | Missing, or someone else's notification. |
-| 409 | `OPPORTUNITY_NOT_DRAFT` | Editing or publishing a non-draft. |
-| 409 | `ORGANIZATION_REQUIRED` | Creator account has no organization. |
-| 422 | `VALIDATION_ERROR` | Body or query failed validation (`details` lists each problem). |
-| 422 | `OPPORTUNITY_INCOMPLETE`, `DEADLINE_PASSED`, `UNKNOWN_CATEGORY`, `UNKNOWN_SKILL`, `INVALID_DATES` | See above. |
+Every code, its status and when it happens: **[error-codes.md](error-codes.md)**. In short: 401 identity, 403 role or ownership on something public, 404 missing or hidden, 409 business rule, 422 bad input.
+

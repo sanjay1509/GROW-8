@@ -1,5 +1,6 @@
 """Read-only queries shared by the API and the consumer services."""
 
+from grow8_common.queries.applications import ActiveApplicant, find_active_applicants
 from grow8_common.queries.matching import (
     ContributorMatch,
     find_matching_contributors,
@@ -8,7 +9,9 @@ from grow8_common.queries.matching import (
 from grow8_common.queries.organizations import find_active_owner
 
 __all__ = [
+    "ActiveApplicant",
     "ContributorMatch",
+    "find_active_applicants",
     "find_active_owner",
     "find_matching_contributors",
     "is_opportunity_open",

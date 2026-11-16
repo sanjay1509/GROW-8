@@ -48,6 +48,23 @@ CREATE TABLE contributor_profile (
         FOREIGN KEY (user_id) REFERENCES user_account (user_id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
+-- A contributor's optional resume (ADR 0008). Metadata only: the file itself is on the
+-- file_storage volume under storage_key (ADR 0007). 1 : 0..1 with contributor_profile,
+-- so the profile's key is also this table's key; uploading again replaces the row.
+CREATE TABLE contributor_resume (
+    user_id      INT UNSIGNED    NOT NULL,
+    file_name    VARCHAR(255)    NOT NULL,
+    content_type VARCHAR(100)    NOT NULL,
+    size_bytes   BIGINT UNSIGNED NOT NULL,
+    storage_key  VARCHAR(512)    NOT NULL,
+    uploaded_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id),
+    UNIQUE KEY uq_contributor_resume_storage_key (storage_key),
+    CONSTRAINT fk_contributor_resume_contributor
+        FOREIGN KEY (user_id) REFERENCES contributor_profile (user_id) ON DELETE CASCADE,
+    CONSTRAINT chk_contributor_resume_size CHECK (size_bytes > 0)
+) ENGINE = InnoDB;
+
 CREATE TABLE creator_organization (
     organization_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,
     owner_user_id     INT UNSIGNED NOT NULL,
@@ -179,12 +196,14 @@ CREATE TABLE contributor_skill (
 
 -- title/message are what the user was told at the time, kept as written even if
 -- the opportunity changes later. One row per user per event: the consumers insert
--- with INSERT IGNORE, so a redelivered event adds nothing.
+-- with a no-op ON DUPLICATE KEY UPDATE, so a redelivered event adds nothing.
 CREATE TABLE notification (
     notification_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id           INT UNSIGNED NOT NULL,
     event_id          CHAR(36)     NOT NULL,
-    notification_type ENUM('opportunity_created', 'opportunity_published') NOT NULL,
+    notification_type ENUM('opportunity_created', 'opportunity_published',
+                           'application_submitted', 'application_decided',
+                           'application_withdrawn', 'opportunity_cancelled') NOT NULL,
     title             VARCHAR(200) NOT NULL,
     message           VARCHAR(500) NOT NULL,
     opportunity_id    INT UNSIGNED NULL,
