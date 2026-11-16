@@ -35,7 +35,7 @@ def session(seeded_db: pymysql.Connection) -> Iterator[Session]:
 def test_same_event_for_same_user_is_stored_once(seeded_db: pymysql.Connection) -> None:
     with seeded_db.cursor() as cur:
         cur.execute(INSERT.format(ignore=""), (6, EVENT_ID))
-        # a redelivered event: the consumers' INSERT IGNORE skips it
+        # a redelivered event: the consumers' ON DUPLICATE KEY no-op skips it
         cur.execute(INSERT.format(ignore="IGNORE"), (6, EVENT_ID))
         assert cur.rowcount == 0
         with pytest.raises(pymysql.IntegrityError):

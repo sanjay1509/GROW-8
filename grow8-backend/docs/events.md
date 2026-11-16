@@ -23,13 +23,15 @@ All events go through the durable topic exchange `grow8.events` (`RABBITMQ_EXCHA
 
 Each consumer service owns one durable queue, declared on startup by `grow8_common.messaging.run_consumer()` (see `shared/grow8_common/messaging/topology.py`):
 
-| Queue | Bound to (routing keys) | Dead-letter queue |
-| --- | --- | --- |
-| `grow8.contributor_service` | `opportunity.created`, `application.decided` | `grow8.contributor_service.dlq` |
-| `grow8.creator_service` | `opportunity.created`, `application.submitted`, `application.withdrawn` | `grow8.creator_service.dlq` |
+| Queue | Bound to (routing keys) | Retry queues | Dead-letter queue |
+| --- | --- | --- | --- |
+| `grow8.contributor_service` | `opportunity.created`, `application.decided` | `grow8.contributor_service.retry.{5s,30s,120s}` | `grow8.contributor_service.dlq` |
+| `grow8.creator_service` | `opportunity.created`, `application.submitted`, `application.withdrawn` | `grow8.creator_service.retry.{5s,30s,120s}` | `grow8.creator_service.dlq` |
 
 - A message is **acked only after its handler returns**, so a crash mid-handler means RabbitMQ redelivers it.
-- A message that can't be processed (unreadable JSON, no handler, payload fails its schema, handler raises) is **rejected without requeue** and moves to the service's `.dlq` via the `grow8.events.dlx` exchange. Inspect or replay it from the RabbitMQ UI (Queues → `…dlq` → Get messages / Move messages).
+- A **bad message** (unreadable JSON, no handler, payload fails its schema) can never succeed, so it is **rejected without requeue** and moves to the service's `.dlq` via the `grow8.events.dlx` exchange at once.
+- A **handler error** may be temporary (e.g. MySQL restarting), so the message is **retried after 5 s, 30 s and 120 s** ([ADR 0010](adr/0010-delayed-retry-before-dead-letter.md)). It waits in `grow8.<service>.retry.5s` / `.30s` / `.120s`, queues with a TTL and no consumer, whose expired messages flow back to the main queue. The `x-grow8-retries` header counts the retries. If the 3rd retry fails too (about 2.5 min after the first attempt), the message goes to the `.dlq`. Logs: `retry 1/3 of message_id=… in 5s`, then `dead-lettering … after 3 retries`.
+- Inspect or replay a dead-lettered message from the RabbitMQ UI (Queues → `…dlq` → Get messages / Move messages). A replayed message keeps its retry count, so replay after fixing the cause: if it fails again it returns to the DLQ at once.
 - Queues are durable and messages persistent, so an event published while a consumer is down waits in its queue and is processed when the consumer starts.
 - Delivery is at-least-once: every handler must be safe to run twice for the same `event_id`.
 
@@ -39,7 +41,7 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 - **When:** a creator publishes a draft (`POST /api/v1/opportunities/{id}/publish`), i.e. when it becomes visible to contributors.
 - **Consumed by:** both services below, each from its own queue. One event, two independent notifications, both with the same `event_id`.
-  - **contributor_service** → `app/handlers/opportunity_created.py`. It re-checks that the opportunity is still `open`, finds active contributors who have at least one of the opportunity's skills (all active contributors if it lists none; query in `grow8_common/queries/matching.py`), and notifies each one: `grow8_common.notifications.DbNotifier` adds one `notification` row per contributor (type `opportunity_created`, title `New opportunity: <title>`, linked to the opportunity), and the service commits before the message is acked ([ADR 0003](adr/0003-persisted-notifications.md)). Those rows are its only writes. `UNIQUE (event_id, user_id)` + `INSERT IGNORE` means a redelivered event adds nothing.
+  - **contributor_service** → `app/handlers/opportunity_created.py`. It re-checks that the opportunity is still `open`, finds active contributors who have at least one of the opportunity's skills (all active contributors if it lists none; query in `grow8_common/queries/matching.py`), and notifies each one: `grow8_common.notifications.DbNotifier` adds one `notification` row per contributor (type `opportunity_created`, title `New opportunity: <title>`, linked to the opportunity), and the service commits before the message is acked ([ADR 0003](adr/0003-persisted-notifications.md)). Those rows are its only writes. `UNIQUE (event_id, user_id)` + a no-op `ON DUPLICATE KEY UPDATE` means a redelivered event adds nothing; any other insert error (e.g. an unknown user) raises and is retried.
   - **creator_service** → `app/handlers/opportunity_created.py`. It re-checks that the opportunity is still `open`, looks up the organization's owner (`grow8_common/queries/organizations.py`; skipped if their account is inactive), and stores one `opportunity_published` notification for them: `Your opportunity is live: <title>`. Same commit-then-ack and redelivery rules as above.
 - **Payload:**
 
@@ -55,7 +57,7 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 ### `APPLICATION_SUBMITTED` (v1)
 
 - **When:** a contributor applies (`POST /api/v1/opportunities/{id}/applications`), after the application is committed ([ADR 0006](adr/0006-application-lifecycle.md)).
-- **Consumed by:** **creator_service** → `app/handlers/application_submitted.py`. It looks up the organization's owner (skipped if their account is inactive) and stores one `application_submitted` notification: `New application: <opportunity title>`, message `<contributor name> applied. …`, linked to the opportunity. Commit-then-ack and `INSERT IGNORE` as above.
+- **Consumed by:** **creator_service** → `app/handlers/application_submitted.py`. It looks up the organization's owner (skipped if their account is inactive) and stores one `application_submitted` notification: `New application: <opportunity title>`, message `<contributor name> applied. …`, linked to the opportunity. Commit-then-ack and duplicate-safe insert as above.
 - **Payload:**
 
 | Field | Type | Notes |
@@ -84,7 +86,7 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 ### `APPLICATION_WITHDRAWN` (v1)
 
 - **When:** the applicant withdraws a pending or accepted application (`POST /api/v1/applications/{id}/withdraw`), after the withdrawal is committed ([ADR 0009](adr/0009-application-withdrawn-event.md)). A refused withdrawal (409) sends nothing. `withdrawn` is final, so this is sent at most once per application.
-- **Consumed by:** **creator_service** → `app/handlers/application_withdrawn.py`. It looks up the organization's owner (skipped if their account is inactive) and stores one `application_withdrawn` notification: `Application withdrawn: <opportunity title>`, with a message that says whether an accepted place opened up, linked to the opportunity. Commit-then-ack and `INSERT IGNORE` as above.
+- **Consumed by:** **creator_service** → `app/handlers/application_withdrawn.py`. It looks up the organization's owner (skipped if their account is inactive) and stores one `application_withdrawn` notification: `Application withdrawn: <opportunity title>`, with a message that says whether an accepted place opened up, linked to the opportunity. Commit-then-ack and duplicate-safe insert as above.
 - **Payload:**
 
 | Field | Type | Notes |
