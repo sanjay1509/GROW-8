@@ -4,6 +4,7 @@ from grow8_common.events.payloads import (
     ApplicationDecidedPayload,
     ApplicationSubmittedPayload,
     ApplicationWithdrawnPayload,
+    OpportunityCancelledPayload,
     OpportunityCreatedPayload,
 )
 from grow8_common.events.types import EventType
@@ -15,5 +16,6 @@ __all__ = [
     "ApplicationWithdrawnPayload",
     "EventEnvelope",
     "EventType",
+    "OpportunityCancelledPayload",
     "OpportunityCreatedPayload",
 ]

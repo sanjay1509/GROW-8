@@ -25,7 +25,7 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 | Queue | Bound to (routing keys) | Retry queues | Dead-letter queue |
 | --- | --- | --- | --- |
-| `grow8.contributor_service` | `opportunity.created`, `application.decided` | `grow8.contributor_service.retry.{5s,30s,120s}` | `grow8.contributor_service.dlq` |
+| `grow8.contributor_service` | `opportunity.created`, `application.decided`, `opportunity.cancelled` | `grow8.contributor_service.retry.{5s,30s,120s}` | `grow8.contributor_service.dlq` |
 | `grow8.creator_service` | `opportunity.created`, `application.submitted`, `application.withdrawn` | `grow8.creator_service.retry.{5s,30s,120s}` | `grow8.creator_service.dlq` |
 
 - A message is **acked only after its handler returns**, so a crash mid-handler means RabbitMQ redelivers it.
@@ -98,6 +98,18 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 | `contributor_id` | int | |
 | `contributor_name` | string | |
 | `previous_status` | string | `pending` \| `accepted`: what it was before withdrawal (the database no longer says). |
+
+### `OPPORTUNITY_CANCELLED` (v1)
+
+- **When:** the owning creator cancels an open or closed opportunity (`POST /api/v1/opportunities/{id}/cancel`), after the commit ([ADR 0011](adr/0011-close-and-cancel-opportunities.md)). Cancelled is final, so this is sent at most once per opportunity. Closing sends no event.
+- **Consumed by:** **contributor_service** → `app/handlers/opportunity_cancelled.py`. It looks up applicants whose application is still pending or accepted, with active accounts (`grow8_common/queries/applications.py`), and stores one `opportunity_cancelled` notification for each: `Opportunity cancelled: <title>`. The message says a pending application "won't be decided", or that an accepted applicant needn't do anything. Linked to the opportunity. Recipients are looked up at handling time, so anyone who withdrew in between isn't told. Commit-then-ack and duplicate-safe insert as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `opportunity_id` | int | Used to find whom to notify. |
+| `organization_id` | int | |
+| `title` | string | |
 
 ### Seeing it end to end (Check-in I demo)
 

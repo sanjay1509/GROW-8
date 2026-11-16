@@ -35,9 +35,13 @@ Clients should branch on `code`, never on `message` (messages are for people and
 
 | Status | Code | Endpoint(s) | When |
 | --- | --- | --- | --- |
-| 403 | `NOT_OPPORTUNITY_OWNER` | `PATCH`, `DELETE`, `POST …/publish`, `GET …/applications` on `/opportunities/{id}` | The opportunity is public but belongs to another organization. |
+| 403 | `NOT_OPPORTUNITY_OWNER` | `PATCH`, `DELETE`, `POST …/publish`, `…/close`, `…/cancel`, `GET …/applications` on `/opportunities/{id}` | The opportunity is public but belongs to another organization. |
 | 404 | `OPPORTUNITY_NOT_FOUND` | any `/opportunities/{id}…` | Missing, or a draft you don't own. |
 | 409 | `OPPORTUNITY_NOT_DRAFT` | `PATCH`, `DELETE`, `POST …/publish` | Only drafts can be edited, deleted or published ([ADR 0001](adr/0001-opportunity-draft-and-publish.md), [ADR 0004](adr/0004-only-drafts-can-be-deleted.md)). |
+| 409 | `OPPORTUNITY_NOT_OPEN` | `POST …/close` | Only an open opportunity can be closed ([ADR 0011](adr/0011-close-and-cancel-opportunities.md)). |
+| 409 | `OPPORTUNITY_NOT_PUBLISHED` | `POST …/cancel` | A draft can't be cancelled; delete it instead. |
+| 409 | `OPPORTUNITY_CANCELLED` | `POST …/cancel` | It is already cancelled. |
+| 409 | `WORK_ALREADY_SUBMITTED` | `POST …/cancel` | Work was submitted for one of its applications. |
 | 409 | `ORGANIZATION_REQUIRED` | `POST /opportunities` | The creator account has no organization to post for. |
 | 422 | `OPPORTUNITY_INCOMPLETE` | `POST …/publish` | Mandatory disclosures are missing; `details.missing_fields` lists them. |
 | 422 | `DEADLINE_PASSED` | `POST …/publish` | The application deadline is not in the future. |
@@ -56,6 +60,7 @@ Clients should branch on `code`, never on `message` (messages are for people and
 | 409 | `APPLICATION_DUPLICATE` | `POST /opportunities/{id}/applications` | You already applied (in any status, including withdrawn); `details.application_id` points to it when known. |
 | 409 | `CONTRIBUTOR_PROFILE_REQUIRED` | `POST /opportunities/{id}/applications`, `PUT /contributors/me/resume` | The contributor account has no profile. |
 | 409 | `APPLICATION_NOT_PENDING` | `POST /applications/{id}/decision` | It was already decided or withdrawn; each application is decided once. |
+| 409 | `OPPORTUNITY_CANCELLED` | `POST /applications/{id}/decision` | The opportunity was cancelled, so its applications can't be decided ([ADR 0011](adr/0011-close-and-cancel-opportunities.md)). |
 | 409 | `APPLICATION_NOT_ACTIVE` | `POST /applications/{id}/withdraw` | It is already rejected or withdrawn. |
 | 409 | `WORK_ALREADY_SUBMITTED` | `POST /applications/{id}/withdraw` | Work was submitted for it, so it must stay accepted. |
 

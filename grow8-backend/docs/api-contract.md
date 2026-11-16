@@ -37,7 +37,7 @@ Use the `code` values in filters and when creating opportunities.
 
 ## Opportunities
 
-Lifecycle: **draft** → (publish) → **open** → closed / cancelled (closing is not built yet).
+Lifecycle: **draft** → (publish) → **open** → (close) → **closed**; open or closed → (cancel) → **cancelled** ([ADR 0011](adr/0011-close-and-cancel-opportunities.md)).
 
 | Method | Path | Who | Notes |
 | --- | --- | --- | --- |
@@ -47,7 +47,9 @@ Lifecycle: **draft** → (publish) → **open** → closed / cancelled (closing 
 | POST | `/opportunities` | creator | Creates a **draft** for the caller's organization → 201. Drafts may be incomplete. |
 | PATCH | `/opportunities/{id}` | owning creator | Edits a draft; only fields sent are changed. Non-draft → 409 `OPPORTUNITY_NOT_DRAFT`. |
 | POST | `/opportunities/{id}/publish` | owning creator | Validates mandatory fields, sets `status=open` and `published_at`, commits, then emits `OPPORTUNITY_CREATED`. |
-| DELETE | `/opportunities/{id}` | owning creator | Deletes a **draft** → 204. Non-draft → 409 `OPPORTUNITY_NOT_DRAFT` (published opportunities will be closed/cancelled instead, [ADR 0004](adr/0004-only-drafts-can-be-deleted.md)). |
+| POST | `/opportunities/{id}/close` | owning creator | `open` → `closed`: no new applications; pending ones can still be decided. No event. Not open → 409 `OPPORTUNITY_NOT_OPEN`. |
+| POST | `/opportunities/{id}/cancel` | owning creator | `open`/`closed` → `cancelled`. Application statuses are kept; deciding is refused afterwards. Emits `OPPORTUNITY_CANCELLED` (pending and accepted applicants are notified). Draft → 409 `OPPORTUNITY_NOT_PUBLISHED`; already cancelled → 409 `OPPORTUNITY_CANCELLED`; work submitted → 409 `WORK_ALREADY_SUBMITTED`. |
+| DELETE | `/opportunities/{id}` | owning creator | Deletes a **draft** → 204. Non-draft → 409 `OPPORTUNITY_NOT_DRAFT` (published opportunities are closed or cancelled instead, [ADR 0004](adr/0004-only-drafts-can-be-deleted.md)). |
 
 ### Search, filter and sort parameters (`GET /opportunities`, `/opportunities/mine`)
 
@@ -90,8 +92,9 @@ Lifecycle: **pending** → accepted / rejected (creator, once) · pending or acc
 | POST | `/opportunities/{id}/applications` | contributor | Body `{motivation?}` (1–5000 chars) → 201. Only while the opportunity is `open`, before its deadline, and while pending + accepted applications are below `applicant_limit`. One application per opportunity, ever. Emits `APPLICATION_SUBMITTED`. |
 | GET | `/opportunities/{id}/applications` | owning creator | Applications to your opportunity, newest first. `status` (repeatable), `limit`, `offset`. |
 | GET | `/applications/mine` | contributor | Your applications, newest first. Same parameters. |
+| GET | `/applications/received` | creator | Applications to all your opportunities, newest first. Same parameters plus `opportunity_id` (one of yours; another's matches nothing). |
 | GET | `/applications/{id}` | the applicant or the owning creator | Anyone else → 404. |
-| POST | `/applications/{id}/decision` | owning creator | Body `{decision: "accepted" \| "rejected"}`. Pending only (409 `APPLICATION_NOT_PENDING`). Allowed after the deadline. Emits `APPLICATION_DECIDED`. |
+| POST | `/applications/{id}/decision` | owning creator | Body `{decision: "accepted" \| "rejected"}`. Pending only (409 `APPLICATION_NOT_PENDING`). Allowed after the deadline and after closing, not after cancelling (409 `OPPORTUNITY_CANCELLED`). Emits `APPLICATION_DECIDED`. |
 | POST | `/applications/{id}/withdraw` | the applicant | Pending or accepted only (409 `APPLICATION_NOT_ACTIVE`), and not once work is submitted (409 `WORK_ALREADY_SUBMITTED`). Frees the place. Emits `APPLICATION_WITHDRAWN` (the owning creator is notified). |
 
 An application:
@@ -187,6 +190,7 @@ A notification:
 | `application_submitted` | the creator who owns the opportunity | A contributor applied. |
 | `application_decided` | the contributor who applied | Their application was accepted or rejected. |
 | `application_withdrawn` | the creator who owns the opportunity | An applicant withdrew; the message says if an accepted place opened up. |
+| `opportunity_cancelled` | each pending or accepted applicant | The opportunity was cancelled. |
 
 `opportunity_id` links to `GET /opportunities/{id}`. It is `null` if the opportunity was deleted. `title` and `message` are stored as written and don't change if the opportunity is edited later.
 

@@ -246,6 +246,57 @@ def test_only_the_owner_lists_an_opportunitys_applications(
     )
 
 
+def test_creator_lists_applications_received_across_their_opportunities(
+    client: TestClient,
+    contributor: dict[str, str],
+    jordan: dict[str, str],
+    bakery: dict[str, str],
+    events_org: dict[str, str],
+) -> None:
+    first = _applied(client, contributor, 1)
+    second = _applied(client, jordan, 2)
+    _applied(client, jordan, 8)  # YYC's opportunity
+
+    bakery_page = client.get(f"{APPS}/received", headers=bakery).json()
+    yyc_page = client.get(f"{APPS}/received", headers=events_org).json()
+
+    assert [a["application_id"] for a in bakery_page["items"]] == [second, first]  # newest first
+    assert bakery_page["total"] == 2
+    assert [a["opportunity"]["opportunity_id"] for a in yyc_page["items"]] == [8]
+
+
+def test_received_applications_filter_by_opportunity_and_status(
+    client: TestClient,
+    contributor: dict[str, str],
+    jordan: dict[str, str],
+    bakery: dict[str, str],
+) -> None:
+    on_1 = _applied(client, contributor, 1)
+    _applied(client, jordan, 1)
+    on_2 = _applied(client, jordan, 2)
+    client.post(f"{APPS}/{on_2}/decision", json={"decision": "accepted"}, headers=bakery)
+
+    def ids(query: str) -> list[int]:
+        response = client.get(f"{APPS}/received?{query}", headers=bakery)
+        assert response.status_code == 200, response.text
+        return [a["application_id"] for a in response.json()["items"]]
+
+    assert len(ids("opportunity_id=1")) == 2
+    assert ids("status=accepted") == [on_2]
+    assert ids("opportunity_id=1&limit=1&offset=1") == [on_1]
+    assert ids("opportunity_id=8") == []  # someone else's opportunity matches nothing
+    assert ids("opportunity_id=9999") == []
+
+
+def test_only_creators_list_received_applications(
+    client: TestClient, contributor: dict[str, str], bakery: dict[str, str]
+) -> None:
+    assert _error(client.get(f"{APPS}/received", headers=contributor), 403) == "ROLE_FORBIDDEN"
+    assert _error(client.get(f"{APPS}/received"), 401) == "AUTH_REQUIRED"
+    bad = client.get(f"{APPS}/received?opportunity_id=0", headers=bakery)
+    assert _error(bad, 422) == "VALIDATION_ERROR"
+
+
 def test_an_application_is_visible_only_to_its_two_parties(
     client: TestClient,
     contributor: dict[str, str],

@@ -203,7 +203,7 @@ CREATE TABLE notification (
     event_id          CHAR(36)     NOT NULL,
     notification_type ENUM('opportunity_created', 'opportunity_published',
                            'application_submitted', 'application_decided',
-                           'application_withdrawn') NOT NULL,
+                           'application_withdrawn', 'opportunity_cancelled') NOT NULL,
     title             VARCHAR(200) NOT NULL,
     message           VARCHAR(500) NOT NULL,
     opportunity_id    INT UNSIGNED NULL,

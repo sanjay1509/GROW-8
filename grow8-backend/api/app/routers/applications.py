@@ -10,6 +10,7 @@ from app.schemas.application import (
     ApplicationDecision,
     ApplicationListParams,
     ApplicationRead,
+    ReceivedApplicationParams,
 )
 from app.schemas.common import Page
 from app.services import application_service
@@ -58,6 +59,19 @@ def list_my_applications(
 ) -> Page[ApplicationRead]:
     """Your applications in any status, newest first."""
     return application_service.list_mine(session, contributor, params)
+
+
+# Declared before /applications/{application_id}, which would otherwise try to read
+# "received" as an id.
+@router.get("/applications/received", response_model=Page[ApplicationRead])
+def list_received_applications(
+    params: Annotated[ReceivedApplicationParams, Query()],
+    session: DbSession,
+    creator: CurrentCreator,
+) -> Page[ApplicationRead]:
+    """Applications to all your opportunities, newest first; filter by opportunity_id
+    and status."""
+    return application_service.list_received(session, creator, params)
 
 
 @router.get("/applications/{application_id}", response_model=ApplicationRead)

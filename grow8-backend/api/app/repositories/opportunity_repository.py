@@ -122,6 +122,17 @@ def get_for_update(session: Session, opportunity_id: int) -> Opportunity | None:
     return session.scalars(stmt).unique().first()
 
 
+def lock_status_for_share(session: Session, opportunity_id: int) -> OpportunityStatus | None:
+    """The opportunity's current status, read with a shared lock held until the
+    transaction ends: closing or cancelling it waits until this transaction is done."""
+    stmt = (
+        select(Opportunity.status)
+        .where(Opportunity.opportunity_id == opportunity_id)
+        .with_for_update(read=True)
+    )
+    return session.scalar(stmt)
+
+
 def add(session: Session, opportunity: Opportunity) -> Opportunity:
     session.add(opportunity)
     session.flush()
