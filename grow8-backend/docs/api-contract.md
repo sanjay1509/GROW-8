@@ -116,12 +116,43 @@ An application:
     "headline": "Software engineering student",
     "institution": "University of Calgary",
     "city": "Calgary",
-    "skills": [{ "code": "data-cleaning", "name": "Data cleaning" }, { "code": "spreadsheets", "name": "Spreadsheets" }, { "code": "web-basics", "name": "Web basics (HTML/CSS)" }]
+    "skills": [{ "code": "data-cleaning", "name": "Data cleaning" }, { "code": "spreadsheets", "name": "Spreadsheets" }, { "code": "web-basics", "name": "Web basics (HTML/CSS)" }],
+    "has_resume": true
   }
 }
 ```
 
-The applicant's email and other contact details are not included.
+The applicant's email and other contact details are not included. `applicant.has_resume` says whether `GET /applications/{id}/resume` has a file to return.
+
+## Resumes
+
+A contributor can keep one optional PDF resume (at most 10 MB). Creators can download it through an application to one of their opportunities. Rules: [ADR 0008](adr/0008-contributor-resume.md); storage: [ADR 0007](adr/0007-local-file-storage.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| PUT | `/contributors/me/resume` | contributor | `multipart/form-data` with one field, `file`. Creates or replaces your resume → 200 with its metadata. Must be a PDF (checked by content: 415 `UNSUPPORTED_FILE_TYPE`), non-empty (422 `EMPTY_FILE`), at most 10 MB (413 `RESUME_TOO_LARGE`), and sent with `Content-Length` (411 `LENGTH_REQUIRED`). |
+| GET | `/contributors/me/resume` | contributor | Your resume's metadata, or 404 `RESUME_NOT_FOUND`. |
+| GET | `/contributors/me/resume/file` | contributor | Downloads the PDF. |
+| DELETE | `/contributors/me/resume` | contributor | → 204. Creators lose access too. |
+| GET | `/applications/{id}/resume` | owning creator (or the applicant) | Downloads the applicant's **current** resume. Works for any application status. Anyone else → 404 `APPLICATION_NOT_FOUND`; no resume → 404 `RESUME_NOT_FOUND`. |
+
+Metadata:
+
+```json
+{ "file_name": "Alex Chen CV.pdf", "content_type": "application/pdf", "size_bytes": 48213, "uploaded_at": "2026-11-15T22:10:04Z" }
+```
+
+`file_name` is for display only (cleaned, always ends in `.pdf`). Downloads are `application/pdf` with `Content-Disposition: attachment` (the name also sent as UTF-8 `filename*`), `X-Content-Type-Options: nosniff` and `Cache-Control: private, no-store`.
+
+From a browser:
+
+```js
+const form = new FormData();
+form.append("file", fileInput.files[0]);
+await fetch(`${API}/contributors/me/resume`, { method: "PUT", body: form, headers: { Authorization: `Bearer ${token}` } });
+```
+
+Don't set `Content-Type` yourself; the browser adds the multipart boundary and `Content-Length`.
 
 ## Notifications
 

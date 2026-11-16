@@ -22,7 +22,12 @@ from grow8_common.models.opportunities import (
     opportunity_skill,
 )
 from grow8_common.models.rewards import Badge, ContributorBadge, PointTransaction
-from grow8_common.models.users import ContributorProfile, CreatorOrganization, UserAccount
+from grow8_common.models.users import (
+    ContributorProfile,
+    ContributorResume,
+    CreatorOrganization,
+    UserAccount,
+)
 from grow8_common.models.work import (
     Application,
     SubmissionAttachment,
@@ -39,6 +44,7 @@ __all__ = [
     "CompensationType",
     "ContributorBadge",
     "ContributorProfile",
+    "ContributorResume",
     "ContributorSkill",
     "CreatorOrganization",
     "Feedback",

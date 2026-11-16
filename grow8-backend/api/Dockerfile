@@ -19,6 +19,9 @@ RUN pip install -r /app/api/requirements.txt \
 COPY api/ /app/api/
 
 RUN useradd --create-home --uid 10001 app
+# Mount point for the file_storage volume (ADR 0007). A new named volume copies this
+# directory's ownership, so the non-root app user can write uploads.
+RUN mkdir -p /app/storage && chown app:app /app/storage
 USER app
 WORKDIR /app/api
 

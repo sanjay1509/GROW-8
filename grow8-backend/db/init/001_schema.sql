@@ -48,6 +48,23 @@ CREATE TABLE contributor_profile (
         FOREIGN KEY (user_id) REFERENCES user_account (user_id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
+-- A contributor's optional resume (ADR 0008). Metadata only: the file itself is on the
+-- file_storage volume under storage_key (ADR 0007). 1 : 0..1 with contributor_profile,
+-- so the profile's key is also this table's key; uploading again replaces the row.
+CREATE TABLE contributor_resume (
+    user_id      INT UNSIGNED    NOT NULL,
+    file_name    VARCHAR(255)    NOT NULL,
+    content_type VARCHAR(100)    NOT NULL,
+    size_bytes   BIGINT UNSIGNED NOT NULL,
+    storage_key  VARCHAR(512)    NOT NULL,
+    uploaded_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id),
+    UNIQUE KEY uq_contributor_resume_storage_key (storage_key),
+    CONSTRAINT fk_contributor_resume_contributor
+        FOREIGN KEY (user_id) REFERENCES contributor_profile (user_id) ON DELETE CASCADE,
+    CONSTRAINT chk_contributor_resume_size CHECK (size_bytes > 0)
+) ENGINE = InnoDB;
+
 CREATE TABLE creator_organization (
     organization_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,
     owner_user_id     INT UNSIGNED NOT NULL,
