@@ -4,6 +4,7 @@ from grow8_common.models import (
     Application,
     ApplicationStatus,
     ContributorProfile,
+    CreatorOrganization,
     Opportunity,
     WorkSubmission,
 )
@@ -65,6 +66,16 @@ def has_submission(session: Session, application_id: int) -> bool:
     return bool(session.scalar(stmt))
 
 
+def opportunity_has_submission(session: Session, opportunity_id: int) -> bool:
+    """Whether work was submitted for any application to the opportunity."""
+    stmt = select(
+        exists()
+        .where(WorkSubmission.application_id == Application.application_id)
+        .where(Application.opportunity_id == opportunity_id)
+    )
+    return bool(session.scalar(stmt))
+
+
 def add(session: Session, application: Application) -> Application:
     session.add(application)
     session.flush()
@@ -76,12 +87,24 @@ def _page(
     conds: list[ColumnElement[bool]],
     limit: int,
     offset: int,
+    owner_user_id: int | None = None,
 ) -> tuple[Sequence[Application], int]:
-    total = session.scalar(select(func.count(Application.application_id)).where(*conds)) or 0
+    """One page plus the total. With `owner_user_id`, only applications to
+    opportunities of organizations that user owns."""
+    count = select(func.count(Application.application_id))
+    stmt = select(Application).options(*_EAGER)
+    if owner_user_id is not None:
+        owned = (
+            Application.opportunity_id.in_(
+                select(Opportunity.opportunity_id)
+                .join(CreatorOrganization)
+                .where(CreatorOrganization.owner_user_id == owner_user_id)
+            ),
+        )
+        count, stmt = count.where(*owned), stmt.where(*owned)
+    total = session.scalar(count.where(*conds)) or 0
     stmt = (
-        select(Application)
-        .options(*_EAGER)
-        .where(*conds)
+        stmt.where(*conds)
         .order_by(Application.submitted_at.desc(), Application.application_id.desc())
         .limit(limit)
         .offset(offset)
@@ -115,3 +138,21 @@ def list_for_opportunity(
     if statuses:
         conds.append(Application.status.in_(statuses))
     return _page(session, conds, limit, offset)
+
+
+def list_received(
+    session: Session,
+    owner_user_id: int,
+    opportunity_id: int | None,
+    statuses: Sequence[ApplicationStatus],
+    limit: int,
+    offset: int,
+) -> tuple[Sequence[Application], int]:
+    """One page of applications to every opportunity the creator owns (optionally just
+    one of them), newest first, plus the total."""
+    conds: list[ColumnElement[bool]] = []
+    if opportunity_id is not None:
+        conds.append(Application.opportunity_id == opportunity_id)
+    if statuses:
+        conds.append(Application.status.in_(statuses))
+    return _page(session, conds, limit, offset, owner_user_id=owner_user_id)

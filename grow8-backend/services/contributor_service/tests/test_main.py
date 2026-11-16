@@ -106,4 +106,31 @@ def test_application_decided_uses_its_own_notification_type(
 
 
 def test_subscribes_to_its_events() -> None:
-    assert set(main.HANDLERS) == {EventType.OPPORTUNITY_CREATED, EventType.APPLICATION_DECIDED}
+    assert set(main.HANDLERS) == {
+        EventType.OPPORTUNITY_CREATED,
+        EventType.APPLICATION_DECIDED,
+        EventType.OPPORTUNITY_CANCELLED,
+    }
+
+
+def test_opportunity_cancelled_uses_its_own_notification_type(
+    calls: list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from grow8_common.events import OpportunityCancelledPayload
+    from grow8_common.models import NotificationType
+
+    payload = OpportunityCancelledPayload(opportunity_id=1, organization_id=1, title="Recipes")
+    seen = {}
+
+    def fake_handler(payload, *, session, notifier):
+        calls.append("handle")
+        seen["notifier"] = notifier
+
+    monkeypatch.setattr(main, "handle_opportunity_cancelled", fake_handler)
+
+    main._on_opportunity_cancelled(
+        EventEnvelope.build(payload, EventType.OPPORTUNITY_CANCELLED, "req-11"), payload
+    )
+
+    assert calls == ["handle", "commit", "close"]
+    assert seen["notifier"]._type == NotificationType.OPPORTUNITY_CANCELLED

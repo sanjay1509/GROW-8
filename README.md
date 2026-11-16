@@ -72,6 +72,7 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 |---|---|---|---|
 | Creator actions | `OPPORTUNITY_CREATED` | Contributor Service, Creator Service | Notifies matching contributors about the new opportunity, and confirms to the creator that it was published. |
 | Creator actions | `APPLICATION_DECIDED` | Contributor Service | Notifies contributors of application decisions. |
+| Creator actions | `OPPORTUNITY_CANCELLED` | Contributor Service | Notifies pending and accepted applicants that the opportunity was cancelled. |
 | Creator actions | `WORK_VERIFIED` | Contributor Service | Updates verified hours and skills. |
 | Creator actions | `WORK_REJECTED` | Contributor Service | Notifies contributors about rejected work. |
 | Contributor actions | `APPLICATION_SUBMITTED` | Creator Service | Notifies creators about new applications. |
