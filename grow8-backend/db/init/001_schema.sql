@@ -196,7 +196,7 @@ CREATE TABLE contributor_skill (
 
 -- title/message are what the user was told at the time, kept as written even if
 -- the opportunity changes later. One row per user per event: the consumers insert
--- with INSERT IGNORE, so a redelivered event adds nothing.
+-- with a no-op ON DUPLICATE KEY UPDATE, so a redelivered event adds nothing.
 CREATE TABLE notification (
     notification_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id           INT UNSIGNED NOT NULL,
