@@ -6,9 +6,9 @@
 
 ## 1. Purpose
 
-For each of the 18 tables (the 17 from the proposal plus `notification`) this document gives the keys and the functional dependencies (FDs), then checks the table against 1NF, 2NF, 3NF and BCNF. Section 4 covers redundancy *between* tables, which per-table normalization does not catch, and how each case is either removed or enforced.
+For each of the 19 tables (the 17 from the proposal plus `notification` and `contributor_resume`) this document gives the keys and the functional dependencies (FDs), then checks the table against 1NF, 2NF, 3NF and BCNF. Section 4 covers redundancy *between* tables, which per-table normalization does not catch, and how each case is either removed or enforced.
 
-**Result:** all 18 tables are in BCNF. Every derived total is calculated by a view instead of being stored, and the few cross-table redundancies kept on purpose are each enforced by a constraint or trigger.
+**Result:** all 19 tables are in BCNF. Every derived total is calculated by a view instead of being stored, and the few cross-table redundancies kept on purpose are each enforced by a constraint or trigger.
 
 ## 2. Notation and method
 
@@ -174,6 +174,16 @@ Added Oct 27 (ADR 0003); not in the proposal. One row per user per event.
 - **Not an FD:** `opportunity_id ↛ title, message`. The text is stored as it was shown, like a sent email, so it can differ from the opportunity's current title. `event_id ↛ notification_type` either: one `OPPORTUNITY_CREATED` event gives contributors an `opportunity_created` row and the creator an `opportunity_published` row.
 - **Normal form:** both determinants are candidate keys → **BCNF**.
 
+### 3.19 contributor_resume
+`contributor_resume(user_id, file_name, content_type, size_bytes, storage_key, uploaded_at)`
+
+Added Nov 15 (ADRs 0007, 0008); not in the proposal. A contributor's optional resume: metadata only, the file is outside MySQL.
+
+- **PK** `user_id` (shared with `contributor_profile`, the 1 : 0..1) · **CK** `storage_key` (`uq_contributor_resume_storage_key`)
+- **FDs:** `user_id → file_name, content_type, size_bytes, storage_key, uploaded_at`; `storage_key → user_id`
+- **Why a separate table:** as columns on `contributor_profile`, all five would be NULL together for contributors without a resume, needing a CHECK to keep them all-or-nothing. A 1 : 0..1 table has no NULLs and keeps the profile's FDs unchanged.
+- **Normal form:** both determinants are candidate keys → **BCNF**.
+
 ## 4. Redundancy between tables
 
 Normalization works one table at a time, so it does not catch a fact that is stored in one table and also reachable through others. Each such case is listed here with its treatment.
@@ -224,3 +234,4 @@ Decisions 1–6 were open in the first version and 7 was added later; the commit
 | `ContributorBadge.contributor_badge_id` | Dropped; composite PK `(contributor_id, badge_id)`. |
 | `PointTransaction.contributor_badge_id`, `amount`, `reason` | `(contributor_id, badge_id)` referencing `contributor_badge`, `points`, `source`. |
 | *(none; Notification was dropped at proposal stage)* | `notification` added Oct 27 (ADR 0003) so users can see what the consumers tell them. |
+| *(none)* | `contributor_resume` added Nov 15 (ADRs 0007, 0008) for an optional resume upload. |

@@ -19,8 +19,10 @@ from fastapi.testclient import TestClient  # noqa: E402
 from grow8_common.config import get_settings  # noqa: E402
 from pymysql.constants import CLIENT  # noqa: E402
 
+from app.dependencies.storage import get_file_storage  # noqa: E402
 from app.events.publisher import get_publisher  # noqa: E402
 from app.main import app  # noqa: E402
+from app.storage import LocalFileStorage  # noqa: E402
 from tests.fakes import FakePublisher  # noqa: E402
 
 DB_INIT_DIR = Path(os.environ.get("GROW8_DB_INIT_DIR", "/app/db/init"))
@@ -120,11 +122,24 @@ def publisher() -> Iterator[FakePublisher]:
 
 
 @pytest.fixture
+def storage_dir(tmp_path: Path) -> Iterator[Path]:
+    """Uploaded files go to a temporary folder, never the dev file_storage volume."""
+    root = tmp_path / "storage"
+    app.dependency_overrides[get_file_storage] = lambda: LocalFileStorage(root)
+    yield root
+    app.dependency_overrides.pop(get_file_storage, None)
+
+
+@pytest.fixture
 def client(
-    seeded_db: pymysql.Connection, publisher: FakePublisher, monkeypatch: pytest.MonkeyPatch
+    seeded_db: pymysql.Connection,
+    publisher: FakePublisher,
+    storage_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> TestClient:
     monkeypatch.setattr("app.services.opportunity_service.utcnow", lambda: FROZEN_NOW)
     monkeypatch.setattr("app.services.application_service.utcnow", lambda: FROZEN_NOW)
+    monkeypatch.setattr("app.services.resume_service.utcnow", lambda: FROZEN_NOW)
     return TestClient(app)
 
 
