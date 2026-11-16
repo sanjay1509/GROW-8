@@ -85,7 +85,14 @@ def decide_application(
 
 @router.post("/applications/{application_id}/withdraw", response_model=ApplicationRead)
 def withdraw_application(
-    application_id: ApplicationId, session: DbSession, contributor: CurrentContributor
+    application_id: ApplicationId,
+    session: DbSession,
+    contributor: CurrentContributor,
+    publisher: Publisher,
+    request_id: RequestId,
 ) -> ApplicationRead:
-    """Withdraw your pending or accepted application (not once work is submitted)."""
-    return application_service.withdraw(session, contributor, application_id)
+    """Withdraw your pending or accepted application (not once work is submitted).
+    The creator who owns the opportunity is notified."""
+    return application_service.withdraw(
+        session, contributor, application_id, publisher, request_id
+    )

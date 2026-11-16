@@ -26,7 +26,7 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 | Queue | Bound to (routing keys) | Dead-letter queue |
 | --- | --- | --- |
 | `grow8.contributor_service` | `opportunity.created`, `application.decided` | `grow8.contributor_service.dlq` |
-| `grow8.creator_service` | `opportunity.created`, `application.submitted` | `grow8.creator_service.dlq` |
+| `grow8.creator_service` | `opportunity.created`, `application.submitted`, `application.withdrawn` | `grow8.creator_service.dlq` |
 
 - A message is **acked only after its handler returns**, so a crash mid-handler means RabbitMQ redelivers it.
 - A message that can't be processed (unreadable JSON, no handler, payload fails its schema, handler raises) is **rejected without requeue** and moves to the service's `.dlq` via the `grow8.events.dlx` exchange. Inspect or replay it from the RabbitMQ UI (Queues → `…dlq` → Get messages / Move messages).
@@ -81,7 +81,21 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 | `contributor_id` | int | Whom to notify. |
 | `decision` | string | `accepted` \| `rejected` |
 
-Withdrawing an application publishes no event (there is none in the catalog yet).
+### `APPLICATION_WITHDRAWN` (v1)
+
+- **When:** the applicant withdraws a pending or accepted application (`POST /api/v1/applications/{id}/withdraw`), after the withdrawal is committed ([ADR 0009](adr/0009-application-withdrawn-event.md)). A refused withdrawal (409) sends nothing. `withdrawn` is final, so this is sent at most once per application.
+- **Consumed by:** **creator_service** → `app/handlers/application_withdrawn.py`. It looks up the organization's owner (skipped if their account is inactive) and stores one `application_withdrawn` notification: `Application withdrawn: <opportunity title>`, with a message that says whether an accepted place opened up, linked to the opportunity. Commit-then-ack and `INSERT IGNORE` as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `organization_id` | int | Used to find whom to notify. |
+| `opportunity_title` | string | |
+| `contributor_id` | int | |
+| `contributor_name` | string | |
+| `previous_status` | string | `pending` \| `accepted`: what it was before withdrawal (the database no longer says). |
 
 ### Seeing it end to end (Check-in I demo)
 

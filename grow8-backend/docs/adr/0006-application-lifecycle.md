@@ -29,7 +29,7 @@ Applications connect a contributor to an opportunity, and everything later in th
 7. **Events** (commit first, then publish):
    - `APPLICATION_SUBMITTED` → creator_service notifies the organization's owner (`application_submitted`).
    - `APPLICATION_DECIDED` → contributor_service notifies the applicant (`application_decided`).
-   - **Withdrawing publishes nothing**: the event catalog in CLAUDE.md has no withdrawal event. The creator sees the new status in the list. An `APPLICATION_WITHDRAWN` event is a possible follow-up.
+   - **Withdrawing publishes nothing**: the event catalog in CLAUDE.md has no withdrawal event. The creator sees the new status in the list. An `APPLICATION_WITHDRAWN` event is a possible follow-up. *Superseded by [ADR 0009](0009-application-withdrawn-event.md): withdrawing now notifies the creator.*
 8. `submitted_at` and `decided_at` are set by the API from one clock (`utcnow()` without fractional seconds, since MySQL would round them and could date a row in the future).
 
 ## Consequences

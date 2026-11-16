@@ -271,8 +271,9 @@ Try it on the dev data (with the stack running, since the notifications come fro
 
 1. Sign in as `alex.chen@grow8.dev` and apply to opportunity **4** (holiday market booth, 3 places, no applications yet).
 2. Sign in as `maple.bakery@grow8.dev`: `GET /api/v1/notifications` shows "New application: Holiday market booth assistant". Accept it with the `application_id` from step 1.
-3. Back as Alex, the notifications show "You were accepted: …".
-4. Opportunity **1** already has two pending applications for its two places (from `004_seed_workflow.sql`), so Alex applying there gets 409 `APPLICANT_LIMIT_REACHED`.
+3. Back as Alex, the notifications show "You were accepted: …". Withdraw it (`POST /api/v1/applications/{id}/withdraw`).
+4. As Maple Street Bakery again, the notifications show "Application withdrawn: …", saying the place is open again.
+5. Opportunity **1** already has two pending applications for its two places (from `004_seed_workflow.sql`), so Alex applying there gets 409 `APPLICANT_LIMIT_REACHED`.
 
 Seeded deadlines are real dates, so this works until opportunity 4 closes on 2026-12-01.
 

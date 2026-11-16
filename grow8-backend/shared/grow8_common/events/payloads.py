@@ -38,9 +38,22 @@ class ApplicationDecidedPayload(BaseModel):
     decision: Literal["accepted", "rejected"]
 
 
+class ApplicationWithdrawnPayload(BaseModel):
+    """Sent when a contributor withdraws a pending or accepted application."""
+
+    application_id: int
+    opportunity_id: int
+    organization_id: int
+    opportunity_title: str
+    contributor_id: int
+    contributor_name: str
+    previous_status: Literal["pending", "accepted"]
+
+
 # Payload schema per event type. Add the others as their features are built.
 PAYLOAD_SCHEMAS: dict[EventType, type[BaseModel]] = {
     EventType.OPPORTUNITY_CREATED: OpportunityCreatedPayload,
     EventType.APPLICATION_SUBMITTED: ApplicationSubmittedPayload,
     EventType.APPLICATION_DECIDED: ApplicationDecidedPayload,
+    EventType.APPLICATION_WITHDRAWN: ApplicationWithdrawnPayload,
 }
