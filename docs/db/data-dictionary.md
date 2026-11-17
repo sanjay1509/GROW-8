@@ -23,21 +23,12 @@
 | 5 | [`skill`](#skill) | Fixed list of skills that opportunities ask for and contributors have. | 3 |
 | 6 | [`opportunity`](#opportunity) | A short-term task a creator's organization posts. Drafts may be incomplete; a published opportunity must carry every mandatory disclosure (`chk_opportunity_published_complete`, ADR 0001). | 23 |
 | 7 | [`opportunity_skill`](#opportunity_skill) | Skills an opportunity asks for (M : N between `opportunity` and `skill`). | 2 |
-<<<<<<< HEAD
 | 8 | [`contributor_skill`](#contributor_skill) | Skills a contributor has (M : N between `contributor_profile` and `skill`). Whether a skill is verified is derived (`v_contributor_skill`). | 3 |
 | 9 | [`application`](#application) | A contributor applying for an opportunity. One application per contributor per opportunity, only while the opportunity is open, before its deadline and under its applicant limit. | 7 |
 | 10 | [`work_submission`](#work_submission) | The contributor's claim that the work for an accepted application is done. At most one per application. | 5 |
 | 11 | [`submission_attachment`](#submission_attachment) | Metadata for a file attached to a submission. The file itself is stored outside MySQL. | 7 |
 | 12 | [`work_verification`](#work_verification) | The creator's decision on a submission. Approved hours here are the only source of verified hours. | 7 |
 | 13 | [`feedback`](#feedback) | A rating one participant of an application gives the other, optionally reporting a discrepancy. Its status is derived from `admin_review` (`v_feedback_status`). | 8 |
-=======
-| 8 | [`contributor_skill`](#contributor_skill) | Skills a contributor has (M : N between `contributor_profile` and `skill`). | 4 |
-| 9 | [`application`](#application) | A contributor applying for an opportunity. One application per contributor per opportunity. | 7 |
-| 10 | [`work_submission`](#work_submission) | The contributor's claim that the work for an accepted application is done. At most one per application. | 5 |
-| 11 | [`submission_attachment`](#submission_attachment) | Metadata for a file attached to a submission. The file itself is stored outside MySQL. | 7 |
-| 12 | [`work_verification`](#work_verification) | The creator's decision on a submission. Approved hours here are the only source of verified hours. | 7 |
-| 13 | [`feedback`](#feedback) | A rating one participant of an application gives the other. Its status is derived from `admin_review` (`v_feedback_status`). | 7 |
->>>>>>> 5bace2d (Add ENSF 608 data dictionary and cover the notification table)
 | 14 | [`admin_review`](#admin_review) | An admin's decision on one feedback. No row means the feedback is still pending. | 6 |
 | 15 | [`badge`](#badge) | Badges contributors can earn, and the points each one is worth. | 6 |
 | 16 | [`contributor_badge`](#contributor_badge) | Badges a contributor has earned. Each badge is earned once. | 3 |
@@ -168,11 +159,7 @@ A short-term task a creator's organization posts. Drafts may be incomplete; a pu
 | `compensation_type` | `enum('paid','stipend','unpaid')` | YES |  |  | `paid`, `stipend` or `unpaid`. Mandatory to publish. |
 | `compensation_amount` | `decimal(10,2)` | YES |  |  | Amount; 0 or more. Required to publish unless `unpaid`. |
 | `compensation_details` | `varchar(500)` | YES |  |  | Free-text notes on compensation (e.g. honorarium, meals). |
-<<<<<<< HEAD
 | `applicant_limit` | `smallint unsigned` | YES |  |  | Maximum active applications (pending + accepted); greater than 0. Mandatory to publish. Enforced in the database by `trg_application_bi` with a row lock (decision 4). |
-=======
-| `applicant_limit` | `smallint unsigned` | YES |  |  | Maximum applicants; greater than 0. Mandatory to publish. Enforced by the apply endpoint (decision 4). |
->>>>>>> 5bace2d (Add ENSF 608 data dictionary and cover the notification table)
 | `application_deadline` | `datetime` | YES |  |  | Last moment to apply. Mandatory to publish. |
 | `working_conditions` | `text` | YES |  |  | Disclosure of working conditions. Mandatory to publish. |
 | `safety_information` | `text` | YES |  |  | Disclosure of safety information. Mandatory to publish. |
@@ -198,20 +185,12 @@ Skills an opportunity asks for (M : N between `opportunity` and `skill`).
 
 ### contributor_skill
 
-<<<<<<< HEAD
 Skills a contributor has (M : N between `contributor_profile` and `skill`). Whether a skill is verified is not stored: `v_contributor_skill` derives it from approved work (decision 7).
-=======
-Skills a contributor has (M : N between `contributor_profile` and `skill`).
->>>>>>> 5bace2d (Add ENSF 608 data dictionary and cover the notification table)
 
 | Column | Type | Null | Default | Key | Description |
 |---|---|---|---|---|---|
 | `contributor_id` | `int unsigned` | NO |  | PK, FK → contributor_profile.user_id | The contributor. Rows are deleted with the profile. |
 | `skill_id` | `int unsigned` | NO |  | PK, FK → skill.skill_id | A skill they have. |
-<<<<<<< HEAD
-=======
-| `source` | `enum('self_reported','verified')` | NO | `self_reported` |  | `self_reported` or `verified` (meaning still open, decision 7). |
->>>>>>> 5bace2d (Add ENSF 608 data dictionary and cover the notification table)
 | `created_at` | `datetime` | NO | now |  | When the skill was added. |
 
 - **Foreign keys:** `fk_contributor_skill_contributor` (contributor_id) → `contributor_profile` (cascade on delete); `fk_contributor_skill_skill` (skill_id) → `skill` (restrict on delete)
@@ -227,25 +206,15 @@ A contributor applying for an opportunity. One application per contributor per o
 | `application_id` | `int unsigned` | NO |  | PK | Surrogate key. |
 | `opportunity_id` | `int unsigned` | NO |  | FK → opportunity.opportunity_id, UQ* | The opportunity applied for. |
 | `contributor_id` | `int unsigned` | NO |  | FK → contributor_profile.user_id, UQ* | The applying contributor. |
-<<<<<<< HEAD
 | `status` | `enum('pending','accepted','rejected','withdrawn')` | NO | `pending` |  | `pending`, `accepted`, `rejected` or `withdrawn`. `pending` and `accepted` take a place under the applicant limit. Cannot leave `accepted` once work is submitted, and a rejected or withdrawn application comes back only if a place is free (`trg_application_bu`). |
 | `motivation` | `text` | YES |  |  | The contributor's note to the creator. |
 | `submitted_at` | `datetime` | NO | now |  | When the application was sent. Must be on or before the deadline and not in the future; cannot change later (`trg_application_bi`, `trg_application_bu`). |
-=======
-| `status` | `enum('pending','accepted','rejected','withdrawn')` | NO | `pending` |  | `pending`, `accepted`, `rejected` or `withdrawn`. Cannot leave `accepted` once work is submitted (`trg_application_bu`). |
-| `motivation` | `text` | YES |  |  | The contributor's note to the creator. |
-| `submitted_at` | `datetime` | NO | now |  | When the application was sent. |
->>>>>>> 5bace2d (Add ENSF 608 data dictionary and cover the notification table)
 | `decided_at` | `datetime` | YES |  |  | When the creator accepted or rejected it; required for those two statuses (`chk_application_decided`). |
 
 - **Unique:** `uq_application_contributor_opportunity` (contributor_id, opportunity_id)
 - **Foreign keys:** `fk_application_contributor` (contributor_id) → `contributor_profile` (restrict on delete); `fk_application_opportunity` (opportunity_id) → `opportunity` (restrict on delete)
 - **Checks:** `chk_application_decided`
-<<<<<<< HEAD
 - **Triggers:** `trg_application_bi` (open opportunity, deadline, applicant limit with `SELECT … FOR UPDATE` on the opportunity row, not future-dated), `trg_application_bu` (contributor, opportunity and `submitted_at` cannot change; status rules above)
-=======
-- **Triggers:** `trg_application_bu`
->>>>>>> 5bace2d (Add ENSF 608 data dictionary and cover the notification table)
 
 ### work_submission
 
@@ -314,10 +283,7 @@ A rating one participant of an application gives the other. Its status is derive
 | `subject_user_id` | `int unsigned` | NO |  | FK → user_account.user_id | Who it is about: the other participant. Not the author (`chk_feedback_not_self`). |
 | `rating` | `tinyint unsigned` | NO |  |  | 1 to 5. |
 | `comment` | `text` | YES |  |  | Optional text. |
-<<<<<<< HEAD
 | `reports_discrepancy` | `tinyint(1)` | NO | `0` |  | True when the author reports that something went wrong on the application (e.g. disputed hours or verification). Admins review these first (database question 7). |
-=======
->>>>>>> 5bace2d (Add ENSF 608 data dictionary and cover the notification table)
 | `created_at` | `datetime` | NO | now |  | When it was written. |
 
 - **Unique:** `uq_feedback_application_author` (application_id, author_user_id)
@@ -457,7 +423,6 @@ Every feedback with its status (`pending`, `approved`, `rejected`) derived from 
 | `author_user_id` | `int unsigned` | From `feedback`. |
 | `subject_user_id` | `int unsigned` | From `feedback`. |
 | `rating` | `tinyint unsigned` | From `feedback`. |
-<<<<<<< HEAD
 | `reports_discrepancy` | `tinyint(1)` | From `feedback`. |
 | `status` | `varchar(8)` | `pending` with no review, otherwise the review's decision. |
 | `reviewed_at` | `datetime` | From `admin_review`; empty while pending. |
@@ -473,12 +438,6 @@ Every contributor skill, with whether it is verified (decision 7). A skill is ve
 | `created_at` | `datetime` | From `contributor_skill`. |
 | `is_verified` | `int` | 1 when verified, otherwise 0. |
 | `verified_at` | `datetime` | First approval that verified it; empty when not verified. |
-
-=======
-| `status` | `varchar(8)` | `pending` with no review, otherwise the review's decision. |
-| `reviewed_at` | `datetime` | From `admin_review`; empty while pending. |
-
->>>>>>> 5bace2d (Add ENSF 608 data dictionary and cover the notification table)
 ## 9. Enumerated values
 
 | Column | Allowed values |
