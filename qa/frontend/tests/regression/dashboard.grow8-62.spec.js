@@ -25,12 +25,25 @@ test('DASH-009 @regression Sidebar links work and mark the active route',async({
  await expect(sidebar.getByRole('link',{name:'Dashboard'})).toHaveClass(/is-active/);
 });
 test('DASH-010 @regression Notification count and dismiss on Escape or outside click',async({page})=>{
+ await auth(page);
+ const notification={
+  notification_id:1,notification_type:'application_submitted',title:'New application',
+  message:'A contributor applied to Social Media Support.',opportunity_id:1,
+  read_at:null,created_at:'2026-10-10T12:00:00Z',is_read:false,
+ };
+ await mockApi(page,(route,path)=>{
+  if(path.endsWith('/notifications/unread-count'))return jsonReply(route,200,{unread_count:7});
+  if(path.endsWith('/notifications'))return jsonReply(route,200,{items:[notification],total:1,limit:20,offset:0});
+  if(path.endsWith('/auth/me'))return jsonReply(route,200,{user_id:2,email:'creator@example.test',full_name:'Test Creator',role:'creator'});
+  return jsonReply(route,404,{});
+ });
  await page.goto('/creator/dashboard');
- const bell=page.getByRole('button',{name:/Notifications: \d+ applications under review/});
- await expect(bell).toHaveAttribute('aria-label',/7 applications under review/);
+ const bell=page.getByRole('button',{name:/Notifications: \d+ unread/});
+ await expect(bell).toHaveAttribute('aria-label','Notifications: 7 unread');
  await bell.click();
  await expect(page.locator('#creator-notifications')).toBeVisible();
- await expect(page.locator('#creator-notifications')).toContainText('7 applications under review');
+ await expect(page.locator('#creator-notifications')).toContainText('New application');
+ await expect(page.locator('#creator-notifications').getByRole('link')).toContainText(/7 applications under review/);
  await page.keyboard.press('Escape');await expect(page.locator('#creator-notifications')).toHaveCount(0);
  await bell.click();await expect(page.locator('#creator-notifications')).toBeVisible();
  await page.getByRole('heading',{name:'Recent Applications'}).click();

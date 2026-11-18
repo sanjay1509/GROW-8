@@ -101,7 +101,9 @@ def test_login(case_id,api,seeded_db):
     elif n==23: expect(login(api,password='x'*129),422,'VALIDATION_ERROR')
     elif n==24:
         for field in ('email','password'):
-            expect(login(api,**{field:None}),422,'VALIDATION_ERROR')
+            payload={'email':EMAILS['creator'],'password':DEV_PASSWORD}
+            payload[field]=None
+            expect(api.post(LOGIN,json=payload),422,'VALIDATION_ERROR')
     elif n==25:
         for field in ('email','password'):
             for value in (42, [], {}):

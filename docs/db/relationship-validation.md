@@ -2,7 +2,7 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Written Oct 14 from the ENSF 608 proposal (submitted Oct 9). Updated Oct 23 and Oct 27 (`notification`, R21–R22): section 7 shows how the committed schema (`grow8-backend/db/init/001_schema.sql`) resolves every issue below. Sections 3–6 keep the proposal's attribute names; section 6 of `functional-dependencies.md` maps them to the schema's.
+> Written Oct 14 from the ENSF 608 proposal (submitted Oct 9). Updated Oct 23, Oct 27 (`notification`, R21–R22) and Nov 17 (`contributor_resume`, R23): section 7 shows how the committed schema (`grow8-backend/db/init/001_schema.sql`) resolves every issue below. Sections 3–6 keep the proposal's attribute names; section 6 of `functional-dependencies.md` maps them to the schema's.
 
 ## 1. Purpose
 
@@ -58,6 +58,12 @@ For each relationship I checked five things:
 |---|---|---|---|---|
 | R21 | UserAccount — Notification | 1 : 0..M | `notification.user_id` FK, `NOT NULL`, `ON DELETE CASCADE`; `UNIQUE (event_id, user_id)` | A user's notifications go with the account. The unique key makes a redelivered event a no-op, so consumers stay idempotent. |
 | R22 | Opportunity — Notification | 1 : 0..M (optional) | `notification.opportunity_id` FK, nullable, `ON DELETE SET NULL` | Optional link for "open the opportunity" in the UI. The stored title and message are what the user was told, not a copy kept in sync, so deleting the opportunity keeps the notification. |
+
+**Added Nov 15 with the `contributor_resume` table (ADR 0008)**
+
+| # | Relationship | Card. | Implementation | Notes |
+|---|---|---|---|---|
+| R23 | ContributorProfile — ContributorResume | 1 : 0..1 | `contributor_resume.user_id` is both PK and FK → `contributor_profile`, `ON DELETE CASCADE` | ✅ Valid. Sharing the key makes "at most one resume" structural, with no extra unique constraint. A separate table avoids five nullable columns on `contributor_profile` that would have to be all set or all empty. Only creators who received an application from the contributor may read it; that is an API rule (ADR 0008), not a data-integrity one. |
 
 ## 4. Issues and proposed fixes
 
@@ -182,14 +188,14 @@ Without it, the database would accept a second profile, submission, verification
 
 ## 6. Next steps
 
-- ~~Formal 1NF → BCNF analysis after the Oct 16 normalization lecture~~: done in `functional-dependencies.md` (all 18 tables in BCNF).
+- ~~Formal 1NF → BCNF analysis after the Oct 16 normalization lecture~~: done in `functional-dependencies.md` (all 19 tables in BCNF, `contributor_resume` added Nov 15).
 - ~~Data dictionary~~: done in `data-dictionary.md`, generated from the loaded schema.
 - ~~Apply the agreed constraints in the shared schema DDL~~: done; see section 7.
 - ~~Turn each rule in I5–I8 into a test case for database testing~~: done in `grow8-backend/api/tests/integration/test_db_integrity.py`.
 - ~~Applicant limit (decision 4) and verified skills (decision 7)~~: done Nov 7; see section 7 and `functional-dependencies.md` section 5.
 - ~~SQL for the proposal's database questions~~: done in `database-questions.md`.
 
-## 7. Status in the committed schema (updated Nov 7)
+## 7. Status in the committed schema (updated Nov 17)
 
 Every issue is now enforced by the database itself, so it holds whichever service or script writes the data. Each rule has an accepted and a refused case in `test_db_integrity.py` or `test_db_applications.py`.
 
@@ -211,6 +217,7 @@ Every issue is now enforced by the database itself, so it holds whichever servic
 | Decision 7 verified skills | Not stored; `v_contributor_skill` derives `is_verified` from approved work on an opportunity that required the skill. |
 | I9 badge once | Composite PK `(contributor_id, badge_id)` on `contributor_badge`. |
 | R21 one notification per user per event | `uq_notification_event_user`; consumers insert with a no-op `ON DUPLICATE KEY UPDATE` (not `INSERT IGNORE`, which would also hide FK errors). |
+| R23 one resume per contributor | Shared PK `contributor_resume.user_id` → `contributor_profile`, `chk_contributor_resume_size` (`size_bytes > 0`), unique `storage_key`; tested in `test_db_integrity.py`. |
 | R21 who receives which notification type | Not a data-integrity rule: the consumer chooses recipients (matching contributors, the opportunity's creator). Covered by the service tests, not a trigger. |
 
 Trigger violations raise SQLSTATE `45000` (MySQL error 1644) with a message that starts with the rule name, for example `reviewer_role: user 2 must have role admin`. An API endpoint that writes these tables should validate first and return a clear 4xx, and treat error 1644 as a conflict rather than a server error.

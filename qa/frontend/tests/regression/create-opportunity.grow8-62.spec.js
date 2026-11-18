@@ -58,8 +58,9 @@ test('CRT-012 @regression Backend create validation failure stays on form',async
 test('CRT-013 @regression Publish failure after create shows partial-success error',async({page})=>{
  let creates=0,publishes=0;
  await openCreate(page,{onCreate:route=>{creates++;return jsonReply(route,201,{opportunity_id:731,status:'draft'})},onPublish:route=>{publishes++;return jsonReply(route,409,{detail:'Publication validation failed'})}});
- await fillValid(page);await page.getByRole('button',{name:'Publish Opportunity'}).click();
- await expect(page.getByRole('alert')).toContainText('created, but publishing failed');
+ await fillValid(page);await page.getByRole('button',{name:'Review & Publish'}).click();
+ await page.getByRole('dialog').getByRole('button',{name:'Confirm & Publish'}).click();
+ await expect(page.getByRole('alert')).toContainText('created as a draft, but publishing failed');
  await expect(page.getByRole('alert')).toContainText('Publication validation failed');
  await expect(page.getByRole('status')).toHaveCount(0);
  expect(creates).toBe(1);expect(publishes).toBe(1);

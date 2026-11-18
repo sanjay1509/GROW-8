@@ -2,14 +2,15 @@ import {test,expect} from '../../helpers/screenshot-every-test.js';
 import {openMine,mineItems,auth,mockApi,jsonReply} from '../../helpers/fixtures-62.js';
 
 test('MYOP-005 @regression Refresh refetches and displays changed records',async({page})=>{
- let count=0;
+ let includeNew=false,count=0;
  await auth(page);
  await mockApi(page,(route,path)=>{
-  if(path.endsWith('/opportunities/mine')){count++;return jsonReply(route,200,{items:count===1?mineItems:[...mineItems,{...mineItems[0],opportunity_id:399,title:'Newly Added Opportunity'}]});}
+  if(path.endsWith('/opportunities/mine')){count++;return jsonReply(route,200,{items:includeNew?[...mineItems,{...mineItems[0],opportunity_id:399,title:'Newly Added Opportunity'}]:mineItems});}
   return jsonReply(route,404,{});
  });
  await page.goto('/creator/opportunities');
  await expect(page.locator('.mo-card')).toHaveCount(3);
+ includeNew=true;
  await page.getByRole('button',{name:'Refresh'}).click();
  await expect(page.locator('.mo-card')).toHaveCount(4);
  await expect(page.getByRole('heading',{name:'Newly Added Opportunity'})).toBeVisible();
@@ -52,7 +53,9 @@ test('MYOP-010 @regression Create and View navigate to functional destinations',
  await expect(page).toHaveURL(/\/creator\/opportunities\/create$/);
  await page.goto('/creator/opportunities');
  await expect(page.locator('.mo-card')).toHaveCount(3);
- await page.locator('.mo-card').filter({hasText:'Inventory Audit'}).getByRole('link',{name:'View'}).click();
- await expect(page).toHaveURL(/\/creator\/opportunities\/301$/);
- await expect(page.getByRole('heading',{name:'Inventory Audit'})).toBeVisible();
+ await page.locator('.mo-card').filter({hasText:'Inventory Audit'})
+  .getByRole('button',{name:'View details for Inventory Audit'}).click();
+ const details=page.getByRole('dialog',{name:'Inventory Audit'});
+ await expect(details.getByRole('heading',{name:'Inventory Audit'})).toBeVisible();
+ await expect(details).toContainText('Count warehouse stock with spreadsheets.');
 });
