@@ -1,0 +1,259 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1610" height="1010" viewBox="0 0 1610 1010" font-family="Inter, 'DejaVu Sans', Arial, sans-serif">
+  <!-- GROW8 implemented architecture, as of 2026-11-17 (main after PR #17).
+       Solid = implemented, dashed = planned / not built. Hand-maintained: update with the code. -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#374151"/>
+    </marker>
+    <style>
+      .t  { fill: #1f2937; }
+      .h1 { font-size: 26px; font-weight: 700; }
+      .h2 { font-size: 19px; font-weight: 700; }
+      .h3 { font-size: 14px; font-weight: 700; }
+      .sm { font-size: 12.5px; }
+      .xs { font-size: 11.5px; }
+      .mu { fill: #4b5563; }
+      .mono { font-family: 'DejaVu Sans Mono', Consolas, monospace; }
+      .flow { stroke: #374151; stroke-width: 1.8; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1610" height="1010" fill="#ffffff"/>
+
+  <!-- Title + legend -->
+  <text x="20" y="44" class="t h1">GROW8 — implemented architecture</text>
+  <text x="20" y="72" class="t sm mu">Event-driven: the API commits to MySQL, then publishes an event; consumer services react through RabbitMQ. As built on main, November 2026.</text>
+  <g transform="translate(1190,30)">
+    <rect x="0" y="0" width="400" height="58" rx="8" fill="#f9fafb" stroke="#d1d5db"/>
+    <line x1="16" y1="20" x2="56" y2="20" stroke="#374151" stroke-width="2"/>
+    <text x="64" y="24" class="t xs">implemented</text>
+    <line x1="16" y1="42" x2="56" y2="42" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="64" y="46" class="t xs">planned / not built yet</text>
+    <line x1="200" y1="20" x2="240" y2="20" class="flow" marker-end="url(#arrow)"/>
+    <text x="248" y="24" class="t xs">request / data flow</text>
+    <rect x="200" y="34" width="40" height="16" rx="3" fill="#fff3e8" stroke="#ea580c"/>
+    <text x="248" y="46" class="t xs">queue</text>
+  </g>
+
+  <!-- Clients (outside compose) -->
+  <rect x="20" y="170" width="170" height="170" rx="10" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="105" y="200" text-anchor="middle" class="t h3">React frontend</text>
+  <text x="105" y="222" text-anchor="middle" class="t xs mu">TypeScript · Vite</text>
+  <text x="105" y="240" text-anchor="middle" class="t xs mu">browser, :5173</text>
+  <rect x="38" y="262" width="134" height="58" rx="6" fill="#fef9c3" stroke="#ca8a04" stroke-dasharray="5 3"/>
+  <text x="105" y="284" text-anchor="middle" class="t xs">applications UI</text>
+  <text x="105" y="302" text-anchor="middle" class="t xs">being wired up</text>
+
+  <rect x="20" y="370" width="170" height="78" rx="10" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="105" y="400" text-anchor="middle" class="t h3">Swagger / Postman</text>
+  <text x="105" y="422" text-anchor="middle" class="t xs mu">/docs · Newman (68 checks)</text>
+
+  <!-- Docker compose boundary -->
+  <rect x="238" y="102" width="1354" height="780" rx="14" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="8 6"/>
+  <text x="248" y="124" class="t xs mu">docker compose · mysql, rabbitmq, api, creator_service, contributor_service, admin_service</text>
+
+  <!-- ================= API ================= -->
+  <rect x="270" y="135" width="430" height="465" rx="12" fill="#eef4ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="290" y="165" class="t h2">FastAPI API — the producer</text>
+  <text x="290" y="186" class="t xs mu">container api · :8000 · /api/v1 · JWT, roles, ownership</text>
+
+  <!-- layers -->
+  <g class="sm">
+    <rect x="290" y="200" width="115" height="54" rx="7" fill="#ffffff" stroke="#2563eb"/>
+    <text x="347" y="222" text-anchor="middle" class="t h3">routers</text>
+    <text x="347" y="241" text-anchor="middle" class="t xs mu">HTTP, validation</text>
+    <rect x="427" y="200" width="115" height="54" rx="7" fill="#ffffff" stroke="#2563eb"/>
+    <text x="484" y="222" text-anchor="middle" class="t h3">services</text>
+    <text x="484" y="241" text-anchor="middle" class="t xs mu">rules, locks, commit</text>
+    <rect x="565" y="200" width="115" height="54" rx="7" fill="#ffffff" stroke="#2563eb"/>
+    <text x="622" y="222" text-anchor="middle" class="t h3">repositories</text>
+    <text x="622" y="241" text-anchor="middle" class="t xs mu">SQL / ORM</text>
+  </g>
+  <line x1="405" y1="227" x2="425" y2="227" class="flow" marker-end="url(#arrow)"/>
+  <line x1="542" y1="227" x2="563" y2="227" class="flow" marker-end="url(#arrow)"/>
+
+  <!-- feature modules -->
+  <text x="290" y="282" class="t xs mu">FEATURE MODULES</text>
+  <g>
+    <rect x="290" y="292" width="185" height="48" rx="7" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="302" y="312" class="t h3">auth</text>
+    <text x="302" y="330" class="t xs mu">login · /me · change password</text>
+    <rect x="495" y="292" width="185" height="48" rx="7" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="507" y="312" class="t h3">opportunities</text>
+    <text x="507" y="330" class="t xs mu">draft · publish · close · cancel</text>
+
+    <rect x="290" y="348" width="185" height="48" rx="7" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="302" y="368" class="t h3">applications</text>
+    <text x="302" y="386" class="t xs mu">apply · decide · withdraw</text>
+    <rect x="495" y="348" width="185" height="48" rx="7" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="507" y="368" class="t h3">resumes</text>
+    <text x="507" y="386" class="t xs mu">PDF ≤ 10 MB · FileStorage</text>
+
+    <rect x="290" y="404" width="185" height="48" rx="7" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="302" y="424" class="t h3">notifications</text>
+    <text x="302" y="442" class="t xs mu">read inbox · mark read</text>
+    <rect x="495" y="404" width="185" height="48" rx="7" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="507" y="424" class="t h3">reference</text>
+    <text x="507" y="442" class="t xs mu">categories · skills</text>
+  </g>
+  <text x="290" y="476" class="t xs mu">Middleware: request ID · CORS · upload size limit (411 / 413)</text>
+
+  <!-- publisher -->
+  <rect x="290" y="490" width="390" height="90" rx="8" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="305" y="514" class="t h3 mono">events/publisher.py</text>
+  <text x="305" y="535" class="t sm">1. COMMIT to MySQL   2. then publish the event</text>
+  <text x="305" y="555" class="t xs mu">persistent message · broker confirms · 3 attempts</text>
+  <text x="305" y="572" class="t xs mu">if RabbitMQ is down: logged, request still succeeds</text>
+
+  <!-- client -> api arrows -->
+  <line x1="190" y1="232" x2="268" y2="232" class="flow" marker-end="url(#arrow)"/>
+  <text x="211" y="207" text-anchor="middle" class="t xs">REST</text>
+  <text x="211" y="222" text-anchor="middle" class="t xs">JWT</text>
+  <line x1="190" y1="300" x2="268" y2="300" class="flow" marker-end="url(#arrow)"/>
+  <text x="211" y="290" text-anchor="middle" class="t xs">polls</text>
+  <text x="210" y="317" text-anchor="middle" class="t xs">unread</text>
+  <text x="211" y="331" text-anchor="middle" class="t xs">count</text>
+  <line x1="190" y1="410" x2="268" y2="410" class="flow" marker-end="url(#arrow)"/>
+
+  <!-- ================= RabbitMQ ================= -->
+  <rect x="760" y="135" width="350" height="465" rx="12" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="780" y="165" class="t h2">RabbitMQ</text>
+  <text x="780" y="186" class="t xs mu">message broker · :5672 · management UI :15672</text>
+
+  <rect x="800" y="198" width="280" height="40" rx="7" fill="#ffffff" stroke="#ea580c"/>
+  <text x="940" y="223" text-anchor="middle" class="t h3">exchange grow8.events (topic)</text>
+  <text x="945" y="257" text-anchor="middle" class="t xs mu">OPPORTUNITY_CREATED · _CANCELLED</text>
+  <text x="945" y="273" text-anchor="middle" class="t xs mu">APPLICATION_SUBMITTED · _DECIDED · _WITHDRAWN</text>
+
+  <!-- bus from exchange to queues -->
+  <path d="M800,218 L786,218 L786,450" class="flow"/>
+  <line x1="786" y1="320" x2="828" y2="320" class="flow" marker-end="url(#arrow)"/>
+  <line x1="786" y1="450" x2="828" y2="450" class="flow" marker-end="url(#arrow)"/>
+
+  <!-- creator queue -->
+  <rect x="830" y="285" width="250" height="72" rx="7" fill="#fff3e8" stroke="#ea580c"/>
+  <text x="842" y="305" class="t h3 mono">grow8.creator_service</text>
+  <text x="842" y="324" class="t xs mu">opportunity.created, application.submitted,</text>
+  <text x="842" y="340" class="t xs mu">application.withdrawn</text>
+  <g class="xs">
+    <rect x="830" y="363" width="60" height="18" rx="4" fill="#ffffff" stroke="#fdba74"/><text x="860" y="376" text-anchor="middle" class="t xs mono">retry.5s</text>
+    <rect x="895" y="363" width="66" height="18" rx="4" fill="#ffffff" stroke="#fdba74"/><text x="928" y="376" text-anchor="middle" class="t xs mono">retry.30s</text>
+    <rect x="966" y="363" width="72" height="18" rx="4" fill="#ffffff" stroke="#fdba74"/><text x="1002" y="376" text-anchor="middle" class="t xs mono">retry.120s</text>
+    <rect x="1043" y="363" width="37" height="18" rx="4" fill="#fee2e2" stroke="#f87171"/><text x="1061" y="376" text-anchor="middle" class="t xs mono">.dlq</text>
+  </g>
+
+  <!-- contributor queue -->
+  <rect x="830" y="414" width="250" height="72" rx="7" fill="#fff3e8" stroke="#ea580c"/>
+  <text x="842" y="434" class="t h3 mono">grow8.contributor_service</text>
+  <text x="842" y="453" class="t xs mu">opportunity.created, application.decided,</text>
+  <text x="842" y="469" class="t xs mu">opportunity.cancelled</text>
+  <g>
+    <rect x="830" y="492" width="60" height="18" rx="4" fill="#ffffff" stroke="#fdba74"/><text x="860" y="505" text-anchor="middle" class="t xs mono">retry.5s</text>
+    <rect x="895" y="492" width="66" height="18" rx="4" fill="#ffffff" stroke="#fdba74"/><text x="928" y="505" text-anchor="middle" class="t xs mono">retry.30s</text>
+    <rect x="966" y="492" width="72" height="18" rx="4" fill="#ffffff" stroke="#fdba74"/><text x="1002" y="505" text-anchor="middle" class="t xs mono">retry.120s</text>
+    <rect x="1043" y="492" width="37" height="18" rx="4" fill="#fee2e2" stroke="#f87171"/><text x="1061" y="505" text-anchor="middle" class="t xs mono">.dlq</text>
+  </g>
+
+  <text x="780" y="542" class="t xs">Handler fails → retried after 5 s, 30 s, 120 s,</text>
+  <text x="780" y="559" class="t xs">then parked in .dlq (via grow8.events.dlx).</text>
+  <text x="780" y="576" class="t xs mu">Unreadable or invalid messages go to .dlq at once.</text>
+
+  <!-- publisher -> exchange -->
+  <path d="M680,535 L730,535 L730,218 L798,218" class="flow" marker-end="url(#arrow)"/>
+  <text x="722" y="380" text-anchor="middle" class="t xs" transform="rotate(-90 722 380)">publish, after COMMIT</text>
+
+  <!-- ================= Consumers ================= -->
+  <rect x="1150" y="135" width="430" height="465" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="1170" y="165" class="t h2">Consumer services</text>
+  <text x="1170" y="186" class="t xs mu">separate containers · no HTTP · manual ack after commit</text>
+
+  <rect x="1170" y="198" width="390" height="118" rx="8" fill="#ffffff" stroke="#16a34a"/>
+  <text x="1184" y="220" class="t h3 mono">creator_service</text>
+  <text x="1184" y="242" class="t xs">opportunity.created → owner: “Your opportunity is live”</text>
+  <text x="1184" y="262" class="t xs">application.submitted → owner: “New application”</text>
+  <text x="1184" y="282" class="t xs">application.withdrawn → owner: “Application withdrawn”</text>
+  <text x="1184" y="302" class="t xs mu">planned: WORK_SUBMITTED → owner</text>
+
+  <rect x="1170" y="328" width="390" height="138" rx="8" fill="#ffffff" stroke="#16a34a"/>
+  <text x="1184" y="350" class="t h3 mono">contributor_service</text>
+  <text x="1184" y="372" class="t xs">opportunity.created → contributors with matching skills</text>
+  <text x="1184" y="392" class="t xs">application.decided → applicant: accepted / rejected</text>
+  <text x="1184" y="412" class="t xs">opportunity.cancelled → pending + accepted applicants</text>
+  <text x="1184" y="434" class="t xs mu">planned: WORK_VERIFIED → verified hours and skills,</text>
+  <text x="1184" y="452" class="t xs mu">WORK_REJECTED → contributor</text>
+
+  <rect x="1170" y="478" width="390" height="104" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-dasharray="6 4"/>
+  <text x="1184" y="500" class="t h3 mono">admin_service</text>
+  <text x="1184" y="522" class="t xs mu">running, no handlers yet (no queue declared)</text>
+  <text x="1184" y="542" class="t xs mu">planned: FEEDBACK_SUBMITTED → admins;</text>
+  <text x="1184" y="562" class="t xs mu">FEEDBACK_APPROVED / _REJECTED → all three services</text>
+
+  <!-- queues -> consumers -->
+  <path d="M1080,320 L1128,320 L1128,257 L1168,257" class="flow" marker-end="url(#arrow)"/>
+  <path d="M1080,450 L1138,450 L1138,397 L1168,397" class="flow" marker-end="url(#arrow)"/>
+
+  <!-- ================= Data ================= -->
+  <!-- file storage -->
+  <rect x="270" y="650" width="180" height="210" rx="12" fill="#f8fafc" stroke="#475569" stroke-width="2"/>
+  <text x="360" y="680" text-anchor="middle" class="t h2">file_storage</text>
+  <text x="360" y="702" text-anchor="middle" class="t xs mu">Docker volume</text>
+  <text x="360" y="730" text-anchor="middle" class="t xs mono">/app/storage</text>
+  <text x="360" y="750" text-anchor="middle" class="t xs mono">resumes/&lt;uuid&gt;</text>
+  <text x="360" y="782" text-anchor="middle" class="t xs">uploaded resume files</text>
+  <text x="360" y="800" text-anchor="middle" class="t xs mu">atomic writes;</text>
+  <text x="360" y="816" text-anchor="middle" class="t xs mu">metadata lives in MySQL</text>
+  <text x="360" y="842" text-anchor="middle" class="t xs mu">(S3 could replace it)</text>
+
+  <!-- mysql -->
+  <rect x="480" y="650" width="780" height="210" rx="12" fill="#ecfeff" stroke="#0e7490" stroke-width="2"/>
+  <text x="500" y="680" class="t h2">MySQL 8.4 — one shared database</text>
+  <text x="500" y="702" class="t xs mu">19 tables · triggers re-check every business rule · derived views · every session pinned to UTC</text>
+  <g>
+    <rect x="500" y="716" width="240" height="56" rx="7" fill="#ffffff" stroke="#67e8f9"/>
+    <text x="512" y="737" class="t h3">Users and profiles</text>
+    <text x="512" y="757" class="t xs mu">accounts, contributors, organizations</text>
+    <rect x="750" y="716" width="240" height="56" rx="7" fill="#ffffff" stroke="#67e8f9"/>
+    <text x="762" y="737" class="t h3">Opportunities</text>
+    <text x="762" y="757" class="t xs mu">opportunities, categories, skills</text>
+    <rect x="1000" y="716" width="240" height="56" rx="7" fill="#ffffff" stroke="#67e8f9"/>
+    <text x="1012" y="737" class="t h3">Applications</text>
+    <text x="1012" y="757" class="t xs mu">capacity and deadline triggers</text>
+
+    <rect x="500" y="782" width="240" height="56" rx="7" fill="#ffffff" stroke="#67e8f9"/>
+    <text x="512" y="803" class="t h3">Resumes</text>
+    <text x="512" y="823" class="t xs mu">contributor_resume (metadata)</text>
+    <rect x="750" y="782" width="240" height="56" rx="7" fill="#ffffff" stroke="#67e8f9"/>
+    <text x="762" y="803" class="t h3">Notifications</text>
+    <text x="762" y="823" class="t xs mu">one row per user per event</text>
+    <rect x="1000" y="782" width="240" height="56" rx="7" fill="#ffffff" stroke="#9ca3af" stroke-dasharray="5 3"/>
+    <text x="1012" y="803" class="t h3">Work, feedback, rewards</text>
+    <text x="1012" y="823" class="t xs mu">schema ready, no endpoints yet</text>
+  </g>
+
+  <!-- api -> storage / mysql -->
+  <line x1="360" y1="600" x2="360" y2="648" class="flow" marker-end="url(#arrow)"/>
+  <text x="368" y="628" class="t xs">resume bytes</text>
+  <line x1="600" y1="600" x2="600" y2="648" class="flow" marker-end="url(#arrow)"/>
+  <text x="608" y="628" class="t xs">SQL · row locks · reads notifications</text>
+
+  <!-- consumers -> mysql -->
+  <path d="M1365,600 L1365,755 L1262,755" class="flow" marker-end="url(#arrow)"/>
+  <text x="1375" y="660" class="t xs">reads (matching, owners,</text>
+  <text x="1375" y="676" class="t xs">applicants); writes</text>
+  <text x="1375" y="692" class="t xs">notifications; commit,</text>
+  <text x="1375" y="708" class="t xs">then ack the message</text>
+
+  <!-- ================= Shared package ================= -->
+  <rect x="20" y="900" width="1572" height="92" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+  <text x="40" y="928" class="t h3"><tspan class="mono">grow8_common</tspan> — shared Python package, installed into the api image and every consumer image</text>
+  <g>
+    <text x="40" y="956" class="t xs"><tspan font-weight="700">models</tspan> ORM mirrors 001_schema.sql</text>
+    <text x="300" y="956" class="t xs"><tspan font-weight="700">events</tspan> types + payload schemas</text>
+    <text x="545" y="956" class="t xs"><tspan font-weight="700">messaging</tspan> consume loop, retries, topology</text>
+    <text x="840" y="956" class="t xs"><tspan font-weight="700">notifications</tspan> DbNotifier (duplicate-safe)</text>
+    <text x="1130" y="956" class="t xs"><tspan font-weight="700">queries</tspan> matching, owners, applicants</text>
+    <text x="40" y="976" class="t xs"><tspan font-weight="700">db</tspan> engine + session (UTC)</text>
+    <text x="300" y="976" class="t xs"><tspan font-weight="700">config, logging</tspan> from environment variables</text>
+    <text x="840" y="976" class="t xs mu">Not built yet: transactional outbox, real-time push (SSE), email.</text>
+  </g>
+</svg>
