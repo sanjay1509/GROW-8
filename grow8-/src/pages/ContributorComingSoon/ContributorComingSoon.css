@@ -1,0 +1,29 @@
+.ccs-card {
+  justify-items: center;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.ccs-card strong {
+  color: #303d52;
+  font-size: 15px;
+}
+
+.ccs-card p {
+  max-width: 460px;
+}
+
+.ccs-card a {
+  text-decoration: none;
+}
+
+.ccs-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #eaf1ff;
+  color: #155ce8;
+}
