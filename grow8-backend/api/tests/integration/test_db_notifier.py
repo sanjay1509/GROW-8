@@ -167,3 +167,18 @@ def test_find_active_applicants(session: Session, seeded_db: pymysql.Connection)
     session.execute(update(UserAccount).where(UserAccount.user_id == 6).values(is_active=False))
     session.commit()
     assert find_active_applicants(session, 1) == [(5, ApplicationStatus.PENDING)]
+
+
+@pytest.mark.parametrize("notification_type", list(NotificationType))
+def test_every_notification_type_can_be_stored_once_per_event(
+    session: Session, notification_type: NotificationType
+) -> None:
+    """Each ENUM value in 001_schema.sql matches NotificationType, and a redelivered
+    event (same event_id) still stores one row, whatever the type."""
+    event_id = uuid4()
+    for _ in range(2):
+        DbNotifier(session, event_id, notification_type).notify(2, "Title", "Message")
+        session.commit()
+
+    [row] = _stored(session)
+    assert row.notification_type == notification_type

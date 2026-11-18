@@ -13,26 +13,42 @@ length bounds what is read. The service still checks the actual file size.
 """
 
 import json
-from collections.abc import Mapping
+import re
+from collections.abc import Sequence
+from dataclasses import dataclass
 
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.core.exceptions import error_body
 
 
+@dataclass(frozen=True)
+class UploadLimit:
+    """An upload route and how large its body may be. `path` must match the whole
+    request path, so routes with ids are written as patterns (e.g. `.../\\d+/...`)."""
+
+    method: str
+    path: re.Pattern[str]
+    max_bytes: int
+    code: str  # the 413's error code
+    message: str
+
+
 class BodySizeLimitMiddleware:
-    def __init__(
-        self, app: ASGIApp, limits: Mapping[tuple[str, str], int], code: str, message: str
-    ) -> None:
+    def __init__(self, app: ASGIApp, limits: Sequence[UploadLimit]) -> None:
         self.app = app
-        self.limits = dict(limits)
-        self.code = code
-        self.message = message
+        self.limits = tuple(limits)
+
+    def _limit_for(self, scope: Scope) -> UploadLimit | None:
+        if scope["type"] != "http":
+            return None
+        for limit in self.limits:
+            if limit.method == scope["method"] and limit.path.fullmatch(scope["path"]):
+                return limit
+        return None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        limit = (
-            self.limits.get((scope["method"], scope["path"])) if scope["type"] == "http" else None
-        )
+        limit = self._limit_for(scope)
         if limit is not None:
             declared = dict(scope["headers"]).get(b"content-length", b"")
             if not declared.isdigit():
@@ -40,8 +56,8 @@ class BodySizeLimitMiddleware:
                     send, 411, "LENGTH_REQUIRED", "Send the upload with a Content-Length header"
                 )
                 return
-            if int(declared) > limit:
-                await self._reject(send, 413, self.code, self.message)
+            if int(declared) > limit.max_bytes:
+                await self._reject(send, 413, limit.code, limit.message)
                 return
         await self.app(scope, receive, send)
 

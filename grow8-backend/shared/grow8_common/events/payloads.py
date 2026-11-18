@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import BaseModel
@@ -59,6 +60,21 @@ class ApplicationWithdrawnPayload(BaseModel):
     previous_status: Literal["pending", "accepted"]
 
 
+class WorkSubmittedPayload(BaseModel):
+    """Sent when an accepted applicant submits their work for verification (ADR 0012).
+    `hours_claimed` travels as a JSON string (e.g. "6.50") so no precision is lost."""
+
+    submission_id: int
+    application_id: int
+    opportunity_id: int
+    organization_id: int
+    opportunity_title: str
+    contributor_id: int
+    contributor_name: str
+    hours_claimed: Decimal
+    attachment_count: int
+
+
 # Payload schema per event type. Add the others as their features are built.
 PAYLOAD_SCHEMAS: dict[EventType, type[BaseModel]] = {
     EventType.OPPORTUNITY_CREATED: OpportunityCreatedPayload,
@@ -66,4 +82,5 @@ PAYLOAD_SCHEMAS: dict[EventType, type[BaseModel]] = {
     EventType.APPLICATION_SUBMITTED: ApplicationSubmittedPayload,
     EventType.APPLICATION_DECIDED: ApplicationDecidedPayload,
     EventType.APPLICATION_WITHDRAWN: ApplicationWithdrawnPayload,
+    EventType.WORK_SUBMITTED: WorkSubmittedPayload,
 }
