@@ -512,15 +512,6 @@ export default function CreatorNavbar() {
       </Link>
 
       <div className="creator-navbar-right">
-        <button
-          type="button"
-          className="creator-workspace-switch"
-          onClick={switchToContributor}
-        >
-          <UsersRound size={18} />
-          <span>Switch to Contributor</span>
-        </button>
-
         <CreatorNavbarActions key={location.key} />
       </div>
     </header>

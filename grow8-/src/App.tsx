@@ -17,6 +17,7 @@ import CreatorSettings from "./pages/CreatorSettings/CreatorSettings";
 // Contributor components
 import ContributorLayout from "./components/Contributor/ContributorLayout/ContributorLayout";
 import ContributorDashboard from "./components/Contributor/ContributorDashboard/ContributorDashboard";
+import ContributorApplications from "./pages/ContributorApplications/ContributorApplications";
 
 import "./App.css";
 
@@ -29,12 +30,17 @@ export default function App() {
       <Route path="/opportunities" element={<BrowseOpportunities />} />
 
       {/* Contributor pages */}
-      <Route element={<ContributorLayout />}>
-        <Route
-          path="/contributor-dashboard"
-          element={<ContributorDashboard />}
-        />
-      </Route>
+        <Route element={<ContributorLayout />}>
+          <Route
+            path="/contributor-dashboard"
+            element={<ContributorDashboard />}
+          />
+
+          <Route
+            path="/contributor/applications"
+            element={<ContributorApplications />}
+          />
+        </Route>
 
       {/* Creator pages */}
       <Route path="/creator" element={<CreatorLayout />}>

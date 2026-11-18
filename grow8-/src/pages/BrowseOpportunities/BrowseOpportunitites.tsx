@@ -1,5 +1,6 @@
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -15,17 +16,38 @@ import {
 
 import Navbar from "../../components/Navbar/Navbar";
 import BackToTop from "../../components/BackToTop/BackToTop";
-import { fetchOpportunities } from "../../services/opportunities";
+
+import {
+  fetchOpportunities,
+  type Opportunity,
+} from "../../services/opportunities";
+
+import { applyToOpportunity } from "../../services/applications";
+import { ApiError, API_BASE_URL } from "../../services/api";
+
 import "./BrowseOpportunities.css";
+
+// ==================================================
+// TYPES
+// ==================================================
+
+type BrowseOpportunity = Opportunity & {
+  organization?: string;
+  skills?: string[];
+  color?: string;
+  icon?: string;
+};
+
+type UserRole = "contributor" | "creator" | "admin" | "";
 
 // ==================================================
 // HELPER FUNCTIONS
 // ==================================================
 
-const formatDate = (dateString) => {
+const formatDate = (dateString?: string | null) => {
   if (!dateString) return "Not specified";
 
-  const date = new Date(`${dateString}T00:00:00`);
+  const date = new Date(dateString);
 
   if (Number.isNaN(date.getTime())) return "Not specified";
 
@@ -33,18 +55,21 @@ const formatDate = (dateString) => {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
 };
 
-const getDaysRemaining = (dateString) => {
+const getDaysRemaining = (dateString?: string | null) => {
   if (!dateString) return null;
 
-  const deadline = new Date(`${dateString}T00:00:00`);
+  const deadline = new Date(dateString);
   const today = new Date();
 
   today.setHours(0, 0, 0, 0);
 
   if (Number.isNaN(deadline.getTime())) return null;
+
+  deadline.setHours(0, 0, 0, 0);
 
   return Math.ceil(
     (deadline.getTime() - today.getTime()) /
@@ -52,9 +77,14 @@ const getDaysRemaining = (dateString) => {
   );
 };
 
-const getIcon = (opportunity) => {
+const getIcon = (opportunity: BrowseOpportunity) => {
   if (opportunity.icon === "event") return Building2;
   return BriefcaseBusiness;
+};
+
+const getHoursLabel = (hours?: number | null) => {
+  if (hours == null) return "Flexible hours";
+  return `${hours} expected hours`;
 };
 
 // ==================================================
@@ -62,22 +92,117 @@ const getIcon = (opportunity) => {
 // ==================================================
 
 export default function BrowseOpportunities() {
-  const [opportunities, setOpportunities] = useState([]);
+  const navigate = useNavigate();
+
+  const [opportunities, setOpportunities] = useState<
+    BrowseOpportunity[]
+  >([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Authentication
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole>("");
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Application state
+  const [applyingId, setApplyingId] = useState<number | null>(null);
+  const [motivation, setMotivation] = useState("");
+  const [applicationMessage, setApplicationMessage] = useState("");
+  const [applicationError, setApplicationError] = useState("");
+  const [duplicateApplicationId, setDuplicateApplicationId] =
+    useState<number | null>(null);
+
+  const [appliedIds, setAppliedIds] = useState<Set<number>>(
+    new Set()
+  );
+
   // Search and filters
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedModes, setSelectedModes] = useState([]);
-  const [selectedHours, setSelectedHours] = useState([]);
-  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedModes, setSelectedModes] = useState<string[]>([]);
+  const [selectedHours, setSelectedHours] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("deadline");
   const [showFilters, setShowFilters] = useState(true);
 
   // Details modal
   const [selectedOpportunity, setSelectedOpportunity] =
-    useState(null);
+    useState<BrowseOpportunity | null>(null);
+
+  // ==================================================
+  // CHECK AUTHENTICATION
+  // ==================================================
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function checkAuthentication() {
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        setIsAuthenticated(false);
+        setUserRole("");
+        setAuthLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          setIsAuthenticated(false);
+          setUserRole("");
+          return;
+        }
+
+        const data = await response.json();
+
+        const nestedUser =
+          data?.user && typeof data.user === "object"
+            ? data.user
+            : data?.data && typeof data.data === "object"
+              ? data.data
+              : data;
+
+        const role = String(
+          nestedUser?.role || ""
+        ).toLowerCase();
+
+        setIsAuthenticated(true);
+        setUserRole(
+          role === "contributor" ||
+            role === "creator" ||
+            role === "admin"
+            ? role
+            : ""
+        );
+      } catch (err) {
+        if (
+          !controller.signal.aborted &&
+          err instanceof Error &&
+          err.name !== "AbortError"
+        ) {
+          setIsAuthenticated(false);
+          setUserRole("");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setAuthLoading(false);
+        }
+      }
+    }
+
+    void checkAuthentication();
+
+    return () => controller.abort();
+  }, []);
 
   // ==================================================
   // LOAD OPPORTUNITIES FROM FASTAPI BACKEND
@@ -96,12 +221,17 @@ export default function BrowseOpportunities() {
         });
 
         if (!controller.signal.aborted) {
-          setOpportunities(result.items);
+          setOpportunities(Array.isArray(result) ? result : []);
         }
       } catch (err) {
-        if (err.name !== "AbortError" && !controller.signal.aborted) {
+        const error = err as Error;
+
+        if (
+          error.name !== "AbortError" &&
+          !controller.signal.aborted
+        ) {
           setError(
-            err.message ||
+            error.message ||
               "Something went wrong while loading opportunities."
           );
         }
@@ -112,10 +242,114 @@ export default function BrowseOpportunities() {
       }
     }
 
-    loadOpportunities();
+    void loadOpportunities();
 
     return () => controller.abort();
   }, []);
+
+  // ==================================================
+  // APPLY TO OPPORTUNITY
+  // ==================================================
+
+  async function handleApply(opportunity: BrowseOpportunity) {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    if (userRole !== "contributor") {
+      return;
+    }
+
+    const opportunityId =
+      opportunity.opportunity_id ?? opportunity.id;
+
+    setApplyingId(opportunityId);
+    setApplicationError("");
+    setApplicationMessage("");
+    setDuplicateApplicationId(null);
+
+    try {
+      await applyToOpportunity(
+        opportunityId,
+        motivation.trim() || undefined
+      );
+
+      setAppliedIds((previous) => {
+        const updated = new Set(previous);
+        updated.add(opportunityId);
+        return updated;
+      });
+
+      setApplicationMessage(
+        "Your application has been submitted successfully!"
+      );
+
+      setMotivation("");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const messages: Record<string, string> = {
+          OPPORTUNITY_NOT_OPEN:
+            "This opportunity is no longer accepting applications.",
+
+          APPLICATION_DEADLINE_PASSED:
+            "The application deadline has passed.",
+
+          APPLICANT_LIMIT_REACHED:
+            "All available places for this opportunity have been taken.",
+
+          APPLICATION_DUPLICATE:
+            "You have already applied for this opportunity.",
+
+          CONTRIBUTOR_PROFILE_REQUIRED:
+            "Please complete your contributor profile before applying.",
+
+          AUTH_REQUIRED:
+            "Please sign in to apply.",
+
+          INVALID_TOKEN:
+            "Your session has expired. Please sign in again.",
+
+          VALIDATION_ERROR:
+            "Please check your application details and try again.",
+        };
+
+        setApplicationError(
+          messages[err.code] ||
+            err.message ||
+            "Unable to submit your application."
+        );
+
+        if (err.code === "APPLICATION_DUPLICATE") {
+          const applicationId = Number(
+            err.details?.application_id
+          );
+
+          if (
+            Number.isFinite(applicationId) &&
+            applicationId > 0
+          ) {
+            setDuplicateApplicationId(applicationId);
+          }
+        }
+
+        if (
+          err.code === "AUTH_REQUIRED" ||
+          err.code === "INVALID_TOKEN"
+        ) {
+          navigate("/login");
+        }
+      } else {
+        setApplicationError(
+          err instanceof Error
+            ? err.message
+            : "Something went wrong. Please try again."
+        );
+      }
+    } finally {
+      setApplyingId(null);
+    }
+  }
 
   // ==================================================
   // DYNAMIC FILTER OPTIONS
@@ -124,7 +358,9 @@ export default function BrowseOpportunities() {
   const categories = useMemo(
     () => [
       ...new Set(
-        opportunities.map((item) => item.category).filter(Boolean)
+        opportunities
+          .map((item) => item.category)
+          .filter(Boolean)
       ),
     ],
     [opportunities]
@@ -133,7 +369,9 @@ export default function BrowseOpportunities() {
   const modes = useMemo(
     () => [
       ...new Set(
-        opportunities.map((item) => item.mode).filter(Boolean)
+        opportunities
+          .map((item) => item.workMode)
+          .filter(Boolean)
       ),
     ],
     [opportunities]
@@ -154,7 +392,10 @@ export default function BrowseOpportunities() {
   // CHECKBOX HELPER
   // ==================================================
 
-  const toggleSelection = (value, setSelected) => {
+  const toggleSelection = (
+    value: string,
+    setSelected: React.Dispatch<React.SetStateAction<string[]>>
+  ) => {
     setSelected((previous) =>
       previous.includes(value)
         ? previous.filter((item) => item !== value)
@@ -170,14 +411,18 @@ export default function BrowseOpportunities() {
     const query = searchTerm.trim().toLowerCase();
 
     const results = opportunities.filter((item) => {
+      const itemSkills = Array.isArray(item.skills)
+        ? item.skills
+        : [];
+
       const searchableText = [
         item.title,
         item.organization,
         item.location,
-        item.mode,
+        item.workMode,
         item.category,
         item.description,
-        ...(Array.isArray(item.skills) ? item.skills : []),
+        ...itemSkills,
       ]
         .filter(Boolean)
         .join(" ")
@@ -192,9 +437,9 @@ export default function BrowseOpportunities() {
 
       const matchesMode =
         selectedModes.length === 0 ||
-        selectedModes.includes(item.mode);
+        selectedModes.includes(item.workMode);
 
-      const hoursValue = Number(item.hoursValue ?? 0);
+      const hoursValue = Number(item.expectedHours ?? 0);
 
       const matchesHours =
         selectedHours.length === 0 ||
@@ -210,13 +455,11 @@ export default function BrowseOpportunities() {
           return true;
         });
 
-      const itemSkills = Array.isArray(item.skills)
-        ? item.skills
-        : [];
-
       const matchesSkills =
         selectedSkills.length === 0 ||
-        selectedSkills.some((skill) => itemSkills.includes(skill));
+        selectedSkills.some((skill) =>
+          itemSkills.includes(skill)
+        );
 
       return (
         matchesSearch &&
@@ -275,6 +518,18 @@ export default function BrowseOpportunities() {
     selectedSkills.length > 0;
 
   // ==================================================
+  // CLOSE MODAL
+  // ==================================================
+
+  function closeDetailsModal() {
+    setSelectedOpportunity(null);
+    setApplicationError("");
+    setApplicationMessage("");
+    setDuplicateApplicationId(null);
+    setMotivation("");
+  }
+
+  // ==================================================
   // PAGE UI
   // ==================================================
 
@@ -298,7 +553,7 @@ export default function BrowseOpportunities() {
         </div>
       </section>
 
-      {/* Layout changes when filters are hidden */}
+      {/* Layout */}
       <div
         className={`browse-layout ${
           showFilters ? "" : "browse-layout--no-filters"
@@ -331,10 +586,7 @@ export default function BrowseOpportunities() {
                     type="checkbox"
                     checked={selectedCategories.includes(category)}
                     onChange={() =>
-                      toggleSelection(
-                        category,
-                        setSelectedCategories
-                      )
+                      toggleSelection(category, setSelectedCategories)
                     }
                   />
                   {category}
@@ -374,8 +626,8 @@ export default function BrowseOpportunities() {
                   {range === "Under 5"
                     ? "Under 5 hours"
                     : range === "5-10"
-                    ? "5–10 hours"
-                    : "More than 10 hours"}
+                      ? "5–10 hours"
+                      : "More than 10 hours"}
                 </label>
               ))}
             </fieldset>
@@ -383,18 +635,22 @@ export default function BrowseOpportunities() {
             <fieldset className="browse-filter-group">
               <legend>Skills</legend>
 
-              {skills.map((skill) => (
-                <label className="browse-checkbox" key={skill}>
-                  <input
-                    type="checkbox"
-                    checked={selectedSkills.includes(skill)}
-                    onChange={() =>
-                      toggleSelection(skill, setSelectedSkills)
-                    }
-                  />
-                  {skill}
-                </label>
-              ))}
+              {skills.length > 0 ? (
+                skills.map((skill) => (
+                  <label className="browse-checkbox" key={skill}>
+                    <input
+                      type="checkbox"
+                      checked={selectedSkills.includes(skill)}
+                      onChange={() =>
+                        toggleSelection(skill, setSelectedSkills)
+                      }
+                    />
+                    {skill}
+                  </label>
+                ))
+              ) : (
+                <p>No skills available</p>
+              )}
             </fieldset>
 
             <button
@@ -409,7 +665,6 @@ export default function BrowseOpportunities() {
 
         {/* Results */}
         <section className="browse-results">
-          {/* Search, toggle and sort toolbar */}
           <div className="browse-search-row">
             <div className="browse-search">
               <Search size={18} />
@@ -464,7 +719,6 @@ export default function BrowseOpportunities() {
             </div>
           </div>
 
-          {/* Results count */}
           <div className="browse-results-count">
             <span>
               Showing{" "}
@@ -550,7 +804,8 @@ export default function BrowseOpportunities() {
                       <h3>{opportunity.title}</h3>
 
                       <p className="browse-organization">
-                        {opportunity.organization}
+                        {opportunity.organization ||
+                          "Organization not specified"}
                       </p>
 
                       <p className="browse-description">
@@ -566,12 +821,12 @@ export default function BrowseOpportunities() {
 
                         <span>
                           <Building2 size={13} />
-                          {opportunity.mode || "Flexible"}
+                          {opportunity.workMode || "Flexible"}
                         </span>
 
                         <span>
                           <Clock size={13} />
-                          {opportunity.hours || "Flexible hours"}
+                          {getHoursLabel(opportunity.expectedHours)}
                         </span>
 
                         <span>
@@ -599,8 +854,8 @@ export default function BrowseOpportunities() {
                             {daysRemaining < 0
                               ? "Deadline passed"
                               : daysRemaining === 0
-                              ? "Deadline today"
-                              : `${daysRemaining} days left`}
+                                ? "Deadline today"
+                                : `${daysRemaining} days left`}
                           </span>
                         )}
                       </div>
@@ -609,9 +864,13 @@ export default function BrowseOpportunities() {
                     <button
                       type="button"
                       className="browse-details-button"
-                      onClick={() =>
-                        setSelectedOpportunity(opportunity)
-                      }
+                      onClick={() => {
+                        setSelectedOpportunity(opportunity);
+                        setApplicationError("");
+                        setApplicationMessage("");
+                        setDuplicateApplicationId(null);
+                        setMotivation("");
+                      }}
                     >
                       View Details
                     </button>
@@ -627,7 +886,7 @@ export default function BrowseOpportunities() {
       {selectedOpportunity && (
         <div
           className="browse-modal-backdrop"
-          onClick={() => setSelectedOpportunity(null)}
+          onClick={closeDetailsModal}
         >
           <section
             className="browse-modal"
@@ -639,7 +898,7 @@ export default function BrowseOpportunities() {
             <button
               type="button"
               className="browse-modal-close"
-              onClick={() => setSelectedOpportunity(null)}
+              onClick={closeDetailsModal}
               aria-label="Close details"
             >
               <X size={20} />
@@ -654,7 +913,8 @@ export default function BrowseOpportunities() {
             </h2>
 
             <p className="browse-modal-organization">
-              {selectedOpportunity.organization}
+              {selectedOpportunity.organization ||
+                "Organization not specified"}
             </p>
 
             <p className="browse-modal-description">
@@ -675,7 +935,7 @@ export default function BrowseOpportunities() {
                 <Building2 size={17} />
                 <span>
                   <strong>Work mode</strong>
-                  {selectedOpportunity.mode || "Not specified"}
+                  {selectedOpportunity.workMode || "Not specified"}
                 </span>
               </p>
 
@@ -683,7 +943,7 @@ export default function BrowseOpportunities() {
                 <Clock size={17} />
                 <span>
                   <strong>Time commitment</strong>
-                  {selectedOpportunity.hours || "Not specified"}
+                  {getHoursLabel(selectedOpportunity.expectedHours)}
                 </span>
               </p>
 
@@ -709,12 +969,131 @@ export default function BrowseOpportunities() {
                   {skill}
                 </span>
               ))}
+
+              {(!selectedOpportunity.skills ||
+                selectedOpportunity.skills.length === 0) && (
+                <span>No specific skills listed.</span>
+              )}
             </div>
+
+            {/* Application section */}
+            {!authLoading &&
+              (userRole === "contributor" || !isAuthenticated) && (
+                <div className="browse-application-section">
+                  <h3>Apply for this opportunity</h3>
+
+                  {!isAuthenticated ? (
+                    <button
+                      type="button"
+                      className="browse-apply-button"
+                      onClick={() => navigate("/login")}
+                    >
+                      Sign In to Apply
+                    </button>
+                  ) : appliedIds.has(
+                      selectedOpportunity.opportunity_id ??
+                        selectedOpportunity.id
+                    ) ? (
+                    <>
+                      <p
+                        className="browse-application-success"
+                        role="status"
+                      >
+                        {applicationMessage ||
+                          "You have successfully applied for this opportunity."}
+                      </p>
+
+                      <button
+                        type="button"
+                        className="browse-apply-button"
+                        disabled
+                      >
+                        Applied
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <label htmlFor="application-motivation">
+                        Motivation (Optional)
+                      </label>
+
+                      <textarea
+                        id="application-motivation"
+                        className="browse-motivation-input"
+                        value={motivation}
+                        onChange={(event) =>
+                          setMotivation(
+                            event.target.value.slice(0, 5000)
+                          )
+                        }
+                        maxLength={5000}
+                        placeholder="Tell the organization why you are interested in this opportunity..."
+                        rows={5}
+                      />
+
+                      <div className="browse-character-count">
+                        {motivation.length}/5000 characters
+                      </div>
+
+                      {applicationError && (
+                        <div
+                          className="browse-application-error"
+                          role="alert"
+                        >
+                          {applicationError}
+
+                          {duplicateApplicationId && (
+                            <p>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  navigate(
+                                    `/contributor/applications?application_id=${duplicateApplicationId}`
+                                  )
+                                }
+                              >
+                                View your existing application
+                              </button>
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {applicationMessage && (
+                        <p
+                          className="browse-application-success"
+                          role="status"
+                        >
+                          {applicationMessage}
+                        </p>
+                      )}
+
+                      <button
+                        type="button"
+                        className="browse-apply-button"
+                        disabled={
+                          applyingId !== null ||
+                          !selectedOpportunity.id
+                        }
+                        onClick={() =>
+                          void handleApply(selectedOpportunity)
+                        }
+                      >
+                        {applyingId ===
+                        (selectedOpportunity.opportunity_id ??
+                          selectedOpportunity.id)
+                          ? "Submitting..."
+                          : "Apply Now"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
 
             <button
               type="button"
               className="browse-modal-done"
-              onClick={() => setSelectedOpportunity(null)}
+              onClick={closeDetailsModal}
             >
               Close Details
             </button>
