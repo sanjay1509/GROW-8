@@ -111,6 +111,24 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 | `organization_id` | int | |
 | `title` | string | |
 
+### `WORK_SUBMITTED` (v1)
+
+- **When:** an accepted applicant submits their work (`POST /api/v1/applications/{id}/submission`), after the submission and its attachments are committed ([ADR 0012](adr/0012-work-submission.md)). A refused submission (404/409/413/415/422) sends nothing. There is one submission per application, so this is sent at most once per application.
+- **Consumed by:** **creator_service** → `app/handlers/work_submitted.py`. It looks up the organization's owner (skipped if their account is inactive) and stores one `work_submitted` notification: `Work submitted: <opportunity title>`, with a message such as "Alex Chen submitted 6.5 h of work with 2 files for you to verify.", linked to the opportunity. Commit-then-ack and duplicate-safe insert as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `submission_id` | int | |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `organization_id` | int | Used to find whom to notify. |
+| `opportunity_title` | string | |
+| `contributor_id` | int | |
+| `contributor_name` | string | |
+| `hours_claimed` | string (decimal) | Sent as a JSON string, e.g. `"6.50"`, so no precision is lost. |
+| `attachment_count` | int | 0–5. |
+
 ### Seeing it end to end (Check-in I demo)
 
 1. `make reset-db` (fresh seed: draft 15 back, no notifications; **wipes local data**), then `docker compose logs -f contributor_service creator_service` in a second terminal.
@@ -124,7 +142,5 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 `make postman` runs the same flow automatically (folder "4. Notifications"); `make reset-db` puts draft 15 back if you want to repeat the demo.
 
 ## Not yet implemented
-
-`WORK_SUBMITTED` (in progress, [ADR 0012](adr/0012-work-submission.md)) has its payload schema, `WorkSubmittedPayload`: `submission_id`, `application_id`, `opportunity_id`, `organization_id`, `opportunity_title`, `contributor_id`, `contributor_name`, `hours_claimed` (a decimal, sent as a JSON string such as `"6.50"`), `attachment_count`. Nothing publishes or consumes it yet.
 
 `WORK_VERIFIED`, `WORK_REJECTED`, `FEEDBACK_SUBMITTED`, `FEEDBACK_APPROVED`, `FEEDBACK_REJECTED` exist in `EventType` but have no payload schema or producer yet. admin_service has no handlers, so it declares no queue yet; it gets one (with its dead-letter queue) when its first handler is added.

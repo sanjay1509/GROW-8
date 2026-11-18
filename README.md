@@ -61,9 +61,9 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 | React Frontend | Provides the user interface for Creators, Contributors, and Admins. |
 | FastAPI Backend | Validates requests, handles business logic, exposes REST APIs, and publishes events. |
 | MySQL Database | Stores users, opportunities, applications, submissions, hours, skills, feedback, ratings, and notifications. |
-| File Storage | A Docker volume for uploaded files (contributor resumes), behind a storage interface that could later be swapped for cloud storage. |
+| File Storage | A Docker volume for uploaded files (contributor resumes and work submission attachments), behind a storage interface that could later be swapped for cloud storage. |
 | RabbitMQ | Routes published events to subscribed consumer services, with delayed retries and a dead-letter queue per service. |
-| Creator Service | Notifies creators when their opportunity is published, when someone applies or withdraws, and (planned) when work awaits verification. |
+| Creator Service | Notifies creators when their opportunity is published, when someone applies or withdraws, and when work awaits verification. |
 | Contributor Service | Notifies contributors of matching opportunities, application decisions, and cancellations; (planned) updates verified hours and skills. |
 | Admin Service | (Planned) Handles feedback awaiting review and administrative feedback decisions. |
 
@@ -78,7 +78,7 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 | Creator actions | `WORK_REJECTED` | Contributor Service | Notifies contributors about rejected work. | Planned |
 | Contributor actions | `APPLICATION_SUBMITTED` | Creator Service | Notifies creators about new applications. | Implemented |
 | Contributor actions | `APPLICATION_WITHDRAWN` | Creator Service | Notifies creators when an applicant withdraws, and whether a place opened up. | Implemented |
-| Contributor actions | `WORK_SUBMITTED` | Creator Service | Notifies creators about work awaiting verification. | Planned |
+| Contributor actions | `WORK_SUBMITTED` | Creator Service | Notifies creators about work awaiting verification. | Implemented |
 | Creator or Contributor actions | `FEEDBACK_SUBMITTED` | Admin Service | Alerts admins to feedback awaiting review. | Planned |
 | Admin actions | `FEEDBACK_APPROVED` | All three services | Updates public ratings and notifies the feedback author and subject. | Planned |
 | Admin actions | `FEEDBACK_REJECTED` | All three services | Records the rejection and notifies the feedback author and subject. | Planned |
@@ -183,11 +183,12 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole st
 - Opportunities: drafts, validation of mandatory disclosures, publishing, public browse with search, filters and sorting, closing and cancelling.
 - Applications: apply, review, accept or reject, withdraw, and the creator's view of applications received, with applicant limits and deadlines enforced.
 - Optional PDF resume upload for contributors, visible to creators they applied to.
-- Event-driven notifications for publishing, applications, decisions, withdrawals and cancellations, with delayed retries and dead-letter queues.
+- Work submission: accepted contributors submit their work once, with up to 5 files, for the creator to verify.
+- Event-driven notifications for publishing, applications, decisions, withdrawals, cancellations and work submissions, with delayed retries and dead-letter queues.
 
 **In progress:** connecting the frontend to the applications, close and cancel endpoints.
 
-**Planned:** work submission and verification, verified hours and skills, feedback and admin review, and the stretch goals below.
+**Planned:** work verification, verified hours and skills, feedback and admin review, and the stretch goals below.
 
 **Getting started:** setup, dev accounts, everyday commands and an API walkthrough are in [docs.md](docs.md).
 

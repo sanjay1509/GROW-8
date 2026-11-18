@@ -10,6 +10,7 @@ from grow8_common.events import (
     EventEnvelope,
     EventType,
     OpportunityCreatedPayload,
+    WorkSubmittedPayload,
 )
 from grow8_common.logging import configure_logging
 from grow8_common.messaging import Handler, run_consumer
@@ -19,6 +20,7 @@ from grow8_common.notifications import DbNotifier
 from app.handlers.application_submitted import handle_application_submitted
 from app.handlers.application_withdrawn import handle_application_withdrawn
 from app.handlers.opportunity_created import handle_opportunity_created
+from app.handlers.work_submitted import handle_work_submitted
 
 SERVICE_NAME = "creator_service"
 
@@ -56,11 +58,19 @@ def _on_application_withdrawn(
         session.commit()
 
 
+def _on_work_submitted(envelope: EventEnvelope, payload: WorkSubmittedPayload) -> None:
+    with get_sessionmaker()() as session:
+        notifier = DbNotifier(session, envelope.event_id, NotificationType.WORK_SUBMITTED)
+        handle_work_submitted(payload, session=session, notifier=notifier)
+        session.commit()
+
+
 # Event type -> handler. Each key becomes a binding on this service's queue.
 HANDLERS: dict[EventType, Handler] = {
     EventType.OPPORTUNITY_CREATED: _on_opportunity_created,
     EventType.APPLICATION_SUBMITTED: _on_application_submitted,
     EventType.APPLICATION_WITHDRAWN: _on_application_withdrawn,
+    EventType.WORK_SUBMITTED: _on_work_submitted,
 }
 
 
