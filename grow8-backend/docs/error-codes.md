@@ -77,6 +77,24 @@ Clients should branch on `code`, never on `message` (messages are for people and
 
 `GET /applications/{id}/resume` also returns `APPLICATION_NOT_FOUND` (404) when the application isn't yours to see.
 
+### Work submissions ([ADR 0012](adr/0012-work-submission.md))
+
+| Status | Code | Endpoint(s) | When |
+| --- | --- | --- | --- |
+| 404 | `APPLICATION_NOT_FOUND` | `POST`, `GET /applications/{id}/submission` | Missing, or not yours: only the applicant submits, and only the applicant and the owning creator can see the submission. |
+| 404 | `SUBMISSION_NOT_FOUND` | `GET /applications/{id}/submission` | No work has been submitted for the application yet. |
+| 404 | `ATTACHMENT_NOT_FOUND` | `GET /submissions/{id}/attachments/{attachment_id}` | Missing, not yours to see, or its file is missing from storage. |
+| 409 | `APPLICATION_NOT_ACCEPTED` | `POST /applications/{id}/submission` | The application is pending, rejected or withdrawn. |
+| 409 | `WORK_ALREADY_SUBMITTED` | `POST /applications/{id}/submission` | Work was already submitted for it; there is no resubmitting. |
+| 409 | `OPPORTUNITY_CANCELLED` | `POST /applications/{id}/submission` | The opportunity was cancelled. |
+| 411 | `LENGTH_REQUIRED` | `POST /applications/{id}/submission` | Sent without `Content-Length`. |
+| 413 | `ATTACHMENT_TOO_LARGE` | `POST /applications/{id}/submission` | A file is over 5 MB. Refused before the body is read when `Content-Length` is over 5 × 5 MB. |
+| 415 | `UNSUPPORTED_FILE_TYPE` | `POST /applications/{id}/submission` | A file isn't PDF, PNG, JPEG, DOCX, XLSX, CSV or TXT. Decided by its content, not its name or `Content-Type`. |
+| 422 | `EMPTY_FILE` | `POST /applications/{id}/submission` | A file has no bytes. |
+| 422 | `TOO_MANY_FILES` | `POST /applications/{id}/submission` | More than 5 files. |
+
+A missing or invalid `description` or `hours_claimed` is a `VALIDATION_ERROR`.
+
 ### Account
 
 | Status | Code | Endpoint(s) | When |

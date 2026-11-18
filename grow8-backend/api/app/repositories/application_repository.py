@@ -20,6 +20,7 @@ _EAGER = (
         selectinload(ContributorProfile.skills),
         selectinload(ContributorProfile.resume),
     ),
+    selectinload(Application.submission),
 )
 
 
