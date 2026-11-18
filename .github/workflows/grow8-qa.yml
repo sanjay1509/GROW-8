@@ -57,7 +57,7 @@ jobs:
 
   backend:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.layer == 'all' || inputs.layer == 'backend' }}
-    name: Backend - Python + ${{ inputs.suite || 'regression' }}
+    name: Backend - Python + 237 regression + 68 current + Playwright ${{ inputs.suite || 'regression' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
@@ -88,6 +88,38 @@ jobs:
       - name: Run full Python API test suite
         working-directory: grow8-backend
         run: docker compose exec -T api pytest /app/api/tests -v -ra --tb=short
+      - name: Prepare backend QA reports
+        run: mkdir -p qa/backend/reports
+      - name: Run approved backend API regression catalog (232 active, 5 deferred)
+        working-directory: grow8-backend
+        run: |
+          docker compose run --rm --no-deps --user root \
+            -v "$GITHUB_WORKSPACE/qa/backend/tests:/app/api/tests/backend_qa:ro" \
+            -v "$GITHUB_WORKSPACE/qa/backend/reports:/app/api/tests/reports" \
+            api sh -c '
+              python -m pip install -q pytest-html==4.1.1 &&
+              pytest tests/backend_qa/test_01_health_auth_reference.py \
+                tests/backend_qa/test_02_opportunity_browse.py \
+                tests/backend_qa/test_03_opportunity_workflows.py \
+                tests/backend_qa/test_04_notifications.py \
+                --rootdir=/app/api -v -ra --tb=short \
+                --html=tests/reports/backend_regression_report.html --self-contained-html \
+                --junitxml=tests/reports/backend_regression_junit.xml
+            '
+      - name: Run current backend API catalog (68 cases)
+        working-directory: grow8-backend
+        run: |
+          docker compose run --rm --no-deps --user root \
+            -v "$GITHUB_WORKSPACE/qa/backend/tests:/app/api/tests/backend_qa:ro" \
+            -v "$GITHUB_WORKSPACE/qa/backend/reports:/app/api/tests/reports" \
+            api sh -c '
+              python -m pip install -q pytest-html==4.1.1 &&
+              pytest tests/backend_qa/test_current_api_smoke.py \
+                tests/backend_qa/test_proposal_resume_api.py \
+                --rootdir=/app/api -v -ra --tb=short \
+                --html=tests/reports/backend_current-smoke_report.html --self-contained-html \
+                --junitxml=tests/reports/backend_current-smoke_junit.xml
+            '
       - name: Install QA dependencies
         run: npm install --prefix qa --no-audit --no-fund
       - name: Run backend tests
@@ -98,7 +130,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: grow8-backend-report-${{ github.run_id }}-${{ github.run_attempt }}
-          path: qa/reports/backend/
+          path: |
+            qa/reports/backend/
+            qa/backend/reports/
           if-no-files-found: warn
           retention-days: 30
       - name: Docker diagnostics on failure
