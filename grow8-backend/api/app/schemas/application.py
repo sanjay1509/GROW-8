@@ -60,6 +60,9 @@ class ApplicationRead(BaseModel):
     decided_at: UtcDateTime | None
     opportunity: ApplicationOpportunity
     applicant: Applicant
+    submission_id: int | None = Field(
+        description="The submitted work's id, or null if no work has been submitted yet"
+    )
 
     @classmethod
     def from_model(cls, application: Application) -> Self:
@@ -80,6 +83,7 @@ class ApplicationRead(BaseModel):
                 skills=[SkillRead.model_validate(s) for s in profile.skills],
                 has_resume=profile.resume is not None,
             ),
+            submission_id=application.submission.submission_id if application.submission else None,
         )
 
 

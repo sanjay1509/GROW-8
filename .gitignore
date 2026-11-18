@@ -10,5 +10,7 @@
 **/__pycache__/
 **/node_modules/
 **/.DS_Store
+qa/reports/
+qa/backend/reports/
 .env
 grow8-backend/CLAUDE.md
