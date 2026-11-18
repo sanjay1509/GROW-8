@@ -30,6 +30,8 @@ An accepted contributor needs a way to hand in their work, so the creator can ve
   ```
 
   Restart creator_service so its queue gets the `work.submitted` binding.
+- Application responses gain `submission_id` (`null` until work is submitted), so the frontend can tell which accepted applications still need work without a request per application.
+- CORS exposes `Content-Disposition`, so a browser downloading an attachment (or a resume) with `fetch` can read its file name.
 - The upload size middleware matches paths with an id (`/applications/{id}/submission`), not only fixed paths.
 - New error codes: `APPLICATION_NOT_ACCEPTED`, `SUBMISSION_NOT_FOUND`, `ATTACHMENT_NOT_FOUND`, `ATTACHMENT_TOO_LARGE`, `TOO_MANY_FILES`. `WORK_ALREADY_SUBMITTED`, `OPPORTUNITY_CANCELLED`, `UNSUPPORTED_FILE_TYPE` and `EMPTY_FILE` gain an endpoint. See [error-codes.md](../error-codes.md).
 - Verifying the work (approve with hours, or reject with a comment) is the next step and gets its own ADR.

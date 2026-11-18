@@ -81,7 +81,9 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
-        expose_headers=[REQUEST_ID_HEADER],
+        # Content-Disposition carries a download's file name (resumes, attachments);
+        # browsers hide it from cross-origin JavaScript unless it is exposed.
+        expose_headers=[REQUEST_ID_HEADER, "Content-Disposition"],
     )
     register_request_id_middleware(app)
     register_exception_handlers(app)

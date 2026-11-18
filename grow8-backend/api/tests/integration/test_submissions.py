@@ -337,3 +337,42 @@ def test_other_people_cannot_see_the_submission_or_its_files(
     for who in (events_org, jordan):
         assert _error(client.get(_path(accepted), headers=who), 404) == "APPLICATION_NOT_FOUND"
         assert _error(client.get(download, headers=who), 404) == "ATTACHMENT_NOT_FOUND"
+
+
+# ---------------------------------------------------------------------------
+# What the frontend needs around it
+# ---------------------------------------------------------------------------
+
+
+def test_applications_say_whether_work_was_submitted(
+    client: TestClient, contributor: dict[str, str], bakery: dict[str, str], accepted: int
+) -> None:
+    def submission_ids() -> list[Any]:
+        return [
+            client.get(f"/api/v1/applications/{accepted}", headers=contributor).json(),
+            client.get("/api/v1/applications/mine", headers=contributor).json()["items"][0],
+            client.get("/api/v1/applications/received", headers=bakery).json()["items"][0],
+        ]
+
+    assert [a["submission_id"] for a in submission_ids()] == [None, None, None]
+
+    submission_id = _submit(client, contributor, accepted).json()["submission_id"]
+
+    assert [a["submission_id"] for a in submission_ids()] == [submission_id] * 3
+
+
+def test_a_browser_on_another_origin_can_read_the_download_file_name(
+    client: TestClient, contributor: dict[str, str], bakery: dict[str, str], accepted: int
+) -> None:
+    body = _submit(client, contributor, accepted, [("sheets.pdf", PDF, "application/pdf")]).json()
+    attachment_id = body["attachments"][0]["attachment_id"]
+
+    download = client.get(
+        f"/api/v1/submissions/{body['submission_id']}/attachments/{attachment_id}",
+        headers={**bakery, "Origin": "http://localhost:5173"},
+    )
+
+    assert download.status_code == 200
+    assert download.headers["access-control-allow-origin"] == "http://localhost:5173"
+    exposed = download.headers["access-control-expose-headers"].lower().split(", ")
+    assert "content-disposition" in exposed
