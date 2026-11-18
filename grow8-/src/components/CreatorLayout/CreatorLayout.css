@@ -633,3 +633,34 @@
     animation: none;
   }
 }
+
+/* Loading and error states for the live dashboard data */
+
+.creator-load-error {
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fdecec;
+  color: #a12b2b;
+  font-size: 13px;
+}
+
+.creator-load-error button {
+  border: 0;
+  background: none;
+  color: #a12b2b;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.creator-empty-note {
+  margin: 0;
+  padding: 22px;
+  border: 1px dashed #d6deeb;
+  border-radius: 8px;
+  color: #687387;
+  font-size: 13px;
+  text-align: center;
+}

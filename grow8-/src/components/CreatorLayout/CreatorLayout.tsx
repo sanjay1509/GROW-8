@@ -1,18 +1,76 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Outlet } from "react-router-dom";
 import CreatorNavbar from "../CreatorNavbar/CreatorNavbar";
 import CreatorSidebar from "../CreatorSidebar/CreatorSidebar";
 import { CreatorWorkspaceContext } from "../../context/CreatorWorkspaceContext";
-import { initialApplications, initialOpportunities } from "../../data/creatorDashboardData";
+import {
+  fetchAllReceivedApplications,
+  fetchMyOpportunities,
+  friendlyError,
+  toDashboardApplication,
+  toDashboardOpportunity,
+} from "../../services/creatorWorkspace";
+import type { CreatorOpportunity as ApiOpportunity } from "../../services/creatorWorkspace";
+import type { Application as ApiApplication } from "../../services/applications";
 import "./CreatorLayout.css";
 
 export default function CreatorLayout() {
-  // TODO API: Fetch this creator's opportunities from GET /opportunities/mine.
-  // TODO API: Fetch applications when the creator applications endpoint is available.
+  const [apiOpportunities, setApiOpportunities] = useState<ApiOpportunity[]>([]);
+  const [apiApplications, setApiApplications] = useState<ApiApplication[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // GET /opportunities/mine and GET /applications/received, shared by every creator page.
+  const load = useCallback(async (isActive: () => boolean = () => true) => {
+    setLoading(true);
+    setError("");
+    try {
+      const [opportunities, applications] = await Promise.all([
+        fetchMyOpportunities(),
+        fetchAllReceivedApplications(),
+      ]);
+      if (isActive()) {
+        setApiOpportunities(opportunities);
+        setApiApplications(applications);
+      }
+    } catch (err) {
+      if (isActive()) {
+        setError(friendlyError(err, "Your workspace could not be loaded."));
+      }
+    } finally {
+      if (isActive()) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void load(() => active);
+    return () => {
+      active = false;
+    };
+  }, [load]);
+
+  const workspace = useMemo(
+    () => ({
+      opportunities: apiOpportunities.map((item) => toDashboardOpportunity(item, apiApplications)),
+      applications: apiApplications.map(toDashboardApplication),
+      apiOpportunities,
+      apiApplications,
+      creatorName:
+        apiOpportunities[0]?.organization?.name ||
+        localStorage.getItem("user_name") ||
+        "Creator",
+      loading,
+      error,
+      refresh: () => load(),
+    }),
+    [apiOpportunities, apiApplications, loading, error, load]
+  );
+
   return (
-    <CreatorWorkspaceContext.Provider value={{
-      opportunities: initialOpportunities,
-      applications: initialApplications,
-    }}>
+    <CreatorWorkspaceContext.Provider value={workspace}>
       <div className="creator-workspace">
         <a className="creator-skip-link" href="#creator-content">Skip to dashboard content</a>
         <CreatorNavbar />
