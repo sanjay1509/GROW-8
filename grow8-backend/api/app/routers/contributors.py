@@ -1,13 +1,11 @@
-import unicodedata
-from collections.abc import Iterator
 from typing import Annotated
-from urllib.parse import quote
 
 from fastapi import APIRouter, File, Path, Response, UploadFile, status
 from fastapi.responses import StreamingResponse
 
 from app.dependencies.auth import CurrentContributor, CurrentUser, DbSession
 from app.dependencies.storage import Storage
+from app.routers._files import stream_download
 from app.schemas.resume import ResumeRead
 from app.services import resume_service
 from app.services.resume_service import ResumeFile
@@ -16,32 +14,10 @@ router = APIRouter(tags=["resumes"])
 
 RESUME_PATH = "/contributors/me/resume"
 ApplicationId = Annotated[int, Path(ge=1)]
-_CHUNK = 64 * 1024
-
-
-def _content_disposition(file_name: str) -> str:
-    """attachment with an ASCII fallback name plus the exact UTF-8 name (RFC 6266/5987)."""
-    decomposed = unicodedata.normalize("NFKD", file_name)  # é -> e + accent, then drop the accent
-    ascii_name = decomposed.encode("ascii", "ignore").decode().replace('"', "") or "resume.pdf"
-    return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(file_name)}"
 
 
 def _stream(resume: ResumeFile) -> StreamingResponse:
-    def chunks() -> Iterator[bytes]:
-        with resume.stream as stream:
-            while chunk := stream.read(_CHUNK):
-                yield chunk
-
-    return StreamingResponse(
-        chunks(),
-        media_type=resume.content_type,
-        headers={
-            "Content-Disposition": _content_disposition(resume.file_name),
-            "Content-Length": str(resume.size_bytes),
-            "X-Content-Type-Options": "nosniff",
-            "Cache-Control": "private, no-store",
-        },
-    )
+    return stream_download(resume, fallback_name="resume.pdf")
 
 
 @router.put(RESUME_PATH, response_model=ResumeRead)
