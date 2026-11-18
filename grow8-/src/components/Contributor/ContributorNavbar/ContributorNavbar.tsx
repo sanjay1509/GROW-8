@@ -781,14 +781,7 @@ export default function ContributorNavbar() {
       </Link>
 
       <div className="contributor-navbar-right">
-        <button
-          type="button"
-          className="contributor-workspace-switch"
-          onClick={switchToCreator}
-        >
-          <BriefcaseBusiness size={18} />
-          <span>Switch to Creator</span>
-        </button>
+ 
 
         <ContributorNavbarActions key={location.key} />
       </div>

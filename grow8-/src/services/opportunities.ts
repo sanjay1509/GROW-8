@@ -1,160 +1,145 @@
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  "http://localhost:8000/api/v1";
+import { API_BASE_URL, apiRequest } from "./api";
 
-interface ApiSkill {
-  name?: string | null;
-}
+// ==================================================
+// API TYPES
+// ==================================================
 
-interface ApiCategory {
-  name?: string | null;
-  code?: string | null;
-}
+export interface ApiOpportunity {
+  opportunity_id: number;
+  title: string;
+  description: string;
+  status: "draft" | "open" | "closed" | "cancelled";
 
-interface ApiOrganization {
-  name?: string | null;
-  city?: string | null;
-}
+  category?: {
+    code: string;
+    name: string;
+  };
 
-interface ApiOpportunity {
-  opportunity_id: number | string;
-  title?: string | null;
-  category?: ApiCategory | null;
-  expected_hours?: number | string | null;
-  work_mode?: string | null;
-  organization?: ApiOrganization | null;
   location?: string | null;
+  work_mode?: string;
+  expected_hours?: number | null;
   application_deadline?: string | null;
-  skills?: (string | ApiSkill)[] | null;
-  description?: string | null;
-  requirements?: string | null;
-  working_conditions?: string | null;
-  safety_information?: string | null;
-  accessibility_details?: string | null;
-  compensation_type?: string | null;
-  compensation_amount?: number | string | null;
+  created_at?: string | null;
+  published_at?: string | null;
+  compensation_type?: string;
+  compensation_amount?: number | null;
 }
+
+// ==================================================
+// FRONTEND OPPORTUNITY TYPE
+// ==================================================
 
 export interface Opportunity {
-  id: number | string;
+  id: number;
+  opportunity_id?: number;
   title: string;
-  organization: string;
-  location: string;
-  mode: string;
-  category: string;
-  hours: string;
-  hoursValue: number;
-  deadline: string;
-  skills: string[];
   description: string;
-  requirements: string;
-  workingConditions: string;
-  safetyInformation: string;
-  accessibilityDetails: string;
-  compensationType: string;
-  compensationAmount: number | string | null;
-  icon: "event" | "social";
-  color: "red" | "blue";
+  status?: "draft" | "open" | "closed" | "cancelled";
+  category: string;
+  location: string;
+  workMode: string;
+  expectedHours: number | null;
+  deadline: string | null;
+  createdAt?: string | null;
+  publishedAt?: string | null;
+  compensationType?: string;
+  compensationAmount?: number | null;
 }
 
-interface OpportunitiesApiResponse {
+// ==================================================
+// API RESPONSE TYPE
+// ==================================================
+
+interface OpportunityListResponse {
   items: ApiOpportunity[];
-  total: number;
+  total?: number;
+  limit?: number;
+  offset?: number;
 }
 
-interface FetchOpportunitiesOptions {
-  signal?: AbortSignal;
-}
+// ==================================================
+// MAP API RESPONSE TO FRONTEND FORMAT
+// ==================================================
 
-const workModeMap: Record<string, string> = {
-  remote: "Remote",
-  on_site: "On-site",
-  onsite: "On-site",
-  hybrid: "Hybrid",
-};
-
-export function mapApiOpportunity(
-  item: ApiOpportunity
-): Opportunity {
-  const category =
-    item.category?.name || item.category?.code || "General";
-
-  const hoursValue = Number(item.expected_hours || 0);
-
+function mapOpportunity(item: ApiOpportunity): Opportunity {
   return {
     id: item.opportunity_id,
-    title: item.title || "Untitled opportunity",
-    organization: item.organization?.name || "Organization",
-
-    location:
-      [item.location, item.organization?.city]
-        .filter((value): value is string => Boolean(value))
-        .join(", ") || "Location not specified",
-
-    mode:
-      workModeMap[String(item.work_mode || "").toLowerCase()] ||
-      item.work_mode ||
-      "Flexible",
-
-    category,
-
-    hours: hoursValue ? `${hoursValue} hrs` : "Flexible hours",
-    hoursValue,
-
-    deadline: item.application_deadline
-      ? String(item.application_deadline).slice(0, 10)
-      : "",
-
-    skills: (item.skills || [])
-      .map((skill) =>
-        typeof skill === "string" ? skill : skill.name
-      )
-      .filter((skill): skill is string => Boolean(skill)),
-
-    description: item.description || "",
-    requirements: item.requirements || "",
-    workingConditions: item.working_conditions || "",
-    safetyInformation: item.safety_information || "",
-    accessibilityDetails: item.accessibility_details || "",
-
-    compensationType: item.compensation_type || "",
+    opportunity_id: item.opportunity_id,
+    title: item.title,
+    description: item.description,
+    status: item.status,
+    category: item.category?.name || "Other",
+    location: item.location || "Not specified",
+    workMode: item.work_mode || "Not specified",
+    expectedHours: item.expected_hours ?? null,
+    deadline: item.application_deadline ?? null,
+    createdAt: item.created_at ?? null,
+    publishedAt: item.published_at ?? null,
+    compensationType: item.compensation_type,
     compensationAmount: item.compensation_amount ?? null,
-
-    icon: category.toLowerCase().includes("community")
-      ? "event"
-      : "social",
-
-    color: category.toLowerCase().includes("community")
-      ? "red"
-      : "blue",
   };
 }
 
-export async function fetchOpportunities(
-  { signal }: FetchOpportunitiesOptions = {}
-): Promise<{ items: Opportunity[]; total: number }> {
+// ==================================================
+// FETCH PUBLIC OPPORTUNITIES
+// ==================================================
+
+export async function fetchOpportunities(): Promise<Opportunity[]> {
   const response = await fetch(
-    `${API_BASE_URL}/opportunities?limit=100&offset=0&sort=deadline`,
-    { signal }
+    `${API_BASE_URL}/opportunities?limit=100&offset=0&sort=deadline`
   );
 
   if (!response.ok) {
     throw new Error(
-      `Could not load opportunities (HTTP ${response.status}).`
+      `Unable to fetch opportunities (HTTP ${response.status}).`
     );
   }
 
-  const result: OpportunitiesApiResponse = await response.json();
+  const data: unknown = await response.json();
 
-  if (!Array.isArray(result.items)) {
-    throw new Error(
-      "Unexpected API response: expected an items array."
-    );
+  let opportunities: ApiOpportunity[] = [];
+
+  if (Array.isArray(data)) {
+    opportunities = data as ApiOpportunity[];
+  } else if (
+    data &&
+    typeof data === "object" &&
+    "items" in data &&
+    Array.isArray((data as OpportunityListResponse).items)
+  ) {
+    opportunities = (data as OpportunityListResponse).items;
   }
 
-  return {
-    items: result.items.map(mapApiOpportunity),
-    total: result.total,
-  };
+  return opportunities.map(mapOpportunity);
+}
+
+// ==================================================
+// CREATOR: CLOSE OPPORTUNITY
+// ==================================================
+
+export async function closeOpportunity(
+  opportunityId: number | string
+): Promise<ApiOpportunity> {
+  return apiRequest<ApiOpportunity>(
+    `/opportunities/${opportunityId}/close`,
+    {
+      method: "POST",
+    }
+  );
+}
+
+// ==================================================
+// CREATOR: CANCEL OPPORTUNITY
+// ==================================================
+
+export async function cancelOpportunity(
+  opportunityId: number | string
+): Promise<ApiOpportunity> {
+  return apiRequest<ApiOpportunity>(
+    `/opportunities/${opportunityId}/cancel`,
+    {
+      method: "POST",
+    }
+  );
 }
