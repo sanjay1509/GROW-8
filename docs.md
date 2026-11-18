@@ -186,7 +186,7 @@ cd grow8-backend
 make reset-db
 ```
 
-⚠️ This deletes everything in **your** local database, and the files uploaded to it (resumes, kept on the `file_storage` volume), then recreates the database from the files. It does not affect anyone else.
+⚠️ This deletes everything in **your** local database, and the files uploaded to it (resumes and work submission attachments, kept on the `file_storage` volume), then recreates the database from the files. It does not affect anyone else.
 
 If the pull also changed `docker-compose.yml`, run `make up` first so MySQL restarts with the new settings.
 
@@ -297,7 +297,29 @@ curl -X PUT http://localhost:8000/api/v1/contributors/me/resume   -H "Authorizat
 
 Files are stored on the `file_storage` Docker volume, never in MySQL ([ADR 0007](grow8-backend/docs/adr/0007-local-file-storage.md)). A file that isn't really a PDF gets 415, even if it's named `.pdf`.
 
-### 3.5 When something is refused
+### 3.5 Work submission
+
+An accepted contributor submits their work once, with a description, the hours they worked and up to 5 files (PDF, PNG, JPEG, DOCX, XLSX, CSV or TXT, 5 MB each). The creator is notified and can read it and download the files. There is no resubmitting ([ADR 0012](grow8-backend/docs/adr/0012-work-submission.md)).
+
+| Task | Request |
+| --- | --- |
+| Submit (applicant) | `POST /api/v1/applications/{id}/submission` (multipart: `description`, `hours_claimed`, `files`) |
+| Read it (applicant or creator) | `GET /api/v1/applications/{id}/submission` |
+| Download a file (applicant or creator) | `GET /api/v1/submissions/{id}/attachments/{attachment_id}` |
+
+Try it on the dev data. Seeded application **12** is Alex's accepted application to Maple Street Bakery's opportunity 2, with nothing submitted yet:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/applications/12/submission \
+  -H "Authorization: Bearer <alex's token>" \
+  -F "description=Cleaned up the inventory sheet." -F "hours_claimed=4.5" -F "files=@inventory.xlsx"
+```
+
+Then sign in as `maple.bakery@grow8.dev`: `GET /api/v1/notifications` shows "Work submitted: Inventory spreadsheet cleanup", and `GET /api/v1/applications/12/submission` lists the file to download. Submitting again gets 409 `WORK_ALREADY_SUBMITTED`, and Alex can no longer withdraw. `make reset-db` puts application 12 back if you want to repeat it.
+
+The file type is decided by the content, not the name: a text file named `notes.pdf` is accepted as plain text and offered for download as `notes.pdf.txt`, and a GIF gets 415.
+
+### 3.6 When something is refused
 
 Every error has the body `{"error": {"code": "...", "message": "..."}}`. All codes are listed in [`grow8-backend/docs/error-codes.md`](grow8-backend/docs/error-codes.md).
 
