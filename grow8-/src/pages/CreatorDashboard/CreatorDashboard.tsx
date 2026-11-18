@@ -13,13 +13,21 @@ import ApplicationTable from "../../components/CreatorDashboard/ApplicationTable
 import CreatorPageHeading from "../../components/CreatorDashboard/CreatorPageHeading";
 import OpportunityGrid from "../../components/CreatorDashboard/OpportunityGrid";
 import { useCreatorWorkspace } from "../../context/CreatorWorkspaceContext";
-import {
-  creatorProfile,
-  summaryWork,
-} from "../../data/creatorDashboardData";
 
 export default function CreatorDashboard() {
-  const { opportunities, applications } = useCreatorWorkspace();
+  const { opportunities, applications, creatorName, loading, error, refresh } =
+    useCreatorWorkspace();
+
+  // In progress: contributors accepted for an opportunity that is still running.
+  const inProgress = applications.filter(
+    (application) =>
+      application.status === "Selected" &&
+      opportunities.find((opportunity) => opportunity.id === application.opportunityId)
+        ?.status === "Open"
+  ).length;
+  const completed = opportunities.filter(
+    (opportunity) => opportunity.status === "Completed"
+  ).length;
 
   const stats = [
     {
@@ -36,13 +44,13 @@ export default function CreatorDashboard() {
     },
     {
       label: "In Progress",
-      value: summaryWork.inProgress,
+      value: inProgress,
       icon: Clock3,
       color: "is-yellow",
     },
     {
       label: "Completed",
-      value: summaryWork.completed,
+      value: completed,
       icon: CircleCheck,
       color: "is-green",
     },
@@ -51,7 +59,7 @@ export default function CreatorDashboard() {
   return (
     <>
       <CreatorPageHeading
-        title={`Welcome, ${creatorProfile.name}!`}
+        title={`Welcome, ${creatorName}!`}
         description="Manage your opportunities and find great contributors."
       >
         <Link
@@ -63,7 +71,16 @@ export default function CreatorDashboard() {
         </Link>
       </CreatorPageHeading>
 
-      <div className="creator-stats" aria-label="Creator overview">
+      {error && (
+        <p className="creator-load-error" role="alert">
+          {error}{" "}
+          <button type="button" onClick={() => void refresh()}>
+            Try again
+          </button>
+        </p>
+      )}
+
+      <div className="creator-stats" aria-label="Creator overview" aria-busy={loading}>
         {stats.map(({ label, value, icon: Icon, color }) => (
           <article className="creator-stat-card" key={label}>
             <span className={`creator-icon-tile ${color}`}>
@@ -85,10 +102,16 @@ export default function CreatorDashboard() {
           <h2 id="creator-recent-title">Recent Applications</h2>
         </div>
 
-        <ApplicationTable
-          applications={applications.slice(0, 4)}
-          label="Recent applications"
-        />
+        {applications.length > 0 ? (
+          <ApplicationTable
+            applications={applications.slice(0, 4)}
+            label="Recent applications"
+          />
+        ) : (
+          <p className="creator-empty-note">
+            {loading ? "Loading applications..." : "No applications yet."}
+          </p>
+        )}
       </section>
 
       <section
@@ -103,7 +126,13 @@ export default function CreatorDashboard() {
           </Link>
         </div>
 
-        <OpportunityGrid opportunities={opportunities.slice(0, 3)} />
+        {opportunities.length > 0 ? (
+          <OpportunityGrid opportunities={opportunities.slice(0, 3)} />
+        ) : (
+          <p className="creator-empty-note">
+            {loading ? "Loading opportunities..." : "You haven't created any opportunities yet."}
+          </p>
+        )}
       </section>
     </>
   );
