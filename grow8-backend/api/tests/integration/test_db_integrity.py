@@ -358,3 +358,32 @@ def test_feedback_can_report_a_discrepancy(db: Exec, seeded_db: pymysql.Connecti
         )
     )
     assert rows == {plain: 0, flagged: 1}
+
+
+def test_contributor_resume_is_one_per_contributor_and_goes_with_the_profile(
+    db: Exec, seeded_db: pymysql.Connection
+) -> None:
+    """contributor_resume (ADR 0008): 1 : 0..1 with contributor_profile through the shared key,
+    a non-empty file, a unique storage key, and deleted with the profile."""
+
+    def add(user_id: int, key: str, size: int = 1024) -> None:
+        db(
+            "INSERT INTO contributor_resume (user_id, file_name, content_type, size_bytes, "
+            "storage_key) VALUES (%s, 'cv.pdf', 'application/pdf', %s, %s)",
+            user_id,
+            size,
+            key,
+        )
+
+    add(5, "resumes/5/a.pdf")
+    with pytest.raises(pymysql.err.IntegrityError):
+        add(5, "resumes/5/b.pdf")  # one resume per contributor (shared primary key)
+    with pytest.raises(pymysql.err.IntegrityError):
+        add(6, "resumes/5/a.pdf")  # storage_key is unique
+    with pytest.raises(pymysql.err.OperationalError):
+        add(6, "resumes/6/a.pdf", size=0)  # chk_contributor_resume_size
+    with pytest.raises(pymysql.err.IntegrityError):
+        add(2, "resumes/2/a.pdf")  # user 2 is a creator, so has no contributor_profile
+
+    db("DELETE FROM contributor_profile WHERE user_id = 5")
+    assert query(seeded_db, "SELECT COUNT(*) FROM contributor_resume") == [(0,)]
