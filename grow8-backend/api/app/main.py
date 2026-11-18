@@ -12,7 +12,15 @@ from app.core.body_limit import BodySizeLimitMiddleware, UploadLimit
 from app.core.config import get_api_settings
 from app.core.exceptions import register_exception_handlers
 from app.dependencies.request import REQUEST_ID_HEADER, register_request_id_middleware
-from app.routers import applications, auth, contributors, notifications, opportunities, reference
+from app.routers import (
+    applications,
+    auth,
+    contributors,
+    notifications,
+    opportunities,
+    reference,
+    submissions,
+)
 from app.services import submission_rules
 from app.services.resume_service import MAX_BYTES as RESUME_MAX_BYTES
 
@@ -30,7 +38,10 @@ UPLOAD_LIMITS = (
     ),
     UploadLimit(
         method="POST",
-        path=re.compile(re.escape(f"{API_PREFIX}/applications/") + r"[0-9]+/submission"),
+        path=re.compile(
+            re.escape(API_PREFIX)
+            + submissions.SUBMISSION_PATH.replace("{application_id}", "[0-9]+")
+        ),
         max_bytes=submission_rules.MAX_REQUEST_BYTES,
         code="ATTACHMENT_TOO_LARGE",
         message=(
@@ -80,6 +91,7 @@ def create_app() -> FastAPI:
     app.include_router(opportunities.router, prefix=API_PREFIX)
     app.include_router(applications.router, prefix=API_PREFIX)
     app.include_router(contributors.router, prefix=API_PREFIX)
+    app.include_router(submissions.router, prefix=API_PREFIX)
     app.include_router(notifications.router, prefix=API_PREFIX)
 
     @app.get("/health", tags=["health"])

@@ -308,9 +308,10 @@ def open_attachment(
         raise _attachment_not_found()
     try:
         stream = storage.open(attachment.storage_key)
-    except StoredFileMissing:
+    # ValueError: a key the store can't hold, e.g. the dev seed's placeholder keys
+    except (StoredFileMissing, ValueError):
         logger.error(
-            "attachment_id=%s points at a missing file key=%s",
+            "attachment_id=%s points at a missing or invalid file key=%s",
             attachment.attachment_id,
             attachment.storage_key,
         )

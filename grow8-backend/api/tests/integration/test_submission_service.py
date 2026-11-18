@@ -369,3 +369,20 @@ def test_a_missing_file_is_not_found(session, storage, submitted, tmp_path) -> N
             session, storage, _user(session, 2), submitted.submission_id, attachment.attachment_id
         )
     assert _code(exc_info) == (404, "ATTACHMENT_NOT_FOUND")
+
+
+def test_a_key_the_store_cannot_hold_is_not_found(seeded_db, session, storage, submitted) -> None:
+    """Like the dev seed's placeholder keys (004_seed_workflow.sql): a 404, not a 500."""
+    [attachment] = submitted.attachments
+    with seeded_db.cursor() as cur:
+        cur.execute(
+            "UPDATE submission_attachment SET storage_key = %s WHERE attachment_id = %s",
+            ("dev/submissions/3/count-sheets.pdf", attachment.attachment_id),
+        )
+    session.rollback()
+
+    with pytest.raises(AppError) as exc_info:
+        submission_service.open_attachment(
+            session, storage, _user(session, 2), submitted.submission_id, attachment.attachment_id
+        )
+    assert _code(exc_info) == (404, "ATTACHMENT_NOT_FOUND")

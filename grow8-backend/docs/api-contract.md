@@ -157,6 +157,45 @@ await fetch(`${API}/contributors/me/resume`, { method: "PUT", body: form, header
 
 Don't set `Content-Type` yourself; the browser adds the multipart boundary and `Content-Length`.
 
+## Work submissions
+
+An accepted contributor submits their work once, with optional files, for the owning creator to verify. Rules and reasons: [ADR 0012](adr/0012-work-submission.md); storage: [ADR 0007](adr/0007-local-file-storage.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| POST | `/applications/{id}/submission` | the applicant | `multipart/form-data`: `description` (1–5000 chars), `hours_claimed` (> 0, at most 9999.99, 2 decimals), and up to 5 `files` (optional, repeat the field). → 201 with the submission. The application must be `accepted` (409 `APPLICATION_NOT_ACCEPTED`) and the opportunity not cancelled (409 `OPPORTUNITY_CANCELLED`; closed is fine). Once per application, no resubmitting (409 `WORK_ALREADY_SUBMITTED`). Emits `WORK_SUBMITTED`. |
+| GET | `/applications/{id}/submission` | the applicant or the owning creator | The submission with its attachments' metadata. Anyone else → 404 `APPLICATION_NOT_FOUND`; nothing submitted yet → 404 `SUBMISSION_NOT_FOUND`. |
+| GET | `/submissions/{id}/attachments/{attachment_id}` | the applicant or the owning creator | Downloads the file. Anything you can't see or that doesn't exist → 404 `ATTACHMENT_NOT_FOUND`. |
+
+Files: PDF, PNG, JPEG, DOCX, XLSX, CSV or TXT, at most 5 MB each (413 `ATTACHMENT_TOO_LARGE`), non-empty (422 `EMPTY_FILE`). The type is decided by the content (415 `UNSUPPORTED_FILE_TYPE`), and one bad file refuses the whole submission. More than 5 files → 422 `TOO_MANY_FILES`. The request needs `Content-Length` (411 `LENGTH_REQUIRED`).
+
+A submission:
+
+```json
+{
+  "submission_id": 6,
+  "application_id": 12,
+  "description": "Typed up 40 recipes into the shared sheet.",
+  "hours_claimed": "6.50",
+  "submitted_at": "2026-11-18T15:00:00Z",
+  "attachments": [
+    { "attachment_id": 3, "file_name": "recipes.xlsx", "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "size_bytes": 23855, "uploaded_at": "2026-11-18T15:00:00Z" }
+  ]
+}
+```
+
+`hours_claimed` is a decimal sent as a string. `file_name` is for display only: cleaned, and always ending in an extension that matches the detected type. Downloads use the stored `content_type` with the same headers as resumes (`Content-Disposition: attachment`, `nosniff`, `no-store`).
+
+From a browser:
+
+```js
+const form = new FormData();
+form.append("description", "Typed up 40 recipes.");
+form.append("hours_claimed", "6.5");
+for (const file of fileInput.files) form.append("files", file);
+await fetch(`${API}/applications/${applicationId}/submission`, { method: "POST", body: form, headers: { Authorization: `Bearer ${token}` } });
+```
+
 ## Notifications
 
 Every signed-in user (any role) has an inbox. The consumer services write the notifications when events happen (see [events.md](events.md) and [ADR 0003](adr/0003-persisted-notifications.md)); the API only reads them and marks them read. You only ever see your own: someone else's `id` → 404, the same as one that doesn't exist.
