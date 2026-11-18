@@ -54,6 +54,8 @@ class Application(Base):
 
     opportunity: Mapped["Opportunity"] = relationship()
     contributor: Mapped["ContributorProfile"] = relationship()
+    # At most one (uq_work_submission_application).
+    submission: Mapped["WorkSubmission | None"] = relationship(back_populates="application")
 
 
 class WorkSubmission(Base):
@@ -72,7 +74,7 @@ class WorkSubmission(Base):
     hours_claimed: Mapped[Decimal] = mapped_column(Numeric(6, 2))
     submitted_at: Mapped[datetime] = created_at_column()
 
-    application: Mapped["Application"] = relationship()
+    application: Mapped["Application"] = relationship(back_populates="submission")
     # Attachments added here are inserted with the submission (save-update cascade).
     attachments: Mapped[list["SubmissionAttachment"]] = relationship(
         order_by="SubmissionAttachment.attachment_id"

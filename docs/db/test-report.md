@@ -6,11 +6,11 @@ This report covers the tests that check the database itself: the integrity rules
 
 ## Result
 
-**Run on Nov 17, 2026: 412 passed, 0 failed, 0 skipped.**
+**Run on Nov 18, 2026: 414 passed, 0 failed, 0 skipped.**
 
 | Suite | Tests | Result |
 |---|---|---|
-| API and database tests (`grow8-backend/api/tests`) | 355 | all passed |
+| API and database tests (`grow8-backend/api/tests`) | 357 | all passed |
 | Consumer service tests (`grow8-backend/services/*/tests`) | 57 | all passed |
 
 Environment: MySQL 8.0, RabbitMQ 3.12, Python 3. Each API test starts from a fresh copy of `002_seed.sql` in a separate `grow8_test` database, so tests never touch the dev data and don't depend on each other. Applications in the tests use fixed dates, so the results don't change as real dates pass the seeded deadlines.
@@ -19,7 +19,7 @@ How to run: `make test` and `make test-services` from `grow8-backend/` with the 
 
 ## Database tests by area
 
-64 of the 355 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
+64 of the 357 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
 
 | File | Tests | What it proves |
 |---|---|---|
