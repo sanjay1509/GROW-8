@@ -6,12 +6,12 @@ This report covers the tests that check the database itself: the integrity rules
 
 ## Result
 
-**Run on Nov 7, 2026: 156 passed, 0 failed, 0 skipped.**
+**Run on Nov 17, 2026: 299 passed, 0 failed, 0 skipped.**
 
 | Suite | Tests | Result |
 |---|---|---|
-| API and database tests (`grow8-backend/api/tests`) | 135 | all passed |
-| Consumer service tests (`grow8-backend/services/*/tests`) | 21 | all passed |
+| API and database tests (`grow8-backend/api/tests`) | 248 | all passed |
+| Consumer service tests (`grow8-backend/services/*/tests`) | 51 | all passed |
 
 Environment: MySQL 8.0, RabbitMQ 3.12, Python 3. Each API test starts from a fresh copy of `002_seed.sql` in a separate `grow8_test` database, so tests never touch the dev data and don't depend on each other. Applications in the tests use fixed dates, so the results don't change as real dates pass the seeded deadlines.
 
@@ -19,11 +19,11 @@ How to run: `make test` and `make test-services` from `grow8-backend/` with the 
 
 ## Database tests by area
 
-57 of the 135 API tests are database tests.
+59 of the 248 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
 
 | File | Tests | What it proves |
 |---|---|---|
-| `test_db_integrity.py` | 15 | Every cross-table rule (I1–I9 in `relationship-validation.md`) is refused by MySQL when broken and accepted when followed, plus the derived views and decision 7 (verified skills). |
+| `test_db_integrity.py` | 16 | Every cross-table rule (I1–I9 in `relationship-validation.md`) is refused by MySQL when broken and accepted when followed, plus the derived views, decision 7 (verified skills) and the `contributor_resume` constraints. |
 | `test_db_applications.py` | 8 | Decision 4: open status, deadline, applicant limit, freed places, immutable applications, and a two-connection race for the last place. |
 | `test_db_workflow_seed.py` | 11 | `004_seed_workflow.sql` loads with every trigger active, the views return its history, and each of the eight database questions returns the documented answer. |
 | `test_schema_mirror.py` | 20 | The ORM models match `001_schema.sql` exactly: same tables, columns, types, keys and constraints, for all 19 tables. |
@@ -53,6 +53,7 @@ Each rule has at least one accepted and one refused case.
 | Rating from approved feedback only (I3) | `v_user_rating` | `test_feedback_status_and_public_rating_use_admin_decisions_only` |
 | Leaderboard summed, never stored (I3) | `v_leaderboard` | `test_leaderboard_sums_points_and_ranks_contributors` |
 | Verified skill derived (decision 7) | `v_contributor_skill` | `test_skill_is_verified_only_by_approved_work_that_required_it` |
+| One resume per contributor, non-empty, unique storage key, deleted with the profile (R23) | `contributor_resume` PK = FK, `chk_contributor_resume_size`, `uq_contributor_resume_storage_key`, `ON DELETE CASCADE` | `test_contributor_resume_is_one_per_contributor_and_goes_with_the_profile` |
 | Discrepancy flag on feedback | `feedback.reports_discrepancy` | `test_feedback_can_report_a_discrepancy`, `test_q7_open_discrepancy_reports` |
 | One notification per user per event (R21) | `uq_notification_event_user` | `test_same_event_for_same_user_is_stored_once`, `test_same_event_notifies_each_user_once` |
 
@@ -69,4 +70,5 @@ Without the row lock, both transactions would count zero active applications and
 
 ## Changes made for this report
 
+- Nov 17: added the `contributor_resume` test after the table was added on Nov 15 (ADR 0008); counts updated for the application lifecycle and resume features.
 - `test_db_integrity.py`: the application helper now sets a fixed `submitted_at`, and the rating test uses opportunity 4, which has three places. Before, it placed three applications on opportunity 1, which has two; the new limit rule correctly refused that.
