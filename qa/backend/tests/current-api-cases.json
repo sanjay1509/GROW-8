@@ -1,0 +1,185 @@
+{
+  "source": "Supplemental current-code API cases, separate from the approved 237-case regression catalog.",
+  "operations": [
+    {
+      "api": "Change Password",
+      "method": "POST",
+      "path": "/api/v1/auth/change-password",
+      "cases": [
+        ["CUR-PASSWORD-001", "Valid current and new passwords change credentials", "200; old password rejected and new password accepted"],
+        ["CUR-PASSWORD-002", "Incorrect current password is rejected", "401 INVALID_CURRENT_PASSWORD"],
+        ["CUR-PASSWORD-003", "Reusing the current password is rejected", "422 PASSWORD_UNCHANGED"],
+        ["CUR-PASSWORD-004", "Password change requires authentication", "401 AUTH_REQUIRED"],
+        ["CUR-PASSWORD-005", "New passwords exceeding the 72-byte limit are rejected", "422 VALIDATION_ERROR"],
+        ["CUR-PASSWORD-006", "A password exactly 72 bytes long is accepted", "200; login succeeds with the new password"]
+      ]
+    },
+    {
+      "api": "Apply to Opportunity",
+      "method": "POST",
+      "path": "/api/v1/opportunities/{opportunity_id}/applications",
+      "cases": [
+        ["CUR-APPLY-001", "Contributor submits a valid application", "201; pending application returned and submission event published"],
+        ["CUR-APPLY-002", "Motivation is optional and unknown request fields are rejected", "201 without motivation; 422 VALIDATION_ERROR for unknown fields"],
+        ["CUR-APPLY-003", "Applying twice returns the original application reference", "409 APPLICATION_DUPLICATE with original application ID"],
+        ["CUR-APPLY-004", "A withdrawn application cannot be resubmitted", "409 APPLICATION_DUPLICATE"],
+        ["CUR-APPLY-005", "The applicant limit prevents an additional application", "409 APPLICANT_LIMIT_REACHED"],
+        ["CUR-APPLY-006", "Applications are refused after the deadline or to closed, draft, or missing opportunities", "409 deadline/state errors; 404 for draft or missing opportunity"],
+        ["CUR-APPLY-007", "Only an authenticated contributor can apply", "401 AUTH_REQUIRED; 403 ROLE_FORBIDDEN"],
+        ["CUR-APPLY-008", "A contributor without a profile cannot apply", "409 CONTRIBUTOR_PROFILE_REQUIRED; no event published"]
+      ]
+    },
+    {
+      "api": "List Opportunity Applications",
+      "method": "GET",
+      "path": "/api/v1/opportunities/{opportunity_id}/applications",
+      "cases": [
+        ["CUR-OPPLIST-001", "Opportunity owner lists applications with paging metadata", "200; only applications to the selected opportunity are returned"],
+        ["CUR-OPPLIST-002", "Only the owning creator may list opportunity applications", "401 AUTH_REQUIRED; 403 for wrong role or owner"],
+        ["CUR-OPPLIST-003", "Draft or missing opportunities are not exposed", "404 OPPORTUNITY_NOT_FOUND"]
+      ]
+    },
+    {
+      "api": "List My Applications",
+      "method": "GET",
+      "path": "/api/v1/applications/mine",
+      "cases": [
+        ["CUR-MINEAPP-001", "Contributor sees only their own applications", "200; only the caller's applications are returned"],
+        ["CUR-MINEAPP-002", "Contributor filters applications by status", "200; only matching statuses are returned"],
+        ["CUR-MINEAPP-003", "Listing requires an authenticated contributor", "401 AUTH_REQUIRED; 403 ROLE_FORBIDDEN"]
+      ]
+    },
+    {
+      "api": "List Received Applications",
+      "method": "GET",
+      "path": "/api/v1/applications/received",
+      "cases": [
+        ["CUR-RECEIVED-001", "Creator lists applications across owned opportunities", "200; only owned opportunities' applications are returned"],
+        ["CUR-RECEIVED-002", "Creator filters received applications by opportunity and status", "200; all supplied filters are applied"],
+        ["CUR-RECEIVED-003", "Listing requires an authenticated creator", "401 AUTH_REQUIRED; 403 ROLE_FORBIDDEN"]
+      ]
+    },
+    {
+      "api": "Get Application",
+      "method": "GET",
+      "path": "/api/v1/applications/{application_id}",
+      "cases": [
+        ["CUR-APPDETAIL-001", "Applicant can read their application", "200; requested application is returned"],
+        ["CUR-APPDETAIL-002", "Owning creator can read the application", "200; requested application is returned"],
+        ["CUR-APPDETAIL-003", "Unrelated users cannot discover an application", "404 APPLICATION_NOT_FOUND"],
+        ["CUR-APPDETAIL-004", "Anonymous and invalid-ID requests are rejected", "401 AUTH_REQUIRED; 422 VALIDATION_ERROR"]
+      ]
+    },
+    {
+      "api": "Decide Application",
+      "method": "POST",
+      "path": "/api/v1/applications/{application_id}/decision",
+      "cases": [
+        ["CUR-DECISION-001", "Owning creator accepts a pending application", "200 accepted; decision event published"],
+        ["CUR-DECISION-002", "Owning creator rejects a pending application", "200 rejected"],
+        ["CUR-DECISION-003", "An application can be decided only once", "409 APPLICATION_ALREADY_DECIDED"],
+        ["CUR-DECISION-004", "Withdrawn or cancelled applications cannot be decided", "409 state-specific error"],
+        ["CUR-DECISION-005", "Only the owning creator may decide", "401 AUTH_REQUIRED; 403 ROLE_FORBIDDEN or NOT_OPPORTUNITY_OWNER"],
+        ["CUR-DECISION-006", "Decision values outside accepted/rejected are rejected", "422 VALIDATION_ERROR"]
+      ]
+    },
+    {
+      "api": "Withdraw Application",
+      "method": "POST",
+      "path": "/api/v1/applications/{application_id}/withdraw",
+      "cases": [
+        ["CUR-WITHDRAW-001", "Applicant withdraws a pending application", "200 withdrawn; withdrawal event published"],
+        ["CUR-WITHDRAW-002", "Applicant may withdraw an accepted application before work starts", "200 withdrawn"],
+        ["CUR-WITHDRAW-003", "Rejected or already withdrawn applications cannot be withdrawn again", "409 state-specific error"],
+        ["CUR-WITHDRAW-004", "Withdrawal is refused once work has been submitted", "409 WORK_ALREADY_SUBMITTED"],
+        ["CUR-WITHDRAW-005", "Only the applicant may withdraw", "401 AUTH_REQUIRED; 403 ROLE_FORBIDDEN or APPLICATION_NOT_FOUND"]
+      ]
+    },
+    {
+      "api": "Close Opportunity",
+      "method": "POST",
+      "path": "/api/v1/opportunities/{opportunity_id}/close",
+      "cases": [
+        ["CUR-CLOSE-001", "Creator closes an open opportunity", "200 closed; new applications refused and existing decisions remain possible"],
+        ["CUR-CLOSE-002", "Only open opportunities can be closed", "409 OPPORTUNITY_NOT_OPEN for closed, cancelled, or draft opportunities"],
+        ["CUR-CLOSE-003", "Only the owner may close an opportunity", "401 AUTH_REQUIRED; 403 for wrong role or owner"],
+        ["CUR-CLOSE-004", "Closed opportunities leave public results but remain readable", "200; not in public list and detail status is closed"]
+      ]
+    },
+    {
+      "api": "Cancel Opportunity",
+      "method": "POST",
+      "path": "/api/v1/opportunities/{opportunity_id}/cancel",
+      "cases": [
+        ["CUR-CANCEL-001", "Creator cancels an opportunity and applicants are notified", "200 cancelled; event published and application states preserved"],
+        ["CUR-CANCEL-002", "A closed opportunity may be cancelled", "200 cancelled"],
+        ["CUR-CANCEL-003", "Draft and already-cancelled opportunities cannot be cancelled", "409 OPPORTUNITY_NOT_PUBLISHED or OPPORTUNITY_CANCELLED"],
+        ["CUR-CANCEL-004", "Cancellation is refused after work has been submitted", "409 WORK_ALREADY_SUBMITTED; status and events unchanged"],
+        ["CUR-CANCEL-005", "Only the owning creator may cancel", "401 AUTH_REQUIRED; 403 for wrong role or owner"],
+        ["CUR-CANCEL-006", "After cancellation, applicants may withdraw but pending applications cannot be decided", "200 withdrawal; 409 OPPORTUNITY_CANCELLED for decision"]
+      ]
+    },
+    {
+      "api": "Delete Opportunity",
+      "method": "DELETE",
+      "path": "/api/v1/opportunities/{opportunity_id}",
+      "cases": [
+        ["CUR-OPPDELETE-001", "Creator deletes an owned draft", "204; deleted draft returns 404"],
+        ["CUR-OPPDELETE-002", "Published opportunities cannot be deleted", "409 PUBLISHED_OPPORTUNITY_CANNOT_BE_DELETED"],
+        ["CUR-OPPDELETE-003", "Only the owner may delete a draft", "401 AUTH_REQUIRED; 403 for wrong role or owner"]
+      ]
+    },
+    {
+      "api": "Upload Resume",
+      "method": "PUT",
+      "path": "/api/v1/contributors/me/resume",
+      "cases": [
+        ["CUR-RESUPLOAD-001", "Contributor uploads a PDF resume", "200; accurate resume metadata returned"],
+        ["CUR-RESUPLOAD-002", "Uploading a second resume replaces the first", "200; only the replacement file is available"],
+        ["CUR-RESUPLOAD-003", "Content must be a PDF regardless of claimed file name or MIME type", "415 UNSUPPORTED_FILE_TYPE; no file stored"],
+        ["CUR-RESUPLOAD-004", "Empty or missing file is rejected", "422 EMPTY_FILE or VALIDATION_ERROR"],
+        ["CUR-RESUPLOAD-005", "Files larger than 10 MB are rejected without storage", "413 RESUME_TOO_LARGE"],
+        ["CUR-RESUPLOAD-006", "Only authenticated contributors may upload", "401 AUTH_REQUIRED; 403 ROLE_FORBIDDEN"],
+        ["CUR-RESUPLOAD-007", "Unsafe and non-ASCII file names are normalized safely", "200; safe metadata and encoded download name"]
+      ]
+    },
+    {
+      "api": "Get Resume Metadata",
+      "method": "GET",
+      "path": "/api/v1/contributors/me/resume",
+      "cases": [
+        ["CUR-RESMETA-001", "Contributor reads metadata for their uploaded resume", "200; metadata matches uploaded file"],
+        ["CUR-RESMETA-002", "Missing resume and unauthorized callers are handled", "404 RESUME_NOT_FOUND; 401 AUTH_REQUIRED; 403 ROLE_FORBIDDEN"]
+      ]
+    },
+    {
+      "api": "Download Own Resume",
+      "method": "GET",
+      "path": "/api/v1/contributors/me/resume/file",
+      "cases": [
+        ["CUR-RESDOWNLOAD-001", "Contributor downloads exact PDF bytes with safe private headers", "200; PDF bytes, nosniff, and private no-store headers"],
+        ["CUR-RESDOWNLOAD-002", "Missing file and unauthorized callers cannot download", "404 RESUME_NOT_FOUND; 401 AUTH_REQUIRED; 403 ROLE_FORBIDDEN"]
+      ]
+    },
+    {
+      "api": "Delete Resume",
+      "method": "DELETE",
+      "path": "/api/v1/contributors/me/resume",
+      "cases": [
+        ["CUR-RESDELETE-001", "Contributor deletes resume metadata and stored file", "204; metadata and download return RESUME_NOT_FOUND"],
+        ["CUR-RESDELETE-002", "Deleting a missing resume or using an unauthorized role is rejected", "404 RESUME_NOT_FOUND; 401 AUTH_REQUIRED; 403 ROLE_FORBIDDEN"]
+      ]
+    },
+    {
+      "api": "Download Applicant Resume",
+      "method": "GET",
+      "path": "/api/v1/applications/{application_id}/resume",
+      "cases": [
+        ["CUR-APPRES-001", "Owning creator downloads the applicant's current resume", "200; exact PDF bytes returned"],
+        ["CUR-APPRES-002", "Owning creator can download the latest resume after applicant withdraws", "200; current PDF bytes returned"],
+        ["CUR-APPRES-003", "Other creators and unrelated users cannot access applicant resumes", "404 APPLICATION_NOT_FOUND"],
+        ["CUR-APPRES-004", "Missing resume, missing application, and anonymous access are handled", "404 RESUME_NOT_FOUND or APPLICATION_NOT_FOUND; 401 AUTH_REQUIRED"]
+      ]
+    }
+  ]
+}
