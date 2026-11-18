@@ -117,7 +117,7 @@ Failed event publications are retried. A consumer whose handler fails retries th
 | Database | MySQL 8.4 |
 | Event Broker | RabbitMQ |
 | File Storage | Docker volume |
-| Testing | pytest (about 300 automated API and consumer tests against a real MySQL), Postman/Newman end-to-end collection, manual testing, execution reports |
+| Testing | pytest (about 400 automated API and consumer tests against a real MySQL), Postman/Newman end-to-end collection, manual testing, execution reports |
 | Version Control | GitHub |
 | Deployment | Docker Compose |
 
