@@ -125,4 +125,6 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 ## Not yet implemented
 
-`WORK_SUBMITTED`, `WORK_VERIFIED`, `WORK_REJECTED`, `FEEDBACK_SUBMITTED`, `FEEDBACK_APPROVED`, `FEEDBACK_REJECTED` exist in `EventType` but have no payload schema or producer yet. admin_service has no handlers, so it declares no queue yet; it gets one (with its dead-letter queue) when its first handler is added.
+`WORK_SUBMITTED` (in progress, [ADR 0012](adr/0012-work-submission.md)) has its payload schema, `WorkSubmittedPayload`: `submission_id`, `application_id`, `opportunity_id`, `organization_id`, `opportunity_title`, `contributor_id`, `contributor_name`, `hours_claimed` (a decimal, sent as a JSON string such as `"6.50"`), `attachment_count`. Nothing publishes or consumes it yet.
+
+`WORK_VERIFIED`, `WORK_REJECTED`, `FEEDBACK_SUBMITTED`, `FEEDBACK_APPROVED`, `FEEDBACK_REJECTED` exist in `EventType` but have no payload schema or producer yet. admin_service has no handlers, so it declares no queue yet; it gets one (with its dead-letter queue) when its first handler is added.
