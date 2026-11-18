@@ -620,3 +620,32 @@ button.mo-view-link {
     flex-wrap: wrap;
   }
 }
+
+/* Close (open -> closed). Cancel reuses .mo-delete-button. */
+.mo-status-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #303d52;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mo-status-button:hover:not(:disabled) {
+  background: #f2f5f9;
+}
+
+.mo-status-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.mo-card-actions {
+  flex-wrap: wrap;
+}
