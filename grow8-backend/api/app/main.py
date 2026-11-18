@@ -1,4 +1,5 @@
 import logging
+import re
 from collections.abc import Callable
 
 from fastapi import FastAPI
@@ -7,14 +8,37 @@ from fastapi.responses import JSONResponse
 from grow8_common import db, messaging
 from grow8_common.logging import configure_logging
 
-from app.core.body_limit import BodySizeLimitMiddleware
+from app.core.body_limit import BodySizeLimitMiddleware, UploadLimit
 from app.core.config import get_api_settings
 from app.core.exceptions import register_exception_handlers
 from app.dependencies.request import REQUEST_ID_HEADER, register_request_id_middleware
 from app.routers import applications, auth, contributors, notifications, opportunities, reference
+from app.services import submission_rules
 from app.services.resume_service import MAX_BYTES as RESUME_MAX_BYTES
 
 API_PREFIX = "/api/v1"
+
+# Upload bodies are size-checked before FastAPI reads them (app/core/body_limit.py).
+UPLOAD_LIMITS = (
+    UploadLimit(
+        method="PUT",
+        path=re.compile(re.escape(f"{API_PREFIX}{contributors.RESUME_PATH}")),
+        # the file plus room for the multipart boundaries and part headers
+        max_bytes=RESUME_MAX_BYTES + 64 * 1024,
+        code="RESUME_TOO_LARGE",
+        message="A resume can be at most 10 MB",
+    ),
+    UploadLimit(
+        method="POST",
+        path=re.compile(re.escape(f"{API_PREFIX}/applications/") + r"[0-9]+/submission"),
+        max_bytes=submission_rules.MAX_REQUEST_BYTES,
+        code="ATTACHMENT_TOO_LARGE",
+        message=(
+            f"A submission can have at most {submission_rules.MAX_FILES} files "
+            f"of {submission_rules.MAX_FILE_BYTES // (1024 * 1024)} MB each"
+        ),
+    ),
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,13 +63,7 @@ def create_app() -> FastAPI:
 
     app = FastAPI(title="GROW8 API", version="0.1.0")
     # Added before CORS so CORS wraps it and its 411/413 responses stay readable.
-    app.add_middleware(
-        BodySizeLimitMiddleware,
-        # the file plus room for the multipart boundaries and part headers
-        limits={("PUT", f"{API_PREFIX}{contributors.RESUME_PATH}"): RESUME_MAX_BYTES + 64 * 1024},
-        code="RESUME_TOO_LARGE",
-        message="A resume can be at most 10 MB",
-    )
+    app.add_middleware(BodySizeLimitMiddleware, limits=UPLOAD_LIMITS)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
