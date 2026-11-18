@@ -16,6 +16,27 @@ CATALOG = json.loads((Path(__file__).parent / 'cases.json').read_text(encoding='
 BY_ID = {c['id']: c for c in CATALOG}
 assert len(CATALOG) == len(BY_ID) == 237, 'Catalog must contain 237 unique approved IDs'
 
+CURRENT_OPERATIONS = json.loads(
+    (Path(__file__).parent / 'current-api-cases.json').read_text(encoding='utf-8')
+)['operations']
+CURRENT_CATALOG = [
+    {
+        'id': case_id,
+        'api': operation['api'],
+        'method': operation['method'],
+        'path': operation['path'],
+        'scenario': scenario,
+        'expected_result': expected_result,
+    }
+    for operation in CURRENT_OPERATIONS
+    for case_id, scenario, expected_result in operation['cases']
+]
+CURRENT_BY_ID = {case['id']: case for case in CURRENT_CATALOG}
+assert len(CURRENT_CATALOG) == len(CURRENT_BY_ID) == 68, (
+    'Current API catalog must contain 68 unique cases'
+)
+ALL_BY_ID = {**BY_ID, **CURRENT_BY_ID}
+
 DEV_PASSWORD = 'Grow8Dev!2026'
 EMAILS = {
     'creator': 'maple.bakery@grow8.dev',
@@ -31,7 +52,8 @@ NOTIFS = '/api/v1/notifications'
 def pytest_configure(config):
     for marker in ('smoke: critical quick check', 'sanity: feature confidence check',
                    'regression: functional and negative API assertions',
-                   'deferred: approved but excluded infrastructure scenario'):
+                   'deferred: approved but excluded infrastructure scenario',
+                   'current_api_smoke: supplemental current API scenarios'):
         config.addinivalue_line('markers', marker)
 
 
@@ -50,6 +72,16 @@ def parameters(prefix: str):
             return [pytest.mark.sanity]
         return [pytest.mark.regression]
     return [pytest.param(c['id'], marks=marker(c), id=c['id']) for c in cases]
+
+
+def current_parameters(prefix: str):
+    cases = [case for case in CURRENT_CATALOG if case['id'].startswith(prefix)]
+    if not cases:
+        raise AssertionError(f'No current API cases for {prefix}')
+    return [
+        pytest.param(case['id'], marks=pytest.mark.current_api_smoke, id=case['id'])
+        for case in cases
+    ]
 
 
 def expect(response, status: int, code: str | None = None):
@@ -140,7 +172,9 @@ class EvidenceClient:
         self.client = client
         self.request = request
         self.trace: list[dict] = []
-        self.expected = BY_ID.get(request.node.callspec.params.get('case_id', ''), {}).get('expected_result', '')
+        self.expected = ALL_BY_ID.get(
+            request.node.callspec.params.get('case_id', ''), {}
+        ).get('expected_result', '')
         request.node._approved_qa = self
 
     def request_api(self, method, url, **kwargs):
@@ -160,6 +194,8 @@ class EvidenceClient:
     def get(self, url, **kwargs): return self.request_api('GET', url, **kwargs)
     def post(self, url, **kwargs): return self.request_api('POST', url, **kwargs)
     def patch(self, url, **kwargs): return self.request_api('PATCH', url, **kwargs)
+    def put(self, url, **kwargs): return self.request_api('PUT', url, **kwargs)
+    def delete(self, url, **kwargs): return self.request_api('DELETE', url, **kwargs)
     def request_raw(self, method, url, **kwargs): return self.request_api(method, url, **kwargs)
 
 
@@ -186,7 +222,7 @@ def _html_extras(item, report):
         return
     audit = getattr(item, '_approved_qa', None)
     case_id = item.callspec.params.get('case_id', '') if hasattr(item,'callspec') else ''
-    case = BY_ID.get(case_id, {})
+    case = ALL_BY_ID.get(case_id, {})
     trace = audit.trace if audit is not None else []
     # pytest-html expects trusted HTML here; escape content to avoid injection.
     evidence = {

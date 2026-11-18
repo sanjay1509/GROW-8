@@ -83,7 +83,6 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 | Admin actions | `FEEDBACK_APPROVED` | All three services | Updates public ratings and notifies the feedback author and subject. | Planned |
 | Admin actions | `FEEDBACK_REJECTED` | All three services | Records the rejection and notifies the feedback author and subject. | Planned |
 Event payloads, queues and failure handling are documented in [grow8-backend/docs/events.md](grow8-backend/docs/events.md).
-Event payloads, queues and failure handling are documented in [grow8-backend/docs/events.md](grow8-backend/docs/events.md).
 
 ### Database
 
@@ -202,7 +201,7 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole st
 
 ### Design and diagrams
 
-- [Architecture diagram](docs/diagrams/architectureDiagram607Project.png)
+- [Architecture diagram, as implemented](docs/diagrams/GROW8-Architecture.png) ([SVG](docs/diagrams/GROW8-Architecture.svg)); original proposal: [architectureDiagram607Project.png](docs/diagrams/architectureDiagram607Project.png)
 - [Class diagram](docs/diagrams/class-diagram.drawio.svg)
 - [ER diagram, generated from the live schema](docs/diagrams/GROW8-ER-Diagram.svg) ([PDF](docs/diagrams/GROW8-ER-Diagram.pdf)); original hand-drawn version: [ER-diagram.drawio.svg](docs/diagrams/ER-diagram.drawio.svg)
 - [Relational schema diagram](docs/diagrams/GROW8-Relational-Schema.svg)

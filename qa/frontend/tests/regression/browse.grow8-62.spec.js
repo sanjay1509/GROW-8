@@ -79,16 +79,17 @@ test('BRW-017 @regression Hide/show filters preserves selection and results',asy
  await expect(visibleBrowseCards(page)).toHaveCount(3);
 });
 test('BRW-018 @regression API error and Try again recovers on retry',async({page})=>{
- let requests=0;
+ let requests=0,recover=false;
  await mockApi(page,async(route,path)=>{
   if(path.endsWith('/opportunities')){
    requests++;
-   return requests===1?jsonReply(route,503,{detail:'Temporary failure'}):jsonReply(route,200,{items:baseItems,total:baseItems.length});
+   return recover?jsonReply(route,200,{items:baseItems,total:baseItems.length}):jsonReply(route,503,{detail:'Temporary failure'});
   }
   return jsonReply(route,404,{});
  });
  await page.goto('/opportunities');
  await expect(page.getByRole('heading',{name:'Unable to load opportunities'})).toBeVisible();
+ recover=true;
  await page.getByRole('button',{name:'Try again'}).click();
  await expect(visibleBrowseCards(page)).toHaveCount(baseItems.length);
  expect(requests).toBeGreaterThanOrEqual(2);

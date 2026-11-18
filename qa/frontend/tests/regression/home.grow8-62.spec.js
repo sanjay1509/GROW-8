@@ -1,4 +1,5 @@
 import {test,expect} from '../../helpers/screenshot-every-test.js';
+import {baseItems,jsonReply,mockApi} from '../../helpers/fixtures-62.js';
 
 test('HOME-005 @regression Contributor and Creator cards navigate to configured destinations',async({page})=>{
  await page.goto('/');
@@ -12,15 +13,18 @@ test('HOME-005 @regression Contributor and Creator cards navigate to configured 
  await expect(page).toHaveURL(/\/creator\/dashboard$/);
 });
 test('HOME-006 @regression Featured cards show sample opportunities and metadata',async({page})=>{
+ const featuredItems=baseItems.slice(0,3);
+ await mockApi(page,(route,path)=>path.endsWith('/opportunities')
+  ?jsonReply(route,200,{items:featuredItems,total:featuredItems.length})
+  :jsonReply(route,404,{}));
  await page.goto('/');
  const cards=page.locator('.grow8-featured .grow8-opportunity-card');
- // Sample order intentionally random: assert membership, not position.
  await expect(cards).toHaveCount(3);
- for(const title of ['Social Media Support','Event Volunteer Support','Data Entry and Organization']){
+ for(const title of featuredItems.map(item=>item.title)){
    await expect(page.locator('.grow8-featured').getByText(title,{exact:true})).toBeVisible();
  }
- await expect(page.locator('.grow8-featured').getByText('Green Future NGO')).toBeVisible();
- await expect(page.locator('.grow8-featured').getByText('Calgary, AB').first()).toBeVisible();
+ await expect(page.locator('.grow8-featured').getByText('Maple Street Bakery')).toBeVisible();
+ await expect(page.locator('.grow8-featured').getByText('Calgary').first()).toBeVisible();
 });
 test('HOME-007 @regression Featured View All navigates to Browse',async({page})=>{
  await page.goto('/');await page.locator('.grow8-featured').getByRole('link',{name:/View All/}).click();

@@ -15,8 +15,10 @@ const reportRoot = `reports/${layer}/${suite}/${runId}`;
 
 export default defineConfig({
   testDir: `./${layer}/tests`,
-  // The 62-case release runs ONLY its own specs, leaving older QA tests untouched.
-  ...(layer === 'frontend' ? { testMatch: '**/*.grow8-62.spec.js' } : {}),
+  // Keep the approved suite separate while including current-code frontend checks.
+  ...(layer === 'frontend'
+    ? { testMatch: ['**/*.grow8-62.spec.js', '**/*.current.spec.js'] }
+    : {}),
   timeout: 30_000,
   expect: { timeout: 10_000 },
   workers: process.env.CI ? 2 : undefined,

@@ -138,9 +138,14 @@ def test_create_opportunity(case_id,api,seeded_db):
         for role in ('contributor','admin'):
             status_error(api,'POST',OPPS,403,'ROLE_FORBIDDEN',headers=signin(api,role),body=valid_minimal())
     elif n==8:
-        # Seed setup only: change role for a contributor with no organization.
-        with seeded_db.cursor() as cur:cur.execute("UPDATE user_account SET role='creator' WHERE user_id=6")
-        r=api.post(OPPS,headers=signin_raw(api,'jordan.lee@grow8.dev'),json=valid_minimal())
+        # A creator account without an organization is needed for this API case.
+        with seeded_db.cursor() as cur:
+            cur.execute(
+                "INSERT INTO user_account (email, password_hash, role, full_name) "
+                "SELECT %s, password_hash, 'creator', %s FROM user_account WHERE user_id=2",
+                ('orgless.creator@grow8.dev', 'QA Creator Without Organization'),
+            )
+        r=api.post(OPPS,headers=signin_raw(api,'orgless.creator@grow8.dev'),json=valid_minimal())
         expect(r,409,'ORGANIZATION_REQUIRED')
     elif n==9:
         for field in ('title','description','category'):
