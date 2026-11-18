@@ -19,6 +19,8 @@ import CreatorApplications from "./pages/CreatorApplications/CreatorApplications
 import ContributorLayout from "./components/Contributor/ContributorLayout/ContributorLayout";
 import ContributorDashboard from "./components/Contributor/ContributorDashboard/ContributorDashboard";
 import ContributorApplications from "./pages/ContributorApplications/ContributorApplications";
+import ContributorProfile from "./pages/ContributorProfile /ContributorProfile";
+import ContributorSettings from "./pages/ContributorSettings/ContributorSettings";
 
 import "./App.css";
 
@@ -40,6 +42,16 @@ export default function App() {
           <Route
             path="/contributor/applications"
             element={<ContributorApplications />}
+          />
+
+          <Route
+            path="/contributor/profile"
+            element={<ContributorProfile />}
+          />
+
+          <Route
+            path="/contributor/settings"
+            element={<ContributorSettings />}
           />
         </Route>
 
