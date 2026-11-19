@@ -121,11 +121,12 @@ An application:
     "city": "Calgary",
     "skills": [{ "code": "data-cleaning", "name": "Data cleaning" }, { "code": "spreadsheets", "name": "Spreadsheets" }, { "code": "web-basics", "name": "Web basics (HTML/CSS)" }],
     "has_resume": true
-  }
+  },
+  "submission_id": null
 }
 ```
 
-The applicant's email and other contact details are not included. `applicant.has_resume` says whether `GET /applications/{id}/resume` has a file to return.
+The applicant's email and other contact details are not included. `applicant.has_resume` says whether `GET /applications/{id}/resume` has a file to return. `submission_id` is the submitted work's id, or `null` until the applicant submits work (see [Work submissions](#work-submissions)), so a list can show "Submit work" or "Submitted" without a call per application.
 
 ## Resumes
 
@@ -145,7 +146,7 @@ Metadata:
 { "file_name": "Alex Chen CV.pdf", "content_type": "application/pdf", "size_bytes": 48213, "uploaded_at": "2026-11-15T22:10:04Z" }
 ```
 
-`file_name` is for display only (cleaned, always ends in `.pdf`). Downloads are `application/pdf` with `Content-Disposition: attachment` (the name also sent as UTF-8 `filename*`), `X-Content-Type-Options: nosniff` and `Cache-Control: private, no-store`.
+`file_name` is for display only (cleaned, always ends in `.pdf`). Downloads are `application/pdf` with `Content-Disposition: attachment` (the name also sent as UTF-8 `filename*`), `X-Content-Type-Options: nosniff` and `Cache-Control: private, no-store`. `Content-Disposition` is exposed to cross-origin JavaScript (CORS), so a frontend that downloads with `fetch` can read the file name from it.
 
 From a browser:
 
@@ -156,6 +157,45 @@ await fetch(`${API}/contributors/me/resume`, { method: "PUT", body: form, header
 ```
 
 Don't set `Content-Type` yourself; the browser adds the multipart boundary and `Content-Length`.
+
+## Work submissions
+
+An accepted contributor submits their work once, with optional files, for the owning creator to verify. Rules and reasons: [ADR 0012](adr/0012-work-submission.md); storage: [ADR 0007](adr/0007-local-file-storage.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| POST | `/applications/{id}/submission` | the applicant | `multipart/form-data`: `description` (1–5000 chars), `hours_claimed` (> 0, at most 9999.99, 2 decimals), and up to 5 `files` (optional, repeat the field). → 201 with the submission. The application must be `accepted` (409 `APPLICATION_NOT_ACCEPTED`) and the opportunity not cancelled (409 `OPPORTUNITY_CANCELLED`; closed is fine). Once per application, no resubmitting (409 `WORK_ALREADY_SUBMITTED`). Emits `WORK_SUBMITTED` (the owning creator is notified). |
+| GET | `/applications/{id}/submission` | the applicant or the owning creator | The submission with its attachments' metadata. Anyone else → 404 `APPLICATION_NOT_FOUND`; nothing submitted yet → 404 `SUBMISSION_NOT_FOUND`. |
+| GET | `/submissions/{id}/attachments/{attachment_id}` | the applicant or the owning creator | Downloads the file. Anything you can't see or that doesn't exist → 404 `ATTACHMENT_NOT_FOUND`. |
+
+Files: PDF, PNG, JPEG, DOCX, XLSX, CSV or TXT, at most 5 MB each (413 `ATTACHMENT_TOO_LARGE`), non-empty (422 `EMPTY_FILE`). The type is decided by the content (415 `UNSUPPORTED_FILE_TYPE`), and one bad file refuses the whole submission. More than 5 files → 422 `TOO_MANY_FILES`. The request needs `Content-Length` (411 `LENGTH_REQUIRED`).
+
+A submission:
+
+```json
+{
+  "submission_id": 6,
+  "application_id": 12,
+  "description": "Typed up 40 recipes into the shared sheet.",
+  "hours_claimed": "6.50",
+  "submitted_at": "2026-11-18T15:00:00Z",
+  "attachments": [
+    { "attachment_id": 3, "file_name": "recipes.xlsx", "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "size_bytes": 23855, "uploaded_at": "2026-11-18T15:00:00Z" }
+  ]
+}
+```
+
+`hours_claimed` is a decimal sent as a string. `file_name` is for display only: cleaned, and always ending in an extension that matches the detected type. Downloads use the stored `content_type` with the same headers as resumes (`Content-Disposition: attachment`, `nosniff`, `no-store`).
+
+From a browser:
+
+```js
+const form = new FormData();
+form.append("description", "Typed up 40 recipes.");
+form.append("hours_claimed", "6.5");
+for (const file of fileInput.files) form.append("files", file);
+await fetch(`${API}/applications/${applicationId}/submission`, { method: "POST", body: form, headers: { Authorization: `Bearer ${token}` } });
+```
 
 ## Notifications
 
@@ -191,6 +231,7 @@ A notification:
 | `application_decided` | the contributor who applied | Their application was accepted or rejected. |
 | `application_withdrawn` | the creator who owns the opportunity | An applicant withdrew; the message says if an accepted place opened up. |
 | `opportunity_cancelled` | each pending or accepted applicant | The opportunity was cancelled. |
+| `work_submitted` | the creator who owns the opportunity | An accepted applicant submitted their work for verification. |
 
 `opportunity_id` links to `GET /opportunities/{id}`. It is `null` if the opportunity was deleted. `title` and `message` are stored as written and don't change if the opportunity is edited later.
 

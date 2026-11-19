@@ -61,3 +61,4 @@ class NotificationType(StrEnum):
     APPLICATION_DECIDED = "application_decided"  # to the contributor who applied
     APPLICATION_WITHDRAWN = "application_withdrawn"  # to the creator who owns the opportunity
     OPPORTUNITY_CANCELLED = "opportunity_cancelled"  # to its pending and accepted applicants
+    WORK_SUBMITTED = "work_submitted"  # to the creator who owns the opportunity

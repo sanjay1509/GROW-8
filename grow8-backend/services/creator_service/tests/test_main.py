@@ -51,6 +51,7 @@ def test_service_subscribes_to_its_events() -> None:
         EventType.OPPORTUNITY_CREATED,
         EventType.APPLICATION_SUBMITTED,
         EventType.APPLICATION_WITHDRAWN,
+        EventType.WORK_SUBMITTED,
     ]
 
 
@@ -143,3 +144,37 @@ def test_application_withdrawn_uses_its_own_notification_type(
 
     assert calls == ["handle", "commit", "close"]
     assert seen["notifier"]._type == NotificationType.APPLICATION_WITHDRAWN
+
+
+def test_work_submitted_uses_its_own_notification_type(
+    calls: list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from decimal import Decimal
+
+    from grow8_common.events import WorkSubmittedPayload
+
+    payload = WorkSubmittedPayload(
+        submission_id=9,
+        application_id=41,
+        opportunity_id=1,
+        organization_id=1,
+        opportunity_title="Digitize paper recipe archive",
+        contributor_id=5,
+        contributor_name="Alex Chen",
+        hours_claimed=Decimal("6.50"),
+        attachment_count=2,
+    )
+    seen = {}
+
+    def fake_handler(payload, *, session, notifier):
+        calls.append("handle")
+        seen["notifier"] = notifier
+
+    monkeypatch.setattr(main, "handle_work_submitted", fake_handler)
+
+    main._on_work_submitted(
+        EventEnvelope.build(payload, EventType.WORK_SUBMITTED, "req-11"), payload
+    )
+
+    assert calls == ["handle", "commit", "close"]
+    assert seen["notifier"]._type == NotificationType.WORK_SUBMITTED
