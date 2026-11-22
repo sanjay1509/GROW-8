@@ -114,6 +114,8 @@ def test_subscribes_to_its_events() -> None:
         EventType.WORK_REJECTED,
         EventType.FEEDBACK_APPROVED,
         EventType.FEEDBACK_REJECTED,
+        EventType.OPPORTUNITY_TAKEN_DOWN,
+        EventType.REPORT_DISMISSED,
     }
 
 
