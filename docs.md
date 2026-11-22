@@ -373,7 +373,39 @@ Feedback 5 comes first in the queue because it reports a discrepancy. Rejecting 
 
 If you keep your local data instead of running `make reset-db`, add the three new notification types first (the `ALTER TABLE` is in ADR 0015) and restart all three consumers.
 
-### 3.8 When something is refused
+### 3.8 Reporting opportunities
+
+A contributor who sees a misleading, unsafe, discriminatory or scam posting can report it once. Admins review each report: dismiss it, or uphold it and **take the opportunity down**. A takedown cancels the opportunity, tells its applicants it won't go ahead, and tells the creator why. The creator never learns who reported ([ADR 0016](grow8-backend/docs/adr/0016-opportunity-reports-and-takedown.md)).
+
+| Task | Request |
+| --- | --- |
+| Report (contributor) | `POST /api/v1/opportunities/{id}/reports` with `{"reason": "misleading_terms", "details": "optional"}` |
+| Your reports and their outcome | `GET /api/v1/reports/mine` |
+| Review queue (admin) | `GET /api/v1/admin/reports?status=pending` (most-reported opportunities first) |
+| Take down (admin) | `POST /api/v1/admin/reports/{id}/review` with `{"decision": "upheld", "reason": "why"}` |
+| Dismiss (admin) | `POST /api/v1/admin/reports/{id}/review` with `{"decision": "dismissed", "reason": "optional note"}` |
+
+Reasons: `misleading_terms`, `unsafe_conditions`, `discriminatory`, `scam_or_spam`, `other`. A takedown upholds every pending report on the opportunity at once. It is refused once work has been submitted on the opportunity (409 `WORK_ALREADY_SUBMITTED`); dismiss the report instead.
+
+Try it on the dev data. Opportunity **3** (Maple Street Bakery's social media calendar) is open, Sam has a pending application, and no work has been submitted:
+
+```bash
+# as alex.chen@grow8.dev
+curl -X POST http://localhost:8000/api/v1/opportunities/3/reports \
+  -H "Authorization: Bearer <alex's token>" -H "Content-Type: application/json" \
+  -d '{"reason": "misleading_terms", "details": "Listed as paid, but the pay is not real."}'
+# as admin@grow8.dev: find the report, then take it down
+curl "http://localhost:8000/api/v1/admin/reports?status=pending" -H "Authorization: Bearer <admin token>"
+curl -X POST http://localhost:8000/api/v1/admin/reports/<report_id>/review \
+  -H "Authorization: Bearer <admin token>" -H "Content-Type: application/json" \
+  -d '{"decision": "upheld", "reason": "The advertised pay is not real."}'
+```
+
+Then `GET /api/v1/opportunities/3` shows `"status": "cancelled"` and it is gone from browse. Notifications: `maple.bakery@grow8.dev` gets "Opportunity taken down" with the reason, `sam.patel@grow8.dev` gets told their application won't go ahead, and Alex gets "Thanks for your report". Reporting again gets 409 `OPPORTUNITY_ALREADY_REPORTED`; a creator reporting gets 403. `make reset-db` puts opportunity 3 back.
+
+This feature adds two tables, so if you keep your local data instead of running `make reset-db`, run the statements listed in ADR 0016 first and restart all three consumers.
+
+### 3.9 When something is refused
 
 Every error has the body `{"error": {"code": "...", "message": "..."}}`. All codes are listed in [`grow8-backend/docs/error-codes.md`](grow8-backend/docs/error-codes.md).
 

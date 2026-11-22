@@ -2,13 +2,13 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Updated Oct 23, 2026 against the committed schema, `grow8-backend/db/init/001_schema.sql`, and on Oct 27 for the `notification` table (ADR 0003). The first version (Oct 14) analysed the proposal's preliminary entities; section 6 lists what changed between the two. Issue codes (I1–I9, R1–R22) refer to `relationship-validation.md`; column-level details are in `data-dictionary.md`.
+> Updated Oct 23, 2026 against the committed schema, `grow8-backend/db/init/001_schema.sql`, on Oct 27 for the `notification` table (ADR 0003), and on Nov 22 for `opportunity_report` and `report_review` (ADR 0016). The first version (Oct 14) analysed the proposal's preliminary entities; section 6 lists what changed between the two. Issue codes (I1–I9, R1–R27) refer to `relationship-validation.md`; column-level details are in `data-dictionary.md`.
 
 ## 1. Purpose
 
-For each of the 19 tables (the 17 from the proposal plus `notification` and `contributor_resume`) this document gives the keys and the functional dependencies (FDs), then checks the table against 1NF, 2NF, 3NF and BCNF. Section 4 covers redundancy *between* tables, which per-table normalization does not catch, and how each case is either removed or enforced.
+For each of the 21 tables (the 17 from the proposal plus `notification`, `contributor_resume`, `opportunity_report` and `report_review`) this document gives the keys and the functional dependencies (FDs), then checks the table against 1NF, 2NF, 3NF and BCNF. Section 4 covers redundancy *between* tables, which per-table normalization does not catch, and how each case is either removed or enforced.
 
-**Result:** all 19 tables are in BCNF. Every derived total is calculated by a view instead of being stored, and the few cross-table redundancies kept on purpose are each enforced by a constraint or trigger.
+**Result:** all 21 tables are in BCNF. Every derived total is calculated by a view instead of being stored, and the few cross-table redundancies kept on purpose are each enforced by a constraint or trigger.
 
 ## 2. Notation and method
 
@@ -183,6 +183,22 @@ Added Nov 15 (ADRs 0007, 0008); not in the proposal. A contributor's optional re
 - **FDs:** `user_id → file_name, content_type, size_bytes, storage_key, uploaded_at`; `storage_key → user_id`
 - **Why a separate table:** as columns on `contributor_profile`, all five would be NULL together for contributors without a resume, needing a CHECK to keep them all-or-nothing. A 1 : 0..1 table has no NULLs and keeps the profile's FDs unchanged.
 - **Normal form:** both determinants are candidate keys → **BCNF**.
+
+### 3.20 opportunity_report
+`opportunity_report(report_id, opportunity_id, reporter_user_id, reason, details, created_at)`
+
+- **PK** `report_id` · **CK** `(opportunity_id, reporter_user_id)` (`uq_opportunity_report_reporter`)
+- **FDs:** `report_id → opportunity_id, reporter_user_id, reason, details, created_at`; `(opportunity_id, reporter_user_id) → report_id`
+- **Normal form:** **BCNF**. Both left sides are candidate keys.
+- **Status is not stored here**; it is derived from `report_review` (pending while there is no row), the same pattern as `feedback` and `admin_review` (I1).
+
+### 3.21 report_review
+`report_review(review_id, report_id, admin_user_id, decision, reason, reviewed_at)`
+
+- **PK** `review_id` · **CK** `report_id` (`uq_report_review_report`)
+- **FDs:** `review_id → report_id, admin_user_id, decision, reason, reviewed_at`; `report_id → review_id`
+- **Normal form:** **BCNF**.
+- **Whether an opportunity was taken down is not stored** on `opportunity`: a cancelled opportunity with an upheld report was taken down by an admin. Storing a flag would repeat that fact (R24, R26).
 
 ## 4. Redundancy between tables
 

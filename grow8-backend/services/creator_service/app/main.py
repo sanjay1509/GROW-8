@@ -12,6 +12,7 @@ from grow8_common.events import (
     FeedbackApprovedPayload,
     FeedbackRejectedPayload,
     OpportunityCreatedPayload,
+    OpportunityTakenDownPayload,
     WorkSubmittedPayload,
 )
 from grow8_common.logging import configure_logging
@@ -24,6 +25,7 @@ from app.handlers.application_withdrawn import handle_application_withdrawn
 from app.handlers.feedback_approved import handle_feedback_approved
 from app.handlers.feedback_rejected import handle_feedback_rejected
 from app.handlers.opportunity_created import handle_opportunity_created
+from app.handlers.opportunity_taken_down import handle_opportunity_taken_down
 from app.handlers.work_submitted import handle_work_submitted
 
 SERVICE_NAME = "creator_service"
@@ -83,6 +85,15 @@ def _on_feedback_rejected(envelope: EventEnvelope, payload: FeedbackRejectedPayl
         session.commit()
 
 
+def _on_opportunity_taken_down(
+    envelope: EventEnvelope, payload: OpportunityTakenDownPayload
+) -> None:
+    with get_sessionmaker()() as session:
+        notifier = DbNotifier(session, envelope.event_id, NotificationType.OPPORTUNITY_TAKEN_DOWN)
+        handle_opportunity_taken_down(payload, session=session, notifier=notifier)
+        session.commit()
+
+
 # Event type -> handler. Each key becomes a binding on this service's queue.
 HANDLERS: dict[EventType, Handler] = {
     EventType.OPPORTUNITY_CREATED: _on_opportunity_created,
@@ -91,6 +102,7 @@ HANDLERS: dict[EventType, Handler] = {
     EventType.WORK_SUBMITTED: _on_work_submitted,
     EventType.FEEDBACK_APPROVED: _on_feedback_approved,
     EventType.FEEDBACK_REJECTED: _on_feedback_rejected,
+    EventType.OPPORTUNITY_TAKEN_DOWN: _on_opportunity_taken_down,
 }
 
 

@@ -44,7 +44,7 @@ def calls(monkeypatch: pytest.MonkeyPatch) -> list[str]:
 
 
 def test_subscribes_to_its_events() -> None:
-    assert set(main.HANDLERS) == {EventType.FEEDBACK_SUBMITTED}
+    assert set(main.HANDLERS) == {EventType.FEEDBACK_SUBMITTED, EventType.OPPORTUNITY_REPORTED}
 
 
 def test_handles_with_db_notifier_then_commits(

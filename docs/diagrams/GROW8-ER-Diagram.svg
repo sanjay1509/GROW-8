@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2120" height="1780" viewBox="0 0 2120 1780">
 <rect width="2120" height="1780" fill="#FFFFFF"/>
 <text x="40.0" y="48.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="30" font-weight="800" fill="#0F172A" text-anchor="start">GROW8 — Entity-Relationship Diagram</text>
-<text x="40.0" y="74.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13.5" font-weight="400" fill="#475569" text-anchor="start">MySQL 8.4 · 19 tables · 130 columns · 27 foreign keys · 17 integrity triggers · 5 derived-value views · all tables in BCNF</text>
+<text x="40.0" y="74.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13.5" font-weight="400" fill="#475569" text-anchor="start">MySQL 8.4 · 21 tables · 142 columns · 31 foreign keys · 21 integrity triggers · 5 derived-value views · all tables in BCNF</text>
 <text x="2080.0" y="46.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="end">ENSF 608 · Group 2</text>
-<text x="2080.0" y="70.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#64748B" text-anchor="end">Generated from db/init/001_schema.sql · Nov 16, 2026</text>
+<text x="2080.0" y="70.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#64748B" text-anchor="end">Generated from db/init/001_schema.sql · Nov 22, 2026</text>
 <line x1="40" y1="88" x2="2080" y2="88" stroke="#E2E8F0" stroke-width="1.2"/>
-<path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L1665,985 L1665,805.5 L1707,805.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
+<path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L1312,985 A6,6 0 0 1 1324,985 L1665,985 L1665,805.5 L1707,805.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="363" y1="1140.5" x2="363" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="368" y1="1140.5" x2="368" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
 <path d="M1707,798.5 L1696,805.5 L1707,812.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="1707" y1="805.5" x2="1696" y2="805.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="1689" cy="805.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
 <path d="M1618,785.5 L1650,785.5 L1650,784.5 L1707,784.5" fill="none" stroke="#DC2626" stroke-width="1.6"/>
@@ -32,19 +32,19 @@
 <path d="M760,1148.5 L885,1148.5 L885,854.5 L933,854.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="767" y1="1140.5" x2="767" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="772" y1="1140.5" x2="772" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
 <path d="M933,847.5 L922,854.5 L933,861.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="933" y1="854.5" x2="922" y2="854.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="915" cy="854.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
-<path d="M1336,414.5 L1240,414.5 L1240,875.5 L1181,875.5" fill="none" stroke="#7C3AED" stroke-width="1.6"/>
+<path d="M1336,414.5 L1324,414.5 A6,6 0 0 0 1312,414.5 L1240,414.5 L1240,875.5 L1181,875.5" fill="none" stroke="#7C3AED" stroke-width="1.6"/>
 <line x1="1329" y1="406.5" x2="1329" y2="422.5" stroke="#7C3AED" stroke-width="1.6" fill="none"/><line x1="1324" y1="406.5" x2="1324" y2="422.5" stroke="#7C3AED" stroke-width="1.6" fill="none"/>
 <path d="M1181,868.5 L1192,875.5 L1181,882.5" stroke="#7C3AED" stroke-width="1.6" fill="none"/><line x1="1181" y1="875.5" x2="1192" y2="875.5" stroke="#7C3AED" stroke-width="1.6" fill="none"/><circle cx="1199" cy="875.5" r="4.5" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.6"/>
 <path d="M75,1148.5 L40,1148.5 L40,225.5 L75,225.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="68" y1="1140.5" x2="68" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="63" y1="1140.5" x2="63" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
 <line x1="68" y1="217.5" x2="68" y2="233.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="58" cy="225.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
-<path d="M1183,574.5 L1234,574.5 A6,6 0 0 1 1246,574.5 L1270,574.5 L1270,806.5 L1336,806.5" fill="none" stroke="#D97706" stroke-width="1.6"/>
+<path d="M1183,574.5 L1234,574.5 A6,6 0 0 1 1246,574.5 L1270,574.5 L1270,806.5 L1312,806.5 A6,6 0 0 1 1324,806.5 L1336,806.5" fill="none" stroke="#D97706" stroke-width="1.6"/>
 <line x1="1190" y1="566.5" x2="1190" y2="582.5" stroke="#D97706" stroke-width="1.6" fill="none"/><line x1="1195" y1="566.5" x2="1195" y2="582.5" stroke="#D97706" stroke-width="1.6" fill="none"/>
 <path d="M1336,799.5 L1325,806.5 L1336,813.5" stroke="#D97706" stroke-width="1.6" fill="none"/><line x1="1336" y1="806.5" x2="1325" y2="806.5" stroke="#D97706" stroke-width="1.6" fill="none"/><circle cx="1318" cy="806.5" r="4.5" fill="#FFFFFF" stroke="#D97706" stroke-width="1.6"/>
-<path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L1284,985 L1284,827.5 L1336,827.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
+<path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L1284,985 L1284,827.5 L1312,827.5 A6,6 0 0 1 1324,827.5 L1336,827.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="363" y1="1140.5" x2="363" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="368" y1="1140.5" x2="368" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
 <path d="M1336,820.5 L1325,827.5 L1336,834.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="1336" y1="827.5" x2="1325" y2="827.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="1318" cy="827.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
-<path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L1300,985 L1300,848.5 L1336,848.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
+<path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L1300,985 L1300,848.5 L1312,848.5 A6,6 0 0 1 1324,848.5 L1336,848.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="363" y1="1140.5" x2="363" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="368" y1="1140.5" x2="368" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
 <path d="M1336,841.5 L1325,848.5 L1336,855.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="1336" y1="848.5" x2="1325" y2="848.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="1318" cy="848.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
 <path d="M498,184.5 L470,184.5 L470,120 L880,120 L880,314.5 L933,314.5" fill="none" stroke="#059669" stroke-width="1.6"/>
@@ -59,35 +59,48 @@
 <path d="M375,204.5 L436,204.5 L436,205.5 L498,205.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="382" y1="196.5" x2="382" y2="212.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="387" y1="196.5" x2="387" y2="212.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
 <path d="M498,198.5 L487,205.5 L498,212.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="498" y1="205.5" x2="487" y2="205.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="480" cy="205.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
+<path d="M819,184.5 L899,184.5 A6,6 0 0 1 911,184.5 L1318,184.5 L1318,1349.5 L1336,1349.5" fill="none" stroke="#059669" stroke-width="1.6"/>
+<line x1="826" y1="176.5" x2="826" y2="192.5" stroke="#059669" stroke-width="1.6" fill="none"/><line x1="831" y1="176.5" x2="831" y2="192.5" stroke="#059669" stroke-width="1.6" fill="none"/>
+<path d="M1336,1342.5 L1325,1349.5 L1336,1356.5" stroke="#059669" stroke-width="1.6" fill="none"/><line x1="1336" y1="1349.5" x2="1325" y2="1349.5" stroke="#059669" stroke-width="1.6" fill="none"/><circle cx="1318" cy="1349.5" r="4.5" fill="#FFFFFF" stroke="#059669" stroke-width="1.6"/>
+<path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L1312,985 A6,6 0 0 1 1324,985 L1620,985 L1620,1370.5 L1598,1370.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
+<line x1="363" y1="1140.5" x2="363" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="368" y1="1140.5" x2="368" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
+<path d="M1598,1363.5 L1609,1370.5 L1598,1377.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="1598" y1="1370.5" x2="1609" y2="1370.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="1616" cy="1370.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
 <path d="M819,184.5 L860,184.5 L860,454.5 L933,454.5" fill="none" stroke="#059669" stroke-width="1.6"/>
 <line x1="826" y1="176.5" x2="826" y2="192.5" stroke="#059669" stroke-width="1.6" fill="none"/><line x1="831" y1="176.5" x2="831" y2="192.5" stroke="#059669" stroke-width="1.6" fill="none"/>
 <path d="M933,447.5 L922,454.5 L933,461.5" stroke="#059669" stroke-width="1.6" fill="none"/><line x1="933" y1="454.5" x2="922" y2="454.5" stroke="#059669" stroke-width="1.6" fill="none"/><circle cx="915" cy="454.5" r="4.5" fill="#FFFFFF" stroke="#059669" stroke-width="1.6"/>
-<path d="M1336,414.5 L1240,414.5 L1240,475.5 L1147,475.5" fill="none" stroke="#7C3AED" stroke-width="1.6"/>
+<path d="M1336,414.5 L1324,414.5 A6,6 0 0 0 1312,414.5 L1240,414.5 L1240,475.5 L1147,475.5" fill="none" stroke="#7C3AED" stroke-width="1.6"/>
 <line x1="1329" y1="406.5" x2="1329" y2="422.5" stroke="#7C3AED" stroke-width="1.6" fill="none"/><line x1="1324" y1="406.5" x2="1324" y2="422.5" stroke="#7C3AED" stroke-width="1.6" fill="none"/>
 <path d="M1147,468.5 L1158,475.5 L1147,482.5" stroke="#7C3AED" stroke-width="1.6" fill="none"/><line x1="1147" y1="475.5" x2="1158" y2="475.5" stroke="#7C3AED" stroke-width="1.6" fill="none"/><circle cx="1165" cy="475.5" r="4.5" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.6"/>
-<path d="M760,1148.5 L885,1148.5 L885,1085.5 L1707,1085.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
+<path d="M760,1148.5 L885,1148.5 L885,1085.5 L1312,1085.5 A6,6 0 0 1 1324,1085.5 L1614,1085.5 A6,6 0 0 1 1626,1085.5 L1674,1085.5 A6,6 0 0 1 1686,1085.5 L1707,1085.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="767" y1="1140.5" x2="767" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="772" y1="1140.5" x2="772" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
 <path d="M1707,1078.5 L1696,1085.5 L1707,1092.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="1707" y1="1085.5" x2="1696" y2="1085.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="1689" cy="1085.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
-<path d="M1181,1169.5 L1707,1169.5" fill="none" stroke="#0891B2" stroke-width="1.6"/>
+<path d="M1181,1169.5 L1312,1169.5 A6,6 0 0 1 1324,1169.5 L1614,1169.5 A6,6 0 0 1 1626,1169.5 L1674,1169.5 A6,6 0 0 1 1686,1169.5 L1707,1169.5" fill="none" stroke="#0891B2" stroke-width="1.6"/>
 <line x1="1188" y1="1161.5" x2="1188" y2="1177.5" stroke="#0891B2" stroke-width="1.6" fill="none"/><circle cx="1198" cy="1169.5" r="4.5" fill="#FFFFFF" stroke="#0891B2" stroke-width="1.6"/>
 <line x1="1700" y1="1161.5" x2="1700" y2="1177.5" stroke="#0891B2" stroke-width="1.6" fill="none"/><circle cx="1690" cy="1169.5" r="4.5" fill="#FFFFFF" stroke="#0891B2" stroke-width="1.6"/>
 <path d="M2007,532.5 L2085,532.5 L2085,1148.5 L1969,1148.5" fill="none" stroke="#DC2626" stroke-width="1.6"/>
 <line x1="2014" y1="524.5" x2="2014" y2="540.5" stroke="#DC2626" stroke-width="1.6" fill="none"/><circle cx="2024" cy="532.5" r="4.5" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.6"/>
 <line x1="1976" y1="1140.5" x2="1976" y2="1156.5" stroke="#DC2626" stroke-width="1.6" fill="none"/><circle cx="1986" cy="1148.5" r="4.5" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.6"/>
+<path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L1312,985 A6,6 0 0 1 1324,985 L1680,985 L1680,1370.5 L1707,1370.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
+<line x1="363" y1="1140.5" x2="363" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="368" y1="1140.5" x2="368" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
+<path d="M1707,1363.5 L1696,1370.5 L1707,1377.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="1707" y1="1370.5" x2="1696" y2="1370.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="1689" cy="1370.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
+<path d="M1598,1328.5 L1614,1328.5 A6,6 0 0 1 1626,1328.5 L1655,1328.5 L1655,1349.5 L1674,1349.5 A6,6 0 0 1 1686,1349.5 L1707,1349.5" fill="none" stroke="#BE185D" stroke-width="1.6"/>
+<line x1="1605" y1="1320.5" x2="1605" y2="1336.5" stroke="#BE185D" stroke-width="1.6" fill="none"/><line x1="1610" y1="1320.5" x2="1610" y2="1336.5" stroke="#BE185D" stroke-width="1.6" fill="none"/>
+<line x1="1700" y1="1341.5" x2="1700" y2="1357.5" stroke="#BE185D" stroke-width="1.6" fill="none"/><circle cx="1690" cy="1349.5" r="4.5" fill="#FFFFFF" stroke="#BE185D" stroke-width="1.6"/>
 <path d="M1605,553.5 L1640,553.5 L1640,326.5 L1707,326.5" fill="none" stroke="#D97706" stroke-width="1.6"/>
 <line x1="1612" y1="545.5" x2="1612" y2="561.5" stroke="#D97706" stroke-width="1.6" fill="none"/><line x1="1617" y1="545.5" x2="1617" y2="561.5" stroke="#D97706" stroke-width="1.6" fill="none"/>
 <path d="M1707,319.5 L1696,326.5 L1707,333.5" stroke="#D97706" stroke-width="1.6" fill="none"/><line x1="1707" y1="326.5" x2="1696" y2="326.5" stroke="#D97706" stroke-width="1.6" fill="none"/><circle cx="1689" cy="326.5" r="4.5" fill="#FFFFFF" stroke="#D97706" stroke-width="1.6"/>
-<path d="M1183,574.5 L1234,574.5 A6,6 0 0 1 1246,574.5 L1336,574.5" fill="none" stroke="#D97706" stroke-width="1.6"/>
+<path d="M1183,574.5 L1234,574.5 A6,6 0 0 1 1246,574.5 L1312,574.5 A6,6 0 0 1 1324,574.5 L1336,574.5" fill="none" stroke="#D97706" stroke-width="1.6"/>
 <line x1="1190" y1="566.5" x2="1190" y2="582.5" stroke="#D97706" stroke-width="1.6" fill="none"/><line x1="1195" y1="566.5" x2="1195" y2="582.5" stroke="#D97706" stroke-width="1.6" fill="none"/>
 <line x1="1329" y1="566.5" x2="1329" y2="582.5" stroke="#D97706" stroke-width="1.6" fill="none"/><circle cx="1319" cy="574.5" r="4.5" fill="#FFFFFF" stroke="#D97706" stroke-width="1.6"/>
 <path d="M1605,553.5 L1707,553.5" fill="none" stroke="#D97706" stroke-width="1.6"/>
 <line x1="1612" y1="545.5" x2="1612" y2="561.5" stroke="#D97706" stroke-width="1.6" fill="none"/><line x1="1617" y1="545.5" x2="1617" y2="561.5" stroke="#D97706" stroke-width="1.6" fill="none"/>
 <line x1="1700" y1="545.5" x2="1700" y2="561.5" stroke="#D97706" stroke-width="1.6" fill="none"/><circle cx="1690" cy="553.5" r="4.5" fill="#FFFFFF" stroke="#D97706" stroke-width="1.6"/>
-<path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L2060,985 L2060,574.5 L2007,574.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
+<path d="M356,1148.5 L440,1148.5 L440,985 L879,985 A6,6 0 0 1 891,985 L879,985 A6,6 0 0 1 891,985 L1312,985 A6,6 0 0 1 1324,985 L2060,985 L2060,574.5 L2007,574.5" fill="none" stroke="#2563EB" stroke-width="1.6"/>
 <line x1="363" y1="1140.5" x2="363" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="368" y1="1140.5" x2="368" y2="1156.5" stroke="#2563EB" stroke-width="1.6" fill="none"/>
 <path d="M2007,567.5 L2018,574.5 L2007,581.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><line x1="2007" y1="574.5" x2="2018" y2="574.5" stroke="#2563EB" stroke-width="1.6" fill="none"/><circle cx="2025" cy="574.5" r="4.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
 <circle cx="40" cy="225.5" r="3.4" fill="#334155"/>
 <circle cx="440" cy="1148.5" r="3.4" fill="#334155"/>
+<circle cx="860" cy="184.5" r="3.4" fill="#334155"/>
 <circle cx="860" cy="454.5" r="3.4" fill="#334155"/>
 <circle cx="885" cy="854.5" r="3.4" fill="#334155"/>
 <circle cx="885" cy="1085.5" r="3.4" fill="#334155"/>
@@ -96,8 +109,10 @@
 <circle cx="1270" cy="574.5" r="3.4" fill="#334155"/>
 <circle cx="1284" cy="985" r="3.4" fill="#334155"/>
 <circle cx="1300" cy="985" r="3.4" fill="#334155"/>
+<circle cx="1620" cy="985" r="3.4" fill="#334155"/>
 <circle cx="1640" cy="553.5" r="3.4" fill="#334155"/>
 <circle cx="1665" cy="985" r="3.4" fill="#334155"/>
+<circle cx="1680" cy="985" r="3.4" fill="#334155"/>
 <rect x="77" y="169" width="300" height="223" rx="6" fill="#0F172A" opacity="0.06"/>
 <rect x="75" y="166" width="300" height="223" rx="6" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.6"/>
 <path d="M75,194 v-22 a6,6 0 0 1 6,-6 h288 a6,6 0 0 1 6,6 v22 z" fill="#2563EB"/>
@@ -554,6 +569,49 @@
 <text x="991.0" y="1393.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">required_verified_hours</text>
 <text x="1139.7" y="1393.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DECIMAL(6,2)</text>
 <text x="1249.0" y="1393.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="10" font-weight="400" fill="#94A3B8" text-anchor="end" font-style="italic">null</text>
+<rect x="1338" y="1293" width="262" height="160" rx="6" fill="#0F172A" opacity="0.06"/>
+<rect x="1336" y="1290" width="262" height="160" rx="6" fill="#FFFFFF" stroke="#BE185D" stroke-width="1.6"/>
+<path d="M1336,1318 v-22 a6,6 0 0 1 6,-6 h250 a6,6 0 0 1 6,6 v22 z" fill="#BE185D"/>
+<text x="1346.0" y="1308.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="start">opportunity_report</text>
+<rect x="1337" y="1318.0" width="260" height="21" fill="#FFFBEB"/>
+<rect x="1344" y="1322.0" width="20" height="13" rx="3" fill="#FDE68A"/><text x="1354.0" y="1331.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
+<text x="1394.0" y="1332.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">report_id</text>
+<text x="1502.4" y="1332.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<rect x="1344" y="1343.0" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="1354.0" y="1352.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
+<text x="1394.0" y="1353.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">opportunity_id</text>
+<text x="1502.4" y="1353.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<rect x="1344" y="1364.0" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="1354.0" y="1373.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
+<text x="1394.0" y="1374.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">reporter_user_id</text>
+<text x="1502.4" y="1374.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="1394.0" y="1395.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">reason</text>
+<text x="1502.4" y="1395.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">ENUM</text>
+<text x="1394.0" y="1416.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">details</text>
+<text x="1502.4" y="1416.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">TEXT</text>
+<text x="1589.0" y="1416.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="10" font-weight="400" fill="#94A3B8" text-anchor="end" font-style="italic">null</text>
+<text x="1394.0" y="1437.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">created_at</text>
+<text x="1502.4" y="1437.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
+<rect x="1709" y="1293" width="280" height="160" rx="6" fill="#0F172A" opacity="0.06"/>
+<rect x="1707" y="1290" width="280" height="160" rx="6" fill="#FFFFFF" stroke="#BE185D" stroke-width="1.6"/>
+<path d="M1707,1318 v-22 a6,6 0 0 1 6,-6 h268 a6,6 0 0 1 6,6 v22 z" fill="#BE185D"/>
+<text x="1717.0" y="1308.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="start">report_review</text>
+<rect x="1708" y="1318.0" width="278" height="21" fill="#FFFBEB"/>
+<rect x="1715" y="1322.0" width="20" height="13" rx="3" fill="#FDE68A"/><text x="1725.0" y="1331.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#92400E" text-anchor="middle">PK</text>
+<text x="1765.0" y="1332.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">review_id</text>
+<text x="1862.1" y="1332.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<rect x="1715" y="1343.0" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="1725.0" y="1352.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
+<rect x="1738" y="1343.0" width="20" height="13" rx="3" fill="#EDE9FE"/><text x="1748.0" y="1352.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#5B21B6" text-anchor="middle">UK</text>
+<text x="1765.0" y="1353.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">report_id</text>
+<text x="1862.1" y="1353.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<rect x="1715" y="1364.0" width="20" height="13" rx="3" fill="#DBEAFE"/><text x="1725.0" y="1373.7" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="8" font-weight="700" fill="#1E40AF" text-anchor="middle">FK</text>
+<text x="1765.0" y="1374.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">admin_user_id</text>
+<text x="1862.1" y="1374.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">INT</text>
+<text x="1765.0" y="1395.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">decision</text>
+<text x="1862.1" y="1395.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">ENUM</text>
+<text x="1765.0" y="1416.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">reason</text>
+<text x="1862.1" y="1416.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">VARCHAR(500)</text>
+<text x="1978.0" y="1416.5" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="10" font-weight="400" fill="#94A3B8" text-anchor="end" font-style="italic">null</text>
+<text x="1765.0" y="1437.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#0F172A" text-anchor="start">reviewed_at</text>
+<text x="1862.1" y="1437.8" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">DATETIME</text>
 <line x1="40" y1="1560" x2="2080" y2="1560" stroke="#E2E8F0" stroke-width="1.2"/>
 <text x="40.0" y="1590.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#0F172A" text-anchor="start">Cardinality (crow's foot)</text>
 <line x1="40" y1="1618" x2="96" y2="1618" stroke="#334155" stroke-width="1.6"/>
@@ -604,6 +662,8 @@
 <text x="1412.0" y="1648.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Rewards</text>
 <rect x="1390" y="1663" width="14" height="14" rx="3" fill="#475569"/>
 <text x="1412.0" y="1674.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Notifications</text>
+<rect x="1390" y="1689" width="14" height="14" rx="3" fill="#BE185D"/>
+<text x="1412.0" y="1700.3" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="400" fill="#334155" text-anchor="start">Reports and takedown</text>
 <text x="1640.0" y="1590.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700" fill="#0F172A" text-anchor="start">Derived values: views, never stored</text>
 <text x="1640.0" y="1616.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="600" fill="#0F172A" text-anchor="start">v_contributor_skill</text>
 <text x="1640.0" y="1631.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">verified once approved work used the skill</text>

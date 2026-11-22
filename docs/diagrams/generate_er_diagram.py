@@ -61,6 +61,7 @@ GROUPS = [
     ("Verification and feedback", "#DC2626", ["work_verification", "feedback", "admin_review"]),
     ("Rewards", "#0891B2", ["contributor_badge", "point_transaction"]),
     ("Notifications", "#475569", ["notification"]),
+    ("Reports and takedown", "#BE185D", ["opportunity_report", "report_review"]),
 ]
 COLOR = {t: c for _, c, ts in GROUPS for t in ts}
 
@@ -85,6 +86,8 @@ POS = {
     "contributor_resume": (498, 1340, 262),
     "contributor_badge": (933, 1110, 232),
     "badge": (933, 1246, 320),
+    "opportunity_report": (1336, 1290, 262),
+    "report_review": (1707, 1290, 280),
 }
 
 BUS_Y = 985  # horizontal line carrying user_account keys to the right-hand tables
@@ -120,6 +123,10 @@ ROUTES = {
     "fk_submission_attachment_submission": ("Z", "R", 1640, "L"),
     "fk_work_verification_submission": ("Z", "R", 1640, "L"),
     "fk_point_transaction_verification": ("Z", "R", 2085, "R"),
+    "fk_opportunity_report_opportunity": ("Z", "R", 1318, "L"),
+    "fk_opportunity_report_reporter": ("U", "R", 440, BUS_Y, 1620, "R"),
+    "fk_report_review_report": ("Z", "R", 1655, "L"),
+    "fk_report_review_admin": ("U", "R", 440, BUS_Y, 1680, "L"),
 }
 
 VIEW_NOTES = {
@@ -524,7 +531,7 @@ def schema_svg(tables, fks, stats) -> str:
     ]
     size, line_h, ref_h = 15, 25, 21
     col_w = (W - 80 - 2 * 40) / 3
-    columns = [GROUPS[0:2], GROUPS[2:4], GROUPS[4:7]]
+    columns = [GROUPS[0:2], GROUPS[2:4], GROUPS[4:8]]
     for ci, groups in enumerate(columns):
         x = 40 + ci * (col_w + 40)
         y = 132

@@ -54,6 +54,7 @@ def test_service_subscribes_to_its_events() -> None:
         EventType.WORK_SUBMITTED,
         EventType.FEEDBACK_APPROVED,
         EventType.FEEDBACK_REJECTED,
+        EventType.OPPORTUNITY_TAKEN_DOWN,
     ]
 
 
