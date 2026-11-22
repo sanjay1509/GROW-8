@@ -280,9 +280,20 @@ Try it on the dev data (with the stack running, since the notifications come fro
 
 Seeded deadlines are real dates, so this works until opportunity 4 closes on 2026-12-01.
 
-### 3.4 Resumes
+### 3.4 Profile and resume
 
-A contributor can keep one PDF resume (at most 10 MB); creators download it from an application. In Swagger, `PUT /api/v1/contributors/me/resume` shows a file picker. With curl:
+Contributors edit their own profile and skills; any user can change their name ([ADR 0017](grow8-backend/docs/adr/0017-contributor-profile.md)).
+
+| Task | Request |
+| --- | --- |
+| See your profile (contributor) | `GET /api/v1/contributors/me/profile` |
+| Change name, headline, bio, institution or city | `PATCH /api/v1/contributors/me/profile` with only the fields to change, e.g. `{"headline": "Data student", "city": null}` |
+| Replace your skills | `PUT /api/v1/contributors/me/skills` with `{"skill_codes": ["spreadsheets", "translation"]}` (codes from `GET /api/v1/skills`) |
+| Change your name (any role) | `PATCH /api/v1/auth/me` with `{"full_name": "..."}` |
+
+Each skill comes back with `listed` and `verified`; `verified` turns true once a creator approves your work on an opportunity that required that skill. Email can't be changed. An account without a profile row (none of the seeded ones) sees empty fields until its first save creates it.
+
+A contributor can also keep one PDF resume (at most 10 MB); creators download it from an application. In Swagger, `PUT /api/v1/contributors/me/resume` shows a file picker. With curl:
 
 ```bash
 curl -X PUT http://localhost:8000/api/v1/contributors/me/resume   -H "Authorization: Bearer <contributor token>" -F "file=@my-cv.pdf"
