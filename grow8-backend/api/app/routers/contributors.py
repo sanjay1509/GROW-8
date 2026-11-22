@@ -6,18 +6,42 @@ from fastapi.responses import StreamingResponse
 from app.dependencies.auth import CurrentContributor, CurrentUser, DbSession
 from app.dependencies.storage import Storage
 from app.routers._files import stream_download
+from app.schemas.contributor_profile import ContributorProfileRead, ProfileUpdate, SkillsReplace
 from app.schemas.resume import ResumeRead
-from app.services import resume_service
+from app.services import contributor_profile_service, resume_service
 from app.services.resume_service import ResumeFile
 
 router = APIRouter(tags=["resumes"])
 
+PROFILE_PATH = "/contributors/me/profile"
 RESUME_PATH = "/contributors/me/resume"
 ApplicationId = Annotated[int, Path(ge=1)]
 
 
 def _stream(resume: ResumeFile) -> StreamingResponse:
     return stream_download(resume, fallback_name="resume.pdf")
+
+
+@router.get(PROFILE_PATH, response_model=ContributorProfileRead, tags=["profile"])
+def get_my_profile(session: DbSession, contributor: CurrentContributor) -> ContributorProfileRead:
+    """Your profile, with your skills (listed, and whether approved work verified them)."""
+    return contributor_profile_service.get_mine(session, contributor)
+
+
+@router.patch(PROFILE_PATH, response_model=ContributorProfileRead, tags=["profile"])
+def update_my_profile(
+    body: ProfileUpdate, session: DbSession, contributor: CurrentContributor
+) -> ContributorProfileRead:
+    """Change your name, headline, bio, institution or city; only the fields sent change."""
+    return contributor_profile_service.update_mine(session, contributor, body)
+
+
+@router.put("/contributors/me/skills", response_model=ContributorProfileRead, tags=["profile"])
+def replace_my_skills(
+    body: SkillsReplace, session: DbSession, contributor: CurrentContributor
+) -> ContributorProfileRead:
+    """Replace the skills you list with exactly these codes (from GET /skills)."""
+    return contributor_profile_service.replace_skills(session, contributor, body)
 
 
 @router.put(RESUME_PATH, response_model=ResumeRead)
