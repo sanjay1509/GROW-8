@@ -138,7 +138,7 @@ Notation: primary-key attributes are <ins>underlined</ins>, foreign-key attribut
 
 ## Views (derived, not stored)
 
-- `v_contributor_skill`: verified once approved work used the skill
+- `v_contributor_skill`: listed or earned; verified once approved work used it
 - `v_contributor_verified_hours`: SUM(verified_hours) of approved work_verification rows
 - `v_feedback_status`: pending until an admin_review row exists
 - `v_leaderboard`: SUM(points) from point_transaction, RANK() OVER
