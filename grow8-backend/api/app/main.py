@@ -17,6 +17,7 @@ from app.routers import (
     applications,
     auth,
     contributors,
+    creators,
     feedback,
     notifications,
     opportunities,
@@ -96,6 +97,7 @@ def create_app() -> FastAPI:
     app.include_router(opportunities.router, prefix=API_PREFIX)
     app.include_router(applications.router, prefix=API_PREFIX)
     app.include_router(contributors.router, prefix=API_PREFIX)
+    app.include_router(creators.router, prefix=API_PREFIX)
     app.include_router(submissions.router, prefix=API_PREFIX)
     app.include_router(notifications.router, prefix=API_PREFIX)
     app.include_router(feedback.router, prefix=API_PREFIX)
