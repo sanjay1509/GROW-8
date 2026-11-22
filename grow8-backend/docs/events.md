@@ -25,8 +25,8 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 | Queue | Bound to (routing keys) | Retry queues | Dead-letter queue |
 | --- | --- | --- | --- |
-| `grow8.contributor_service` | `opportunity.created`, `application.decided`, `opportunity.cancelled` | `grow8.contributor_service.retry.{5s,30s,120s}` | `grow8.contributor_service.dlq` |
-| `grow8.creator_service` | `opportunity.created`, `application.submitted`, `application.withdrawn` | `grow8.creator_service.retry.{5s,30s,120s}` | `grow8.creator_service.dlq` |
+| `grow8.contributor_service` | `opportunity.created`, `application.decided`, `opportunity.cancelled`, `work.verified`, `work.rejected` | `grow8.contributor_service.retry.{5s,30s,120s}` | `grow8.contributor_service.dlq` |
+| `grow8.creator_service` | `opportunity.created`, `application.submitted`, `application.withdrawn`, `work.submitted` | `grow8.creator_service.retry.{5s,30s,120s}` | `grow8.creator_service.dlq` |
 
 - A message is **acked only after its handler returns**, so a crash mid-handler means RabbitMQ redelivers it.
 - A **bad message** (unreadable JSON, no handler, payload fails its schema) can never succeed, so it is **rejected without requeue** and moves to the service's `.dlq` via the `grow8.events.dlx` exchange at once.
@@ -129,6 +129,40 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 | `hours_claimed` | string (decimal) | Sent as a JSON string, e.g. `"6.50"`, so no precision is lost. |
 | `attachment_count` | int | 0–5. |
 
+### `WORK_VERIFIED` (v1)
+
+- **When:** the owning creator approves submitted work (`POST /api/v1/submissions/{id}/verification` with `decision: "approved"`), after the verification is committed ([ADR 0013](adr/0013-work-verification.md)). A refused verification (404/409/422) sends nothing. Each submission is verified once, so this is sent at most once per submission, and never together with `WORK_REJECTED` for the same one.
+- **Consumed by:** **contributor_service** → `app/handlers/work_verified.py`. It stores one `work_verified` notification for the contributor: `Work verified: <title>`, with a message such as "Your work on … was verified (6 h).", linked to the opportunity. The decision is taken from the event, not re-read: it is final. Verified hours and skills need no write, since the views compute them from approved verifications. Commit-then-ack and duplicate-safe insert as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `verification_id` | int | Identifies this approval for good: the rewards handler (#24) can award its points once per verification. |
+| `submission_id` | int | |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `organization_id` | int | |
+| `opportunity_title` | string | |
+| `contributor_id` | int | Whom to notify. |
+| `verified_hours` | string (decimal) | Sent as a JSON string, e.g. `"6.00"`. At most the hours claimed. |
+
+### `WORK_REJECTED` (v1)
+
+- **When:** the owning creator rejects submitted work (`POST /api/v1/submissions/{id}/verification` with `decision: "rejected"`), after the commit ([ADR 0013](adr/0013-work-verification.md)). Sent at most once per submission.
+- **Consumed by:** **contributor_service** → `app/handlers/work_rejected.py`. It stores one `work_rejected` notification for the contributor: `Work not verified: <title>`, quoting the creator's comment (shortened if it doesn't fit the 500-character message; the full comment is on the submission), linked to the opportunity. Commit-then-ack and duplicate-safe insert as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `verification_id` | int | |
+| `submission_id` | int | |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `organization_id` | int | |
+| `opportunity_title` | string | |
+| `contributor_id` | int | Whom to notify. |
+| `comment` | string | Why the work was rejected (required when rejecting, 1–2000 characters). |
+
 ### Seeing it end to end (Check-in I demo)
 
 1. `make reset-db` (fresh seed: draft 15 back, no notifications; **wipes local data**), then `docker compose logs -f contributor_service creator_service` in a second terminal.
@@ -143,4 +177,4 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 ## Not yet implemented
 
-`WORK_VERIFIED`, `WORK_REJECTED`, `FEEDBACK_SUBMITTED`, `FEEDBACK_APPROVED`, `FEEDBACK_REJECTED` exist in `EventType` but have no payload schema or producer yet. admin_service has no handlers, so it declares no queue yet; it gets one (with its dead-letter queue) when its first handler is added.
+`FEEDBACK_SUBMITTED`, `FEEDBACK_APPROVED`, `FEEDBACK_REJECTED` exist in `EventType` but have no payload schema or producer yet. admin_service has no handlers, so it declares no queue yet; it gets one (with its dead-letter queue) when its first handler is added.

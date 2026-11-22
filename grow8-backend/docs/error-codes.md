@@ -95,6 +95,18 @@ Clients should branch on `code`, never on `message` (messages are for people and
 
 A missing or invalid `description` or `hours_claimed` is a `VALIDATION_ERROR`.
 
+### Work verification ([ADR 0013](adr/0013-work-verification.md))
+
+| Status | Code | Endpoint(s) | When |
+| --- | --- | --- | --- |
+| 404 | `SUBMISSION_NOT_FOUND` | `GET /submissions/{id}`, `POST /submissions/{id}/verification` | Missing, or not yours: only the owning creator verifies, and only the applicant and the owning creator can see the submission. A different creator trying to verify gets this too. |
+| 409 | `SUBMISSION_ALREADY_VERIFIED` | `POST /submissions/{id}/verification` | It was already approved or rejected. Each submission is verified once and the decision is final. |
+| 409 | `OPPORTUNITY_CANCELLED` | `POST /submissions/{id}/verification` | The opportunity was cancelled. |
+| 422 | `VERIFIED_HOURS_EXCEED_CLAIMED` | `POST /submissions/{id}/verification` | Approving with more `verified_hours` than the contributor claimed. Fewer is fine. |
+| 422 | `REJECTION_COMMENT_REQUIRED` | `POST /submissions/{id}/verification` | Rejecting without a `comment`, or with a blank one. |
+
+Checked in this order: not found, already verified, cancelled, then the two 422s. A missing or invalid `decision`, `verified_hours` sent with a rejection, no `verified_hours` with an approval, hours that aren't > 0 with at most 2 decimals, or a comment over 2000 characters is a `VALIDATION_ERROR`. So is an unknown `status` filter on `GET /submissions/received`.
+
 ### Account
 
 | Status | Code | Endpoint(s) | When |

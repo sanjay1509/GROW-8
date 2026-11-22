@@ -39,7 +39,8 @@ from app.core.time import utcnow
 from app.events.publisher import EventPublisher
 from app.repositories import application_repository, opportunity_repository, submission_repository
 from app.repositories.db_errors import duplicate_key, trigger_rule
-from app.schemas.submission import SubmissionCreate, SubmissionRead
+from app.schemas.common import Page
+from app.schemas.submission import ReceivedSubmissionParams, SubmissionCreate, SubmissionRead
 from app.services import submission_rules
 from app.services.submission_rules import FileType
 from app.storage import FileStorage, StoredFileMissing, new_key
@@ -81,6 +82,10 @@ def _now() -> datetime:
 
 def _application_not_found() -> NotFoundError:
     return NotFoundError("Application not found", code="APPLICATION_NOT_FOUND")
+
+
+def _submission_not_found() -> NotFoundError:
+    return NotFoundError("Submission not found", code="SUBMISSION_NOT_FOUND")
 
 
 def _attachment_not_found() -> NotFoundError:
@@ -271,7 +276,7 @@ def submit(
         EventType.WORK_SUBMITTED,
         correlation_id,
     )
-    return SubmissionRead.model_validate(submission)
+    return SubmissionRead.from_model(submission)
 
 
 # ---------------------------------------------------------------------------
@@ -288,7 +293,37 @@ def get_for_application(session: Session, user: UserAccount, application_id: int
     submission = submission_repository.get_for_application(session, application_id)
     if submission is None:
         raise NotFoundError("No work has been submitted yet", code="SUBMISSION_NOT_FOUND")
-    return SubmissionRead.model_validate(submission)
+    return SubmissionRead.from_model(submission)
+
+
+def get(session: Session, user: UserAccount, submission_id: int) -> SubmissionRead:
+    """A submission with its verification, for the applicant or the owning creator. To
+    anyone else it doesn't exist (ADR 0013)."""
+    submission = submission_repository.get(session, submission_id)
+    if submission is None or not _can_see(submission.application, user):
+        raise _submission_not_found()
+    return SubmissionRead.from_model(submission)
+
+
+def list_received(
+    session: Session, creator: UserAccount, params: ReceivedSubmissionParams
+) -> Page[SubmissionRead]:
+    """The creator's review queue: submissions to every opportunity they own, oldest
+    first. An `opportunity_id` that isn't theirs simply matches nothing."""
+    items, total = submission_repository.list_received(
+        session,
+        creator.user_id,
+        params.opportunity_id,
+        [s.value for s in params.status],
+        params.limit,
+        params.offset,
+    )
+    return Page[SubmissionRead](
+        items=[SubmissionRead.from_model(s) for s in items],
+        total=total,
+        limit=params.limit,
+        offset=params.offset,
+    )
 
 
 def open_attachment(

@@ -204,7 +204,7 @@ CREATE TABLE notification (
     notification_type ENUM('opportunity_created', 'opportunity_published',
                            'application_submitted', 'application_decided',
                            'application_withdrawn', 'opportunity_cancelled',
-                           'work_submitted') NOT NULL,
+                           'work_submitted', 'work_verified', 'work_rejected') NOT NULL,
     title             VARCHAR(200) NOT NULL,
     message           VARCHAR(500) NOT NULL,
     opportunity_id    INT UNSIGNED NULL,

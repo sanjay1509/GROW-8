@@ -1,17 +1,23 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, Path, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Path, Query, UploadFile, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import StreamingResponse
 from pydantic import ValidationError
 
-from app.dependencies.auth import CurrentContributor, CurrentUser, DbSession
+from app.dependencies.auth import CurrentContributor, CurrentCreator, CurrentUser, DbSession
 from app.dependencies.request import RequestId
 from app.dependencies.storage import Storage
 from app.events.publisher import Publisher
 from app.routers._files import stream_download
-from app.schemas.submission import SubmissionCreate, SubmissionRead
-from app.services import submission_service
+from app.schemas.common import Page
+from app.schemas.submission import (
+    ReceivedSubmissionParams,
+    SubmissionCreate,
+    SubmissionRead,
+    VerificationCreate,
+)
+from app.services import submission_service, verification_service
 from app.services.submission_service import UploadedFile
 
 router = APIRouter(tags=["submissions"])
@@ -82,3 +88,38 @@ def download_attachment(
         session, storage, user, submission_id, attachment_id
     )
     return stream_download(attachment, fallback_name="attachment")
+
+
+# Declared before /submissions/{submission_id}, which would otherwise try to read
+# "received" as an id.
+@router.get("/submissions/received", response_model=Page[SubmissionRead])
+def list_received_submissions(
+    params: Annotated[ReceivedSubmissionParams, Query()],
+    session: DbSession,
+    creator: CurrentCreator,
+) -> Page[SubmissionRead]:
+    """Your review queue: work submitted to all your opportunities, oldest first. Filter
+    by status (awaiting, approved, rejected) and opportunity_id."""
+    return submission_service.list_received(session, creator, params)
+
+
+@router.get("/submissions/{submission_id}", response_model=SubmissionRead)
+def get_submission_by_id(
+    submission_id: SubmissionId, session: DbSession, user: CurrentUser
+) -> SubmissionRead:
+    """A submission with its verification, for the applicant or the owning creator."""
+    return submission_service.get(session, user, submission_id)
+
+
+@router.post("/submissions/{submission_id}/verification", response_model=SubmissionRead)
+def verify_submission(
+    submission_id: SubmissionId,
+    body: VerificationCreate,
+    session: DbSession,
+    creator: CurrentCreator,
+    publisher: Publisher,
+    request_id: RequestId,
+) -> SubmissionRead:
+    """Approve the work with the hours you verify (at most those claimed), or reject it
+    with a comment. Once per submission. The contributor is notified."""
+    return verification_service.verify(session, creator, submission_id, body, publisher, request_id)
