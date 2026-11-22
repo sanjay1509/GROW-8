@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from typing import Any
 
 from grow8_common.events import EventType, OpportunityCancelledPayload, OpportunityCreatedPayload
@@ -6,7 +5,6 @@ from grow8_common.models import (
     Opportunity,
     OpportunityCategory,
     OpportunityStatus,
-    Skill,
     UserAccount,
 )
 from sqlalchemy.orm import Session
@@ -34,7 +32,7 @@ from app.schemas.opportunity import (
     OpportunitySearchParams,
     OpportunityUpdate,
 )
-from app.services import opportunity_rules
+from app.services import opportunity_rules, reference_service
 
 # ---------------------------------------------------------------------------
 # Reading
@@ -167,31 +165,6 @@ def _resolve_category(
     return category
 
 
-def _resolve_skills(
-    session: Session,
-    codes: Sequence[str],
-) -> list[Skill]:
-    wanted = list(dict.fromkeys(codes))
-    found = {
-        skill.code: skill
-        for skill in reference_repository.get_skills_by_codes(
-            session,
-            wanted,
-        )
-    }
-
-    unknown = [code for code in wanted if code not in found]
-
-    if unknown:
-        raise UnprocessableError(
-            "Unknown skill code(s)",
-            code="UNKNOWN_SKILL",
-            details={"unknown_skills": unknown},
-        )
-
-    return [found[code] for code in wanted]
-
-
 def _get_owned_for_update(
     session: Session,
     opportunity_id: int,
@@ -263,7 +236,7 @@ def _apply(
         )
 
     if "skills" in sent and data.skills is not None:
-        opportunity.skills = _resolve_skills(
+        opportunity.skills = reference_service.resolve_skills(
             session,
             data.skills,
         )
