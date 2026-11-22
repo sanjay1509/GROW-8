@@ -282,7 +282,7 @@ Seeded deadlines are real dates, so this works until opportunity 4 closes on 202
 
 ### 3.4 Profile and resume
 
-Contributors edit their own profile and skills; any user can change their name ([ADR 0017](grow8-backend/docs/adr/0017-contributor-profile.md)).
+Contributors edit their own profile and skills, creators their organization; any user can change their name ([ADR 0017](grow8-backend/docs/adr/0017-contributor-profile.md)).
 
 | Task | Request |
 | --- | --- |
@@ -290,8 +290,9 @@ Contributors edit their own profile and skills; any user can change their name (
 | Change name, headline, bio, institution or city | `PATCH /api/v1/contributors/me/profile` with only the fields to change, e.g. `{"headline": "Data student", "city": null}` |
 | Replace your skills | `PUT /api/v1/contributors/me/skills` with `{"skill_codes": ["spreadsheets", "translation"]}` (codes from `GET /api/v1/skills`) |
 | Change your name (any role) | `PATCH /api/v1/auth/me` with `{"full_name": "..."}` |
+| See or edit your organization (creator) | `GET` / `PATCH /api/v1/creators/me/organization`, e.g. `{"website": "https://example.com", "city": null}` ([ADR 0018](grow8-backend/docs/adr/0018-creator-organization.md)) |
 
-Each skill comes back with `listed` and `verified`; `verified` turns true once a creator approves your work on an opportunity that required that skill. Email can't be changed. An account without a profile row (none of the seeded ones) sees empty fields until its first save creates it.
+Each skill comes back with `listed` and `verified`; `verified` turns true once a creator approves your work on an opportunity that required that skill, even if you never listed it (then it shows as `listed: false`, and editing your skills can't remove it, [ADR 0019](grow8-backend/docs/adr/0019-earned-skills.md)). Email can't be changed. An account without a profile row (none of the seeded ones) sees empty fields until its first save creates it.
 
 A contributor can also keep one PDF resume (at most 10 MB); creators download it from an application. In Swagger, `PUT /api/v1/contributors/me/resume` shows a file picker. With curl:
 

@@ -26,6 +26,21 @@ def get_organization_of(session: Session, owner_user_id: int) -> CreatorOrganiza
     return session.scalars(stmt).first()
 
 
+def lock_organization_of(session: Session, owner_user_id: int) -> CreatorOrganization | None:
+    """Row-lock the creator's account, then return their organization (locked too), or
+    None. Locking the account first means two saves by the same creator run one after the
+    other even when there is no organization row yet to lock (ADR 0018)."""
+    session.execute(
+        select(UserAccount.user_id).where(UserAccount.user_id == owner_user_id).with_for_update()
+    )
+    stmt = select(CreatorOrganization).where(CreatorOrganization.owner_user_id == owner_user_id)
+    return session.scalars(stmt.with_for_update().execution_options(populate_existing=True)).first()
+
+
+def add_organization(session: Session, organization: CreatorOrganization) -> None:
+    session.add(organization)
+
+
 def get_contributor_profile(session: Session, user_id: int) -> ContributorProfile | None:
     return session.get(ContributorProfile, user_id)
 
@@ -42,27 +57,32 @@ def lock_contributor_profile(session: Session, user_id: int) -> ContributorProfi
 
 
 @dataclass(frozen=True)
-class ListedSkill:
+class ContributorSkillRow:
     skill_id: int
     code: str
     name: str
+    is_listed: bool
     is_verified: bool
     verified_at: datetime | None
 
 
-def listed_skills(session: Session, user_id: int) -> list[ListedSkill]:
-    """The contributor's listed skills, sorted by name, with whether each is verified.
-    Verified comes from v_contributor_skill, so there is one definition of it."""
+def skills_of(session: Session, user_id: int) -> list[ContributorSkillRow]:
+    """Every skill the contributor listed or earned through approved work, sorted by name.
+    Read from v_contributor_skill, so there is one definition of listed and verified
+    (decision 7, ADR 0019)."""
     rows = session.execute(
         text(
-            "SELECT s.skill_id, s.code, s.name, v.is_verified, v.verified_at "
+            "SELECT s.skill_id, s.code, s.name, v.is_listed, v.is_verified, v.verified_at "
             "FROM v_contributor_skill v JOIN skill s ON s.skill_id = v.skill_id "
             "WHERE v.contributor_id = :user_id ORDER BY s.name"
         ),
         {"user_id": user_id},
     ).all()
     return [
-        ListedSkill(r.skill_id, r.code, r.name, bool(r.is_verified), r.verified_at) for r in rows
+        ContributorSkillRow(
+            r.skill_id, r.code, r.name, bool(r.is_listed), bool(r.is_verified), r.verified_at
+        )
+        for r in rows
     ]
 
 

@@ -128,6 +128,14 @@
     {
       "key": "creatorNameJson",
       "value": ""
+    },
+    {
+      "key": "orgJson",
+      "value": ""
+    },
+    {
+      "key": "orgName",
+      "value": ""
     }
   ],
   "item": [
@@ -7477,9 +7485,10 @@
                 "exec": [
                   "pm.test(\"200 sorted by name, duplicates collapsed\", () => {",
                   "  pm.response.to.have.status(200);",
-                  "  const codes = pm.response.json().skills.map((s) => s.code);",
+                  "  // Earned skills (listed: false) stay whatever is sent (ADR 0019).",
+                  "  const codes = pm.response.json().skills.filter((s) => s.listed).map((s) => s.code);",
                   "  pm.expect(codes).to.eql([\"spreadsheets\", \"translation\"]);",
-                  "  pm.expect(pm.response.json().skills.every((s) => s.listed)).to.eql(true);",
+                  "  pm.expect(pm.response.json().skills.filter((s) => !s.listed).every((s) => s.verified)).to.eql(true);",
                   "});"
                 ]
               }
@@ -7822,7 +7831,7 @@
                   "pm.test(\"200 as they were\", () => {",
                   "  pm.response.to.have.status(200);",
                   "  const before = JSON.parse(pm.collectionVariables.get(\"alexSkillCodesJson\"));",
-                  "  pm.expect(pm.response.json().skills.map((s) => s.code).sort()).to.eql([...before].sort());",
+                  "  pm.expect(pm.response.json().skills.filter((s) => s.listed).map((s) => s.code).sort()).to.eql([...before].sort());",
                   "});"
                 ]
               }
@@ -7874,6 +7883,347 @@
                   "pm.test(\"200 as it was\", () => {",
                   "  pm.response.to.have.status(200);",
                   "  pm.expect(pm.response.json().full_name).to.eql(JSON.parse(pm.collectionVariables.get(\"creatorNameJson\")));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13. Organization",
+      "item": [
+        {
+          "name": "Creator reads their organization (saved to restore later)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/creators/me/organization",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "creators",
+                "me",
+                "organization"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 Maple Street Bakery\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const o = pm.response.json();",
+                  "  pm.expect(o.organization_type).to.be.a(\"string\");",
+                  "  pm.expect(o).to.not.have.property(\"owner_user_id\");",
+                  "});",
+                  "const o = pm.response.json();",
+                  "pm.collectionVariables.set(\"orgJson\", JSON.stringify({name: o.name, organization_type: o.organization_type, description: o.description, website: o.website, city: o.city}));",
+                  "pm.collectionVariables.set(\"orgName\", o.name);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator renames it and clears the city",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/creators/me/organization",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "creators",
+                "me",
+                "organization"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"  Postman Bakery & Cafe \",\n  \"city\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 with only those fields changed\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const o = pm.response.json();",
+                  "  pm.expect(o.name).to.eql(\"Postman Bakery & Cafe\");",
+                  "  pm.expect(o.city).to.eql(null);",
+                  "  const before = JSON.parse(pm.collectionVariables.get(\"orgJson\"));",
+                  "  pm.expect(o.website).to.eql(before.website);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Opportunities show the new name",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities?q=Postman%20Bakery&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities?q=Postman%20Bakery&limit=100"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 in search by organization name\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const items = pm.response.json().items;",
+                  "  pm.expect(items.length).to.be.above(0);",
+                  "  pm.expect(items.every((o) => o.organization.name === \"Postman Bakery & Cafe\")).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A javascript: website -> 422",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/creators/me/organization",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "creators",
+                "me",
+                "organization"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"website\": \"javascript:alert(1)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 VALIDATION_ERROR\", () => {",
+                  "  pm.response.to.have.status(422);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Clearing the name -> 422",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/creators/me/organization",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "creators",
+                "me",
+                "organization"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 VALIDATION_ERROR\", () => {",
+                  "  pm.response.to.have.status(422);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor cannot use it -> 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/creators/me/organization",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "creators",
+                "me",
+                "organization"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 ROLE_FORBIDDEN\", () => {",
+                  "  pm.response.to.have.status(403);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"ROLE_FORBIDDEN\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Restore: organization",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/creators/me/organization",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "creators",
+                "me",
+                "organization"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{{orgJson}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 as it was\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const before = JSON.parse(pm.collectionVariables.get(\"orgJson\"));",
+                  "  const o = pm.response.json();",
+                  "  pm.expect([o.name, o.organization_type, o.description, o.website, o.city]).to.eql([before.name, before.organization_type, before.description, before.website, before.city]);",
                   "});"
                 ]
               }
