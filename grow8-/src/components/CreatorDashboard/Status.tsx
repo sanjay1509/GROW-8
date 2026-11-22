@@ -6,6 +6,8 @@ const statusClasses: Record<string, string> = {
   "In Progress": "is-progress",
   Draft: "is-draft",
   Completed: "is-completed",
+  Withdrawn: "is-draft",
+  Cancelled: "is-rejected",
 };
 
 export default function Status({ children }: { children: string }) {

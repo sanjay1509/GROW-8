@@ -12,7 +12,15 @@ import {
   Eye,
   X,
   Trash2,
+  Lock,
+  Ban,
 } from "lucide-react";
+import { useCreatorWorkspace } from "../../context/CreatorWorkspaceContext";
+import {
+  cancelOpportunity,
+  closeOpportunity,
+  friendlyError,
+} from "../../services/creatorWorkspace";
 import "./MyOpportunities.css";
 
 const API_BASE_URL =
@@ -90,6 +98,8 @@ export default function MyOpportunities() {
     useState<Opportunity | null>(null);
 
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [changingId, setChangingId] = useState<number | null>(null);
+  const { refresh: refreshWorkspace } = useCreatorWorkspace();
 
   async function loadOpportunities() {
     setLoading(true);
@@ -223,6 +233,42 @@ export default function MyOpportunities() {
       );
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  // Close: open -> closed (no new applications; pending ones can still be decided).
+  // Cancel: open or closed -> cancelled (applicants are notified; decisions stop).
+  async function changeStatus(item: Opportunity, action: "close" | "cancel") {
+    const question =
+      action === "close"
+        ? `Close "${item.title}"? No new applications will be accepted, but you can still decide pending ones. Closing can't be undone.`
+        : `Cancel "${item.title}"? Applicants will be notified and their applications can no longer be decided. This can't be undone.`;
+    if (!window.confirm(question)) return;
+
+    setChangingId(item.opportunity_id);
+    try {
+      const updated =
+        action === "close"
+          ? await closeOpportunity(item.opportunity_id)
+          : await cancelOpportunity(item.opportunity_id);
+
+      setItems((currentItems) =>
+        currentItems.map((opportunity) =>
+          opportunity.opportunity_id === item.opportunity_id
+            ? { ...opportunity, status: updated.status }
+            : opportunity
+        )
+      );
+      setSelectedOpportunity((current) =>
+        current?.opportunity_id === item.opportunity_id
+          ? { ...current, status: updated.status }
+          : current
+      );
+      void refreshWorkspace();
+    } catch (err) {
+      window.alert(friendlyError(err, `The opportunity could not be ${action === "close" ? "closed" : "cancelled"}.`));
+    } finally {
+      setChangingId(null);
     }
   }
 
@@ -432,6 +478,32 @@ export default function MyOpportunities() {
                       {deletingId === item.opportunity_id
                         ? "Deleting..."
                         : "Delete"}
+                    </button>
+                  )}
+
+                  {item.status === "open" && (
+                    <button
+                      type="button"
+                      className="mo-status-button"
+                      onClick={() => void changeStatus(item, "close")}
+                      disabled={changingId !== null}
+                      aria-label={`Close ${item.title} to new applications`}
+                    >
+                      <Lock size={16} />
+                      {changingId === item.opportunity_id ? "Saving..." : "Close"}
+                    </button>
+                  )}
+
+                  {(item.status === "open" || item.status === "closed") && (
+                    <button
+                      type="button"
+                      className="mo-delete-button"
+                      onClick={() => void changeStatus(item, "cancel")}
+                      disabled={changingId !== null}
+                      aria-label={`Cancel ${item.title}`}
+                    >
+                      <Ban size={16} />
+                      Cancel
                     </button>
                   )}
                 </div>

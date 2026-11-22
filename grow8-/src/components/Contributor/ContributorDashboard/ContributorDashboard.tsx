@@ -7,39 +7,83 @@ import {
   Timer,
   ClipboardList,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import FeaturedOpportunities from "../../FeaturedOpportunities/FeaturedOpportunities";
+import { getMyApplications } from "../../../services/applications";
+import type { Application, ApplicationStatus } from "../../../services/applications";
 import "./ContributorDashboard.css";
 
-const stats = [
-  {
-    label: "Applied",
-    value: "—",
-    icon: ClipboardList,
-    color: "blue",
-  },
-  {
-    label: "In Progress",
-    value: "—",
-    icon: Clock3,
-    color: "amber",
-  },
-  {
-    label: "Completed",
-    value: "—",
-    icon: CheckCircle2,
-    color: "green",
-  },
-  {
-    label: "Verified Hours",
-    value: "—",
-    icon: Timer,
-    color: "cyan",
-  },
-];
+const STATUS_LABELS: Record<ApplicationStatus, string> = {
+  pending: "Under review",
+  accepted: "Accepted",
+  rejected: "Not selected",
+  withdrawn: "Withdrawn",
+};
+
+function formatDate(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "—"
+    : date.toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" });
+}
 
 export default function ContributorDashboard() {
   const userName = localStorage.getItem("user_name") || "Contributor";
+  // null until loaded; stays null if the API can't be reached, so the placeholders show.
+  const [applications, setApplications] = useState<Application[] | null>(null);
+  const [total, setTotal] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    // Newest first; 100 is enough for the counts on a student account.
+    getMyApplications({ limit: 100 })
+      .then((page) => {
+        if (active) {
+          setApplications(page.items);
+          setTotal(page.total);
+        }
+      })
+      .catch(() => {
+        // Not signed in or the API is down: keep the placeholders.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const count = (status: ApplicationStatus) =>
+    applications ? String(applications.filter((a) => a.status === status).length) : "—";
+
+  // Completed work and verified hours need the work-verification endpoints, which the
+  // backend doesn't have yet, so they stay as placeholders.
+  const stats = [
+    {
+      label: "Applied",
+      value: total !== null ? String(total) : "—",
+      icon: ClipboardList,
+      color: "blue",
+    },
+    {
+      label: "In Progress",
+      value: count("accepted"),
+      icon: Clock3,
+      color: "amber",
+    },
+    {
+      label: "Completed",
+      value: "—",
+      icon: CheckCircle2,
+      color: "green",
+    },
+    {
+      label: "Verified Hours",
+      value: "—",
+      icon: Timer,
+      color: "cyan",
+    },
+  ];
+  const recent = (applications ?? []).slice(0, 5);
 
   return (
     <div className="contributor-dashboard">
@@ -118,6 +162,15 @@ export default function ContributorDashboard() {
             </thead>
 
             <tbody>
+              {recent.map((application) => (
+                <tr key={application.application_id}>
+                  <td>{application.opportunity.title}</td>
+                  <td>{application.opportunity.organization.name}</td>
+                  <td>{STATUS_LABELS[application.status]}</td>
+                  <td>{formatDate(application.submitted_at)}</td>
+                </tr>
+              ))}
+              {recent.length === 0 && (
               <tr>
                 <td colSpan={4} className="contributor-empty-applications">
                   <span className="contributor-empty-icon">
@@ -133,6 +186,7 @@ export default function ContributorDashboard() {
                   </Link>
                 </td>
               </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -1,0 +1,256 @@
+/* Contributor profile: resume section. Matches the contributor dashboard styles. */
+
+.cp-page {
+  max-width: 820px;
+  color: #172235;
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cp-page *,
+.cp-page *::before,
+.cp-page *::after {
+  box-sizing: border-box;
+}
+
+.cp-page button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.cp-page :focus-visible {
+  outline: 3px solid #83adff;
+  outline-offset: 2px;
+}
+
+.cp-header {
+  margin-bottom: 20px;
+}
+
+.cp-eyebrow {
+  display: inline-block;
+  margin-bottom: 5px;
+  color: #1458e7;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+
+.cp-header h1 {
+  margin: 0 0 4px;
+  color: #151c2a;
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.6px;
+}
+
+.cp-header p,
+.cp-card-heading p,
+.cp-muted {
+  margin: 0;
+  color: #687387;
+}
+
+.cp-card {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #e7ebf2;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.cp-card-heading h2 {
+  margin: 0 0 3px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cp-file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #e1e7f0;
+  border-radius: 9px;
+  background: #f8faff;
+}
+
+.cp-file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  background: #eaf1ff;
+  color: #155ce8;
+}
+
+.cp-file-info {
+  display: grid;
+  flex: 1;
+  min-width: 180px;
+}
+
+.cp-file-info strong {
+  overflow-wrap: anywhere;
+}
+
+.cp-file-info span {
+  color: #7c8799;
+  font-size: 12px;
+}
+
+.cp-file-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #303d52;
+  font-weight: 600;
+}
+
+.cp-button.is-primary {
+  border-color: #155ce8;
+  background: #155ce8;
+  color: #fff;
+}
+
+.cp-button.is-primary:hover:not(:disabled) {
+  background: #0f4bc4;
+}
+
+.cp-button.is-danger {
+  border-color: #e3a5a5;
+  background: #fff5f5;
+  color: #a12b2b;
+}
+
+.cp-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.cp-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.cp-link-button {
+  border: 0;
+  background: none;
+  color: #536074;
+  text-decoration: underline;
+}
+
+.cp-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.cp-progress {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+  height: 10px;
+  border-radius: 999px;
+  background: #e7ecf4;
+}
+
+.cp-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #155ce8;
+  transition: width 0.15s ease;
+}
+
+.cp-progress em {
+  position: absolute;
+  right: 0;
+  top: -18px;
+  color: #536074;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.cp-notice,
+.cp-error {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 8px;
+}
+
+.cp-notice {
+  background: #e6f6ec;
+  color: #1c7c45;
+}
+
+.cp-error {
+  background: #fdecec;
+  color: #a12b2b;
+}
+
+/* Account summary at the top of the profile */
+
+.cp-page > .cp-card + .cp-card {
+  margin-top: 16px;
+}
+
+.cp-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.cp-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #eaf1ff;
+  color: #155ce8;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.cp-identity-info {
+  display: grid;
+  gap: 3px;
+}
+
+.cp-identity-info strong {
+  font-size: 15px;
+}
+
+.cp-identity-info span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #687387;
+}
+
+.cp-identity-note {
+  flex-basis: 100%;
+  font-size: 12px;
+}
