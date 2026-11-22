@@ -8,6 +8,8 @@ from grow8_common.events import (
     ApplicationDecidedPayload,
     EventEnvelope,
     EventType,
+    FeedbackApprovedPayload,
+    FeedbackRejectedPayload,
     OpportunityCancelledPayload,
     OpportunityCreatedPayload,
     WorkRejectedPayload,
@@ -19,6 +21,8 @@ from grow8_common.models import NotificationType
 from grow8_common.notifications import DbNotifier
 
 from app.handlers.application_decided import handle_application_decided
+from app.handlers.feedback_approved import handle_feedback_approved
+from app.handlers.feedback_rejected import handle_feedback_rejected
 from app.handlers.opportunity_cancelled import handle_opportunity_cancelled
 from app.handlers.opportunity_created import handle_opportunity_created
 from app.handlers.work_rejected import handle_work_rejected
@@ -72,6 +76,20 @@ def _on_work_rejected(envelope: EventEnvelope, payload: WorkRejectedPayload) -> 
         session.commit()
 
 
+def _on_feedback_approved(envelope: EventEnvelope, payload: FeedbackApprovedPayload) -> None:
+    with get_sessionmaker()() as session:
+        notifier = DbNotifier(session, envelope.event_id, NotificationType.FEEDBACK_APPROVED)
+        handle_feedback_approved(payload, session=session, notifier=notifier)
+        session.commit()
+
+
+def _on_feedback_rejected(envelope: EventEnvelope, payload: FeedbackRejectedPayload) -> None:
+    with get_sessionmaker()() as session:
+        notifier = DbNotifier(session, envelope.event_id, NotificationType.FEEDBACK_REJECTED)
+        handle_feedback_rejected(payload, session=session, notifier=notifier)
+        session.commit()
+
+
 # Event type -> handler. Each key becomes a binding on this service's queue.
 HANDLERS: dict[EventType, Handler] = {
     EventType.OPPORTUNITY_CREATED: _on_opportunity_created,
@@ -79,6 +97,8 @@ HANDLERS: dict[EventType, Handler] = {
     EventType.OPPORTUNITY_CANCELLED: _on_opportunity_cancelled,
     EventType.WORK_VERIFIED: _on_work_verified,
     EventType.WORK_REJECTED: _on_work_rejected,
+    EventType.FEEDBACK_APPROVED: _on_feedback_approved,
+    EventType.FEEDBACK_REJECTED: _on_feedback_rejected,
 }
 
 
