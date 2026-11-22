@@ -75,6 +75,36 @@ class WorkSubmittedPayload(BaseModel):
     attachment_count: int
 
 
+class WorkVerifiedPayload(BaseModel):
+    """Sent when the owning creator approves submitted work (ADR 0013). Each submission
+    is verified once, so `verification_id` identifies this approval for good (the rewards
+    handler awards its points once per verification). `verified_hours` travels as a
+    JSON string (e.g. "6.00") so no precision is lost."""
+
+    verification_id: int
+    submission_id: int
+    application_id: int
+    opportunity_id: int
+    organization_id: int
+    opportunity_title: str
+    contributor_id: int
+    verified_hours: Decimal
+
+
+class WorkRejectedPayload(BaseModel):
+    """Sent when the owning creator rejects submitted work (ADR 0013), with the comment
+    that says why (required when rejecting)."""
+
+    verification_id: int
+    submission_id: int
+    application_id: int
+    opportunity_id: int
+    organization_id: int
+    opportunity_title: str
+    contributor_id: int
+    comment: str
+
+
 # Payload schema per event type. Add the others as their features are built.
 PAYLOAD_SCHEMAS: dict[EventType, type[BaseModel]] = {
     EventType.OPPORTUNITY_CREATED: OpportunityCreatedPayload,
@@ -83,4 +113,6 @@ PAYLOAD_SCHEMAS: dict[EventType, type[BaseModel]] = {
     EventType.APPLICATION_DECIDED: ApplicationDecidedPayload,
     EventType.APPLICATION_WITHDRAWN: ApplicationWithdrawnPayload,
     EventType.WORK_SUBMITTED: WorkSubmittedPayload,
+    EventType.WORK_VERIFIED: WorkVerifiedPayload,
+    EventType.WORK_REJECTED: WorkRejectedPayload,
 }

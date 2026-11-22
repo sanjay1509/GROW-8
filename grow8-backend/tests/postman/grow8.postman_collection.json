@@ -76,6 +76,10 @@
     {
       "key": "attachmentId",
       "value": ""
+    },
+    {
+      "key": "rejectedSubmissionId",
+      "value": ""
     }
   ],
   "item": [
@@ -4085,6 +4089,868 @@
                   "pm.test(\"409 WORK_ALREADY_SUBMITTED\", () => {",
                   "  pm.response.to.have.status(409);",
                   "  pm.expect(pm.response.json().error.code).to.eql(\"WORK_ALREADY_SUBMITTED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9. Work verification",
+      "item": [
+        {
+          "name": "Creator's review queue shows the work awaiting",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/received?status=awaiting&opportunity_id={{workDraftId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "received?status=awaiting&opportunity_id={{workDraftId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 with the submission awaiting verification\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const page = pm.response.json();",
+                  "  const id = Number(pm.collectionVariables.get(\"submissionId\"));",
+                  "  pm.expect(page.items.map((s) => s.submission_id)).to.eql([id]);",
+                  "  pm.expect(page.items[0].status).to.eql(\"awaiting\");",
+                  "  pm.expect(page.items[0].verification).to.eql(null);",
+                  "  pm.expect(page.items[0].applicant.full_name).to.eql(\"Alex Chen\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Other creator cannot verify -> 404",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{otherCreatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/{{submissionId}}/verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "{{submissionId}}",
+                "verification"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approved\",\n  \"verified_hours\": \"6\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"404 SUBMISSION_NOT_FOUND\", () => {",
+                  "  pm.response.to.have.status(404);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"SUBMISSION_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor cannot verify -> 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/{{submissionId}}/verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "{{submissionId}}",
+                "verification"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approved\",\n  \"verified_hours\": \"6\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 ROLE_FORBIDDEN\", () => {",
+                  "  pm.response.to.have.status(403);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"ROLE_FORBIDDEN\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "More hours than claimed -> 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/{{submissionId}}/verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "{{submissionId}}",
+                "verification"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approved\",\n  \"verified_hours\": \"7\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 VERIFIED_HOURS_EXCEED_CLAIMED\", () => {",
+                  "  pm.response.to.have.status(422);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"VERIFIED_HOURS_EXCEED_CLAIMED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator approves 6 of the 6.5 hours",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/{{submissionId}}/verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "{{submissionId}}",
+                "verification"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approved\",\n  \"verified_hours\": \"6\",\n  \"comment\": \"Lovely photos, thank you!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 approved with 6 verified hours\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const s = pm.response.json();",
+                  "  pm.expect(s.status).to.eql(\"approved\");",
+                  "  pm.expect(s.verification.decision).to.eql(\"approved\");",
+                  "  pm.expect(s.verification.verified_hours).to.eql(\"6.00\");",
+                  "  pm.expect(s.hours_claimed).to.eql(\"6.50\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify again -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/{{submissionId}}/verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "{{submissionId}}",
+                "verification"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"rejected\",\n  \"comment\": \"Changed my mind\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"409 SUBMISSION_ALREADY_VERIFIED\", () => {",
+                  "  pm.response.to.have.status(409);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"SUBMISSION_ALREADY_VERIFIED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor sees the decision",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/{{submissionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "{{submissionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 with the verification\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const v = pm.response.json().verification;",
+                  "  pm.expect(v.verified_hours).to.eql(\"6.00\");",
+                  "  pm.expect(v.comment).to.eql(\"Lovely photos, thank you!\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Application shows work_status completed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications/{{workApplicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "applications",
+                "{{workApplicationId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 completed\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().work_status).to.eql(\"completed\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor gets 'Work verified'",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?unread_only=true&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications?unread_only=true&limit=100"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// The consumer services write notifications just after the API responds:",
+                  "// retry this request (up to 10 x 0.5 s) until it shows up.",
+                  "const id = Number(pm.collectionVariables.get(\"workDraftId\"));",
+                  "const found = pm.response.json().items.find(",
+                  "  (n) => n.opportunity_id === id && n.notification_type === \"work_verified\"",
+                  ");",
+                  "const tries = Number(pm.collectionVariables.get(\"work_verifiedTries\") || 0);",
+                  "if (!found && tries < 10) {",
+                  "  pm.collectionVariables.set(\"work_verifiedTries\", tries + 1);",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "  setTimeout(() => {}, 500);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(\"work_verifiedTries\");",
+                  "  pm.test(\"200 and an unread work_verified notification for the contributor\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(found, \"notification for opportunity \" + id).to.be.an(\"object\");",
+                  "    pm.expect(found.title).to.include(\"Work verified\");",
+                  "    pm.expect(found.message).to.include(\"(6 h)\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator accepts contributor 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications/{{pendingApplicationId}}/decision",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "applications",
+                "{{pendingApplicationId}}",
+                "decision"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"accepted\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 accepted\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().work_status).to.eql(\"not_submitted\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor 2 submits work",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributor2Token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications/{{pendingApplicationId}}/submission",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "applications",
+                "{{pendingApplicationId}}",
+                "submission"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "description",
+                  "value": "Took a few photos.",
+                  "type": "text"
+                },
+                {
+                  "key": "hours_claimed",
+                  "value": "3",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 submitted\", () => {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.expect(pm.response.json().status).to.eql(\"awaiting\");",
+                  "  pm.collectionVariables.set(\"rejectedSubmissionId\", pm.response.json().submission_id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rejecting without a comment -> 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/{{rejectedSubmissionId}}/verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "{{rejectedSubmissionId}}",
+                "verification"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"rejected\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 REJECTION_COMMENT_REQUIRED\", () => {",
+                  "  pm.response.to.have.status(422);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"REJECTION_COMMENT_REQUIRED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator rejects with a comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/{{rejectedSubmissionId}}/verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "{{rejectedSubmissionId}}",
+                "verification"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"rejected\",\n  \"comment\": \"Only 3 of the 24 loaves were photographed.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 rejected with the comment\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const s = pm.response.json();",
+                  "  pm.expect(s.status).to.eql(\"rejected\");",
+                  "  pm.expect(s.verification.verified_hours).to.eql(null);",
+                  "  pm.expect(s.verification.comment).to.eql(\"Only 3 of the 24 loaves were photographed.\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor 2 gets 'Work not verified'",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributor2Token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?unread_only=true&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications?unread_only=true&limit=100"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// The consumer services write notifications just after the API responds:",
+                  "// retry this request (up to 10 x 0.5 s) until it shows up.",
+                  "const id = Number(pm.collectionVariables.get(\"workDraftId\"));",
+                  "const found = pm.response.json().items.find(",
+                  "  (n) => n.opportunity_id === id && n.notification_type === \"work_rejected\"",
+                  ");",
+                  "const tries = Number(pm.collectionVariables.get(\"work_rejectedTries\") || 0);",
+                  "if (!found && tries < 10) {",
+                  "  pm.collectionVariables.set(\"work_rejectedTries\", tries + 1);",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "  setTimeout(() => {}, 500);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(\"work_rejectedTries\");",
+                  "  pm.test(\"200 and an unread work_rejected notification for contributor 2\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(found, \"notification for opportunity \" + id).to.be.an(\"object\");",
+                  "    pm.expect(found.title).to.include(\"Work not verified\");",
+                  "    pm.expect(found.message).to.include(\"Only 3 of the 24 loaves\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor 2's application shows work_rejected",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributor2Token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications/{{pendingApplicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "applications",
+                "{{pendingApplicationId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 work_rejected\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().work_status).to.eql(\"work_rejected\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Review queue: nothing left awaiting",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/received?status=awaiting&opportunity_id={{workDraftId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "received?status=awaiting&opportunity_id={{workDraftId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 and empty\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().total).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Review queue: decided work, oldest first",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/received?status=approved&status=rejected&opportunity_id={{workDraftId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "received?status=approved&status=rejected&opportunity_id={{workDraftId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 with the approved then the rejected submission\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().items.map((s) => s.status)).to.eql([\"approved\", \"rejected\"]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Other creator's queue doesn't include it",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{otherCreatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/submissions/received?opportunity_id={{workDraftId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "received?opportunity_id={{workDraftId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 and empty\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().total).to.eql(0);",
                   "});"
                 ]
               }

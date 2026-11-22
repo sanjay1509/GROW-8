@@ -141,6 +141,7 @@ def client(
     monkeypatch.setattr("app.services.application_service.utcnow", lambda: FROZEN_NOW)
     monkeypatch.setattr("app.services.resume_service.utcnow", lambda: FROZEN_NOW)
     monkeypatch.setattr("app.services.submission_service.utcnow", lambda: FROZEN_NOW)
+    monkeypatch.setattr("app.services.verification_service.utcnow", lambda: FROZEN_NOW)
     return TestClient(app)
 
 

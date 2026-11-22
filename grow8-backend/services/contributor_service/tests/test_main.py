@@ -110,6 +110,8 @@ def test_subscribes_to_its_events() -> None:
         EventType.OPPORTUNITY_CREATED,
         EventType.APPLICATION_DECIDED,
         EventType.OPPORTUNITY_CANCELLED,
+        EventType.WORK_VERIFIED,
+        EventType.WORK_REJECTED,
     }
 
 
@@ -134,3 +136,59 @@ def test_opportunity_cancelled_uses_its_own_notification_type(
 
     assert calls == ["handle", "commit", "close"]
     assert seen["notifier"]._type == NotificationType.OPPORTUNITY_CANCELLED
+
+
+@pytest.mark.parametrize(
+    ("on_event", "handler_name", "event_type", "notification_type", "payload"),
+    [
+        (
+            "_on_work_verified",
+            "handle_work_verified",
+            EventType.WORK_VERIFIED,
+            "work_verified",
+            {"verified_hours": "6.00"},
+        ),
+        (
+            "_on_work_rejected",
+            "handle_work_rejected",
+            EventType.WORK_REJECTED,
+            "work_rejected",
+            {"comment": "Half is missing."},
+        ),
+    ],
+)
+def test_work_decisions_use_their_own_notification_type(
+    calls: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+    on_event: str,
+    handler_name: str,
+    event_type: EventType,
+    notification_type: str,
+    payload: dict,
+) -> None:
+    from grow8_common.events import PAYLOAD_SCHEMAS
+
+    model = PAYLOAD_SCHEMAS[event_type].model_validate(
+        {
+            "verification_id": 7,
+            "submission_id": 3,
+            "application_id": 4,
+            "opportunity_id": 1,
+            "organization_id": 1,
+            "opportunity_title": "Digitize paper recipe archive",
+            "contributor_id": 5,
+            **payload,
+        }
+    )
+    seen = {}
+
+    def fake_handler(payload, *, session, notifier):
+        calls.append("handle")
+        seen["notifier"] = notifier
+
+    monkeypatch.setattr(main, handler_name, fake_handler)
+
+    getattr(main, on_event)(EventEnvelope.build(model, event_type, "req-12"), model)
+
+    assert calls == ["handle", "commit", "close"]
+    assert seen["notifier"]._type == notification_type
