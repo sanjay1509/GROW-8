@@ -21,6 +21,7 @@ from app.routers import (
     notifications,
     opportunities,
     reference,
+    reports,
     submissions,
 )
 from app.services import submission_rules
@@ -98,6 +99,7 @@ def create_app() -> FastAPI:
     app.include_router(submissions.router, prefix=API_PREFIX)
     app.include_router(notifications.router, prefix=API_PREFIX)
     app.include_router(feedback.router, prefix=API_PREFIX)
+    app.include_router(reports.router, prefix=API_PREFIX)
     app.include_router(admin.router, prefix=API_PREFIX)
 
     @app.get("/health", tags=["health"])
