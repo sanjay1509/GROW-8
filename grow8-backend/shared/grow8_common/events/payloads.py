@@ -105,6 +105,57 @@ class WorkRejectedPayload(BaseModel):
     comment: str
 
 
+# Which participant wrote the feedback. The decision events go to creator_service and
+# contributor_service, and each one notifies only the participant on its own side.
+AuthorRole = Literal["contributor", "creator"]
+
+
+class FeedbackSubmittedPayload(BaseModel):
+    """Sent when a participant leaves feedback on a verified application (ADR 0015). It
+    waits for an admin's review."""
+
+    feedback_id: int
+    application_id: int
+    opportunity_id: int
+    opportunity_title: str
+    author_user_id: int
+    author_name: str
+    author_role: AuthorRole
+    subject_user_id: int
+    rating: int
+    reports_discrepancy: bool
+
+
+class FeedbackApprovedPayload(BaseModel):
+    """Sent when an admin approves feedback: it is now public and counts toward the
+    subject's rating. Both the author and the subject are told (ADR 0015)."""
+
+    feedback_id: int
+    application_id: int
+    opportunity_id: int
+    opportunity_title: str
+    author_user_id: int
+    author_name: str
+    author_role: AuthorRole
+    subject_user_id: int
+    subject_name: str
+    rating: int
+
+
+class FeedbackRejectedPayload(BaseModel):
+    """Sent when an admin rejects feedback, with the reason (required). Only the author
+    is told; the subject never sees feedback that doesn't count (ADR 0015)."""
+
+    feedback_id: int
+    application_id: int
+    opportunity_id: int
+    opportunity_title: str
+    author_user_id: int
+    author_role: AuthorRole
+    subject_name: str
+    reason: str
+
+
 # Payload schema per event type. Add the others as their features are built.
 PAYLOAD_SCHEMAS: dict[EventType, type[BaseModel]] = {
     EventType.OPPORTUNITY_CREATED: OpportunityCreatedPayload,
@@ -115,4 +166,7 @@ PAYLOAD_SCHEMAS: dict[EventType, type[BaseModel]] = {
     EventType.WORK_SUBMITTED: WorkSubmittedPayload,
     EventType.WORK_VERIFIED: WorkVerifiedPayload,
     EventType.WORK_REJECTED: WorkRejectedPayload,
+    EventType.FEEDBACK_SUBMITTED: FeedbackSubmittedPayload,
+    EventType.FEEDBACK_APPROVED: FeedbackApprovedPayload,
+    EventType.FEEDBACK_REJECTED: FeedbackRejectedPayload,
 }
