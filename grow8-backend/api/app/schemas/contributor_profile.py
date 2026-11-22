@@ -60,8 +60,10 @@ class SkillsReplace(BaseModel):
 
 
 class ProfileSkill(BaseModel):
-    """`listed`: on the contributor's profile. `verified`: approved work on an opportunity
-    that required it (from v_contributor_skill), first approved at `verified_at`."""
+    """`listed`: on the contributor's profile (PUT /contributors/me/skills changes these).
+    `verified`: a creator approved their work on an opportunity that required it, first at
+    `verified_at`. A skill can be both, or verified without being listed (earned through
+    work, ADR 0019); editing the listed skills never removes an earned one."""
 
     code: str
     name: str

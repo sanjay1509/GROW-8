@@ -153,6 +153,7 @@ Creators and admins get 403 `ROLE_FORBIDDEN`. A profile:
   "city": "Calgary",
   "skills": [
     { "code": "data-cleaning", "name": "Data cleaning", "listed": true, "verified": false, "verified_at": null },
+    { "code": "data-entry", "name": "Data entry", "listed": false, "verified": true, "verified_at": "2026-10-15T15:00:00Z" },
     { "code": "spreadsheets", "name": "Spreadsheets", "listed": true, "verified": true, "verified_at": "2026-10-15T15:00:00Z" }
   ],
   "has_resume": false,
@@ -160,10 +161,37 @@ Creators and admins get 403 `ROLE_FORBIDDEN`. A profile:
 }
 ```
 
-- **Skills** are sorted by name. `listed`: on your profile. `verified`: a creator approved your work on an opportunity that required the skill, first at `verified_at`. Removing a verified skill hides its verification, and adding it back restores it with the same date. Today every skill returned is listed; skills earned through work but never listed will appear as `listed: false, verified: true` (#29), with no change to this shape.
+- **Skills** are sorted by name: every skill you listed, plus every skill you **earned**, i.e. one an opportunity required where a creator approved your work, listed or not ([ADR 0019](adr/0019-earned-skills.md)). `listed`: on your profile. `verified`: proved by approved work, first at `verified_at`. An earned skill you haven't listed is `listed: false, verified: true`. `PUT /contributors/me/skills` changes listed skills only, so it never removes an earned one: removing a verified skill leaves it as `listed: false`.
+- **Matching uses listed skills only.** New opportunities are matched against the skills you list, so list an earned skill to be notified about opportunities that need it.
 - **`updated_at`** is when the profile or its skills last changed. It is `null` for an account with no profile row yet: then the profile fields are `null`, `skills` is `[]`, and the first `PATCH` or `PUT` creates the row. Until then, applying and uploading a resume are refused with 409 `CONTRIBUTOR_PROFILE_REQUIRED` ("Save your profile first").
 - Changing your name here or with `PATCH /auth/me` is the same thing: both change the account's name.
 - Changing skills affects which new opportunities you're notified about straight away.
+
+## Creator organization
+
+A creator reads and edits their own organization (one per creator). Rules: [ADR 0018](adr/0018-creator-organization.md). Your own name is changed with `PATCH /auth/me`.
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| GET | `/creators/me/organization` | creator | Your organization (below). None yet → 404 `ORGANIZATION_NOT_FOUND`. |
+| PATCH | `/creators/me/organization` | creator | Any of `name` (1–150), `organization_type` (`small_business`, `nonprofit`, `event_organizer`, `other`), `description` (≤ 5000), `website` (≤ 255, `http://` or `https://` with a host), `city` (≤ 100). Only the fields sent change. Whitespace is trimmed; for `description`, `website` and `city`, `null` or `""` clears the value. `name` and `organization_type` can't be cleared. Bad input or unknown fields → 422 `VALIDATION_ERROR`. Returns the organization. |
+
+Contributors and admins get 403 `ROLE_FORBIDDEN`. An organization:
+
+```json
+{
+  "organization_id": 1,
+  "name": "Maple Street Bakery",
+  "organization_type": "small_business",
+  "description": "Family-run neighbourhood bakery.",
+  "website": "https://example.com/maple-street-bakery",
+  "city": "Calgary",
+  "updated_at": "2026-11-22T10:00:00Z"
+}
+```
+
+- **No organization yet:** the first `PATCH` creates it if it sends both `name` and `organization_type`; otherwise 409 `ORGANIZATION_REQUIRED` (the same code `POST /opportunities` returns until then).
+- **Edits show on every one of your opportunities straight away**, past ones included, and in search by organization name. Notifications already sent keep the old name.
 
 ## Resumes
 
