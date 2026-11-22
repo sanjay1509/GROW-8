@@ -223,6 +223,40 @@ The creator who owns the opportunity approves or rejects each submission once ([
 - Once per submission, final (409 `SUBMISSION_ALREADY_VERIFIED`). Not once the opportunity is cancelled (409 `OPPORTUNITY_CANCELLED`); closed is fine. Another creator, or a submission that doesn't exist → 404 `SUBMISSION_NOT_FOUND`.
 - Emits `WORK_VERIFIED` or `WORK_REJECTED`; the contributor is notified. Approved hours count toward the contributor's verified hours and skills from then on (computed by the database views, never stored).
 
+## Feedback and ratings
+
+Once the work on an application has been verified (approved or rejected), the applicant and the owning creator can each rate the other once. An admin reviews every feedback, and only approved feedback is shown to the person rated and counts toward their public rating. Rules and reasons: [ADR 0015](adr/0015-feedback-and-admin-review.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| POST | `/applications/{id}/feedback` | the applicant or the owning creator | Body `{rating, comment?, reports_discrepancy?}` → 201. The subject is always the other participant. Only once the work is verified (409 `WORK_NOT_VERIFIED`), once per author (409 `FEEDBACK_ALREADY_SUBMITTED`). Emits `FEEDBACK_SUBMITTED` (admins are notified). |
+| GET | `/applications/{id}/feedback` | the applicant or the owning creator | `{given, received}`: your feedback in any status, and theirs about you **only once approved**. Each is `null` when there's nothing to show. Anyone else → 404 `APPLICATION_NOT_FOUND`. |
+| GET | `/admin/feedback` | admin | Review queue: **discrepancy reports first**, then oldest first. `status` (repeatable: `pending`, `approved`, `rejected`; default all), `discrepancy` (`true`/`false`), `limit`, `offset`. |
+| POST | `/admin/feedback/{id}/review` | admin | Body `{decision: "approved" \| "rejected", reason?}` → 200 with the feedback. A reason is required when rejecting (422 `REJECTION_REASON_REQUIRED`), at most 500 characters. Once per feedback (409 `FEEDBACK_ALREADY_REVIEWED`). Emits `FEEDBACK_APPROVED` or `FEEDBACK_REJECTED`. |
+| GET | `/users/{id}/rating` | anyone (no token) | `{user_id, average_rating, approved_feedback_count}` from approved feedback only. `average_rating` is a 2-decimal string, or `null` with no approved feedback. |
+
+Body rules: `rating` is a whole number from 1 to 5; `comment` is optional, trimmed, at most 2000 characters; `reports_discrepancy` (default `false`) flags that something on the application went wrong, such as disputed hours, and puts it at the front of the admin queue.
+
+A feedback:
+
+```json
+{
+  "feedback_id": 8,
+  "application_id": 12,
+  "opportunity": { "opportunity_id": 2, "title": "Inventory spreadsheet cleanup" },
+  "author": { "user_id": 5, "full_name": "Alex Chen" },
+  "subject": { "user_id": 2, "full_name": "Priya Nair" },
+  "rating": 5,
+  "comment": "Clear instructions and quick feedback.",
+  "reports_discrepancy": false,
+  "created_at": "2026-11-20T15:00:00Z",
+  "status": "approved",
+  "review": { "decision": "approved", "reason": null, "reviewed_at": "2026-11-21T09:00:00Z" }
+}
+```
+
+`status` is `pending` (and `review` is `null`) until an admin reviews it. Feedback can't be edited or withdrawn.
+
 ## Notifications
 
 Every signed-in user (any role) has an inbox. The consumer services write the notifications when events happen (see [events.md](events.md) and [ADR 0003](adr/0003-persisted-notifications.md)); the API only reads them and marks them read. You only ever see your own: someone else's `id` → 404, the same as one that doesn't exist.
@@ -260,6 +294,9 @@ A notification:
 | `work_submitted` | the creator who owns the opportunity | An accepted applicant submitted their work for verification. |
 | `work_verified` | the contributor who submitted the work | The creator approved it; the message gives the verified hours. |
 | `work_rejected` | the contributor who submitted the work | The creator rejected it; the message quotes their comment. |
+| `feedback_submitted` | every active admin | Feedback is waiting for review; the title starts "Discrepancy reported" for discrepancy reports. |
+| `feedback_approved` | the author and the subject | The author: their feedback was published. The subject: they received a rating. |
+| `feedback_rejected` | the author only | An admin didn't approve their feedback; the message quotes the reason. The subject isn't told. |
 
 `opportunity_id` links to `GET /opportunities/{id}`. It is `null` if the opportunity was deleted. `title` and `message` are stored as written and don't change if the opportunity is edited later.
 

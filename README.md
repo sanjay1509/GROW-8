@@ -65,7 +65,7 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 | RabbitMQ | Routes published events to subscribed consumer services, with delayed retries and a dead-letter queue per service. |
 | Creator Service | Notifies creators when their opportunity is published, when someone applies or withdraws, and when work awaits verification. |
 | Contributor Service | Notifies contributors of matching opportunities, application decisions, cancellations, and whether their work was verified. Verified hours and skills are computed from approved work. |
-| Admin Service | (Planned) Handles feedback awaiting review and administrative feedback decisions. |
+| Admin Service | Notifies admins of feedback awaiting review, discrepancy reports first. |
 
 ### Event Flow
 
@@ -79,9 +79,9 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 | Contributor actions | `APPLICATION_SUBMITTED` | Creator Service | Notifies creators about new applications. | Implemented |
 | Contributor actions | `APPLICATION_WITHDRAWN` | Creator Service | Notifies creators when an applicant withdraws, and whether a place opened up. | Implemented |
 | Contributor actions | `WORK_SUBMITTED` | Creator Service | Notifies creators about work awaiting verification. | Implemented |
-| Creator or Contributor actions | `FEEDBACK_SUBMITTED` | Admin Service | Alerts admins to feedback awaiting review. | Planned |
-| Admin actions | `FEEDBACK_APPROVED` | All three services | Updates public ratings and notifies the feedback author and subject. | Planned |
-| Admin actions | `FEEDBACK_REJECTED` | All three services | Records the rejection and notifies the feedback author and subject. | Planned |
+| Creator or Contributor actions | `FEEDBACK_SUBMITTED` | Admin Service | Alerts admins to feedback awaiting review, flagging discrepancy reports. | Implemented |
+| Admin actions | `FEEDBACK_APPROVED` | Creator Service, Contributor Service | Notifies the author that the feedback was published and the subject that they received a rating; it now counts toward the public rating. | Implemented |
+| Admin actions | `FEEDBACK_REJECTED` | Creator Service, Contributor Service | Notifies the feedback author, with the admin's reason. The subject is not told. | Implemented |
 
 Event payloads, queues and failure handling are documented in [grow8-backend/docs/events.md](grow8-backend/docs/events.md).
 
@@ -185,11 +185,12 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole st
 - Optional PDF resume upload for contributors, visible to creators they applied to.
 - Work submission: accepted contributors submit their work once, with up to 5 files, for the creator to verify.
 - Work verification: creators review submitted work and approve it with verified hours or reject it with a comment; approved work counts toward the contributor's verified hours and skills.
-- Event-driven notifications for publishing, applications, decisions, withdrawals, cancellations, work submissions and verification decisions, with delayed retries and dead-letter queues.
+- Feedback and admin review: after verified work, the contributor and the creator rate each other; admins approve or reject each feedback (discrepancy reports first), and public ratings count approved feedback only.
+- Event-driven notifications for publishing, applications, decisions, withdrawals, cancellations, work submissions, verification decisions and feedback review, with delayed retries and dead-letter queues.
 
 **In progress:** connecting the frontend to the applications, close and cancel endpoints.
 
-**Planned:** feedback and admin review, and the stretch goals below.
+**Planned:** the stretch goals below.
 
 **Getting started:** setup, dev accounts, everyday commands and an API walkthrough are in [docs.md](docs.md).
 

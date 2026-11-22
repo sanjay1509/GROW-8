@@ -345,7 +345,35 @@ Then sign in as `alex.chen@grow8.dev`: `GET /api/v1/notifications` shows "Work v
 
 If you keep your local data instead of running `make reset-db`, add the two new notification types first (the `ALTER TABLE` is in ADR 0013) and restart `contributor_service`.
 
-### 3.7 When something is refused
+### 3.7 Feedback and admin review
+
+Once the work on an application is verified (approved or rejected), the contributor and the creator can each rate the other once, 1 to 5, with an optional comment and a "something went wrong" flag (`reports_discrepancy`). Every feedback waits for an admin. Only approved feedback is shown to the person rated and counts toward their public rating ([ADR 0015](grow8-backend/docs/adr/0015-feedback-and-admin-review.md)).
+
+| Task | Request |
+| --- | --- |
+| Rate the other participant | `POST /api/v1/applications/{id}/feedback` with `{"rating": 5, "comment": "optional", "reports_discrepancy": false}` |
+| See feedback on your application | `GET /api/v1/applications/{id}/feedback` → `{given, received}` |
+| Review queue (admin) | `GET /api/v1/admin/feedback?status=pending` (discrepancy reports first) |
+| Approve or reject (admin) | `POST /api/v1/admin/feedback/{id}/review` with `{"decision": "approved"}` or `{"decision": "rejected", "reason": "why"}` |
+| Someone's public rating (no token) | `GET /api/v1/users/{id}/rating` |
+
+Who sees what: you always see your own feedback and its status (with the admin's reason if it was rejected). Feedback **about** you appears only once an admin approves it. A rejection notifies only its author.
+
+Try it on the dev data. Seeded feedback **5** (Sam's discrepancy report) and **6** (Jordan's rating of the food bank, 3/5) are waiting for review. Sign in as `admin@grow8.dev`:
+
+```bash
+curl "http://localhost:8000/api/v1/admin/feedback?status=pending" -H "Authorization: Bearer <admin token>"
+curl http://localhost:8000/api/v1/users/3/rating     # food bank owner: 4.50 from 2 approved
+curl -X POST http://localhost:8000/api/v1/admin/feedback/6/review \
+  -H "Authorization: Bearer <admin token>" -H "Content-Type: application/json" -d '{"decision": "approved"}'
+curl http://localhost:8000/api/v1/users/3/rating     # now 4.00 from 3
+```
+
+Feedback 5 comes first in the queue because it reports a discrepancy. Rejecting it without a `reason` gets 422 `REJECTION_REASON_REQUIRED`; reviewing anything twice gets 409 `FEEDBACK_ALREADY_REVIEWED`; a creator or contributor on the admin routes gets 403. Jordan (`jordan.lee@grow8.dev`) gets "Your feedback was published" and the food bank gets "New rating". `make reset-db` puts both back to pending.
+
+If you keep your local data instead of running `make reset-db`, add the three new notification types first (the `ALTER TABLE` is in ADR 0015) and restart all three consumers.
+
+### 3.8 When something is refused
 
 Every error has the body `{"error": {"code": "...", "message": "..."}}`. All codes are listed in [`grow8-backend/docs/error-codes.md`](grow8-backend/docs/error-codes.md).
 
