@@ -22,6 +22,7 @@ Base path: `/api/v1`. JSON bodies, `snake_case` fields. Interactive docs: <http:
 | --- | --- | --- | --- |
 | POST | `/auth/login` | anyone | Body `{email, password}`. Returns `{access_token, token_type, expires_in, user}`. Wrong email or password → 401 `INVALID_CREDENTIALS`. |
 | GET | `/auth/me` | any signed-in user | The caller's `{user_id, email, full_name, role}`. |
+| PATCH | `/auth/me` | any signed-in user | Body `{full_name}` (1–150 characters, trimmed). Changes your name and returns the same body as `GET /auth/me`. Email can't be changed: sending it is a 422 `VALIDATION_ERROR` ([ADR 0017](adr/0017-contributor-profile.md)). |
 | POST | `/auth/change-password` | any signed-in user | Body `{current_password, new_password}` (new: 8 characters to 72 bytes in UTF-8, bcrypt's limit). Wrong current password → 401 `INVALID_CURRENT_PASSWORD`; same as current → 422 `PASSWORD_UNCHANGED`. Tokens already issued stay valid until they expire ([ADR 0005](adr/0005-password-change.md)). |
 
 There is no sign-up endpoint yet; use the seeded dev accounts (see [docs.md](../../docs.md)).
@@ -128,6 +129,41 @@ An application:
 ```
 
 The applicant's email and other contact details are not included. `applicant.has_resume` says whether `GET /applications/{id}/resume` has a file to return. `submission_id` is the submitted work's id, or `null` until the applicant submits work (see [Work submissions](#work-submissions)), so a list can show "Submit work" or "Submitted" without a call per application. `work_status` says where the work stands: `not_submitted` (also for every application that was never accepted), `awaiting_verification`, `completed` (the creator approved it) or `work_rejected`. It is derived, not stored ([ADR 0013](adr/0013-work-verification.md)).
+
+## Contributor profile
+
+A contributor reads and edits their own profile and the skills they list. Creators see the public part through applications only, always the current version (`applicant` above). Rules: [ADR 0017](adr/0017-contributor-profile.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| GET | `/contributors/me/profile` | contributor | Your profile (below). |
+| PATCH | `/contributors/me/profile` | contributor | Any of `full_name` (1–150), `headline` (≤ 150), `bio` (≤ 5000), `institution` (≤ 150), `city` (≤ 100). Only the fields sent change. Whitespace is trimmed; for the optional fields `null` or `""` clears the value. `full_name` can't be cleared, and `email` can't be changed: both are 422 `VALIDATION_ERROR`, as is any unknown field. Returns the profile. |
+| PUT | `/contributors/me/skills` | contributor | Body `{skill_codes: [...]}` (codes from `GET /skills`). **Replaces** your listed skills; duplicates are collapsed and `[]` removes them all. More than 25 different skills → 422 `VALIDATION_ERROR`; unknown codes → 422 `UNKNOWN_SKILL` with `details.unknown_skills`. Returns the profile. |
+
+Creators and admins get 403 `ROLE_FORBIDDEN`. A profile:
+
+```json
+{
+  "user_id": 5,
+  "full_name": "Alex Chen",
+  "email": "alex.chen@grow8.dev",
+  "headline": "Software engineering student",
+  "bio": null,
+  "institution": "University of Calgary",
+  "city": "Calgary",
+  "skills": [
+    { "code": "data-cleaning", "name": "Data cleaning", "listed": true, "verified": false, "verified_at": null },
+    { "code": "spreadsheets", "name": "Spreadsheets", "listed": true, "verified": true, "verified_at": "2026-10-15T15:00:00Z" }
+  ],
+  "has_resume": false,
+  "updated_at": "2026-11-22T09:30:00Z"
+}
+```
+
+- **Skills** are sorted by name. `listed`: on your profile. `verified`: a creator approved your work on an opportunity that required the skill, first at `verified_at`. Removing a verified skill hides its verification, and adding it back restores it with the same date. Today every skill returned is listed; skills earned through work but never listed will appear as `listed: false, verified: true` (#29), with no change to this shape.
+- **`updated_at`** is when the profile or its skills last changed. It is `null` for an account with no profile row yet: then the profile fields are `null`, `skills` is `[]`, and the first `PATCH` or `PUT` creates the row. Until then, applying and uploading a resume are refused with 409 `CONTRIBUTOR_PROFILE_REQUIRED` ("Save your profile first").
+- Changing your name here or with `PATCH /auth/me` is the same thing: both change the account's name.
+- Changing skills affects which new opportunities you're notified about straight away.
 
 ## Resumes
 

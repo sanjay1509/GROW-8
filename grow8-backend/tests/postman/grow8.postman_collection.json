@@ -116,6 +116,18 @@
     {
       "key": "workReportId",
       "value": ""
+    },
+    {
+      "key": "alexProfileJson",
+      "value": ""
+    },
+    {
+      "key": "alexSkillCodesJson",
+      "value": ""
+    },
+    {
+      "key": "creatorNameJson",
+      "value": ""
     }
   ],
   "item": [
@@ -7200,6 +7212,669 @@
                   "    pm.expect(found.message).to.include(\"The safety information is in the posting.\");",
                   "  });",
                   "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12. Profile",
+      "item": [
+        {
+          "name": "Contributor reads their profile (saved to restore later)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contributors/me/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contributors",
+                "me",
+                "profile"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 with skills listed and verified\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p.email).to.eql(\"alex.chen@grow8.dev\");",
+                  "  pm.expect(p.skills).to.be.an(\"array\");",
+                  "  p.skills.forEach((s) => pm.expect(s).to.include.keys(\"code\", \"name\", \"listed\", \"verified\"));",
+                  "});",
+                  "const p = pm.response.json();",
+                  "// JSON-encoded, so null restores as null.",
+                  "pm.collectionVariables.set(\"alexProfileJson\", JSON.stringify({",
+                  "  full_name: p.full_name, headline: p.headline, bio: p.bio,",
+                  "  institution: p.institution, city: p.city,",
+                  "}));",
+                  "pm.collectionVariables.set(\"alexSkillCodesJson\", JSON.stringify(p.skills.filter((s) => s.listed).map((s) => s.code)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor changes their headline and clears their city",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contributors/me/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contributors",
+                "me",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"headline\": \"  Data student \",\n  \"city\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 with only those fields changed\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p.headline).to.eql(\"Data student\");",
+                  "  pm.expect(p.city).to.eql(null);",
+                  "  const before = JSON.parse(pm.collectionVariables.get(\"alexProfileJson\"));",
+                  "  pm.expect(p.institution).to.eql(before.institution);",
+                  "  pm.expect(p.updated_at).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Clearing the name -> 422",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contributors/me/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contributors",
+                "me",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 VALIDATION_ERROR\", () => {",
+                  "  pm.response.to.have.status(422);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Changing email -> 422",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contributors/me/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contributors",
+                "me",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"someone.else@grow8.dev\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 VALIDATION_ERROR\", () => {",
+                  "  pm.response.to.have.status(422);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor replaces their skills",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contributors/me/skills",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contributors",
+                "me",
+                "skills"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skill_codes\": [\n    \"translation\",\n    \"spreadsheets\",\n    \"translation\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 sorted by name, duplicates collapsed\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const codes = pm.response.json().skills.map((s) => s.code);",
+                  "  pm.expect(codes).to.eql([\"spreadsheets\", \"translation\"]);",
+                  "  pm.expect(pm.response.json().skills.every((s) => s.listed)).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown skill -> 422 with the list",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contributors/me/skills",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contributors",
+                "me",
+                "skills"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skill_codes\": [\n    \"spreadsheets\",\n    \"juggling\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 UNKNOWN_SKILL\", () => {",
+                  "  pm.response.to.have.status(422);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"UNKNOWN_SKILL\");",
+                  "  pm.expect(pm.response.json().error.details.unknown_skills).to.eql([\"juggling\"]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator cannot use the contributor profile -> 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contributors/me/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contributors",
+                "me",
+                "profile"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 ROLE_FORBIDDEN\", () => {",
+                  "  pm.response.to.have.status(403);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"ROLE_FORBIDDEN\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator reads their account (saved to restore later)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 creator\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().role).to.eql(\"creator\");",
+                  "});",
+                  "pm.collectionVariables.set(\"creatorNameJson\", JSON.stringify(pm.response.json().full_name));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator changes their name",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \" Priya N. \"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 with the new name\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().full_name).to.eql(\"Priya N.\");",
+                  "  pm.expect(pm.response.json().email).to.eql(\"maple.bakery@grow8.dev\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Changing email on the account -> 422",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Priya\",\n  \"email\": \"priya@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 VALIDATION_ERROR\", () => {",
+                  "  pm.response.to.have.status(422);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Restore: contributor profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contributors/me/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contributors",
+                "me",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{{alexProfileJson}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 as it was\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const before = JSON.parse(pm.collectionVariables.get(\"alexProfileJson\"));",
+                  "  const p = pm.response.json();",
+                  "  pm.expect([p.full_name, p.headline, p.bio, p.institution, p.city]).to.eql(",
+                  "    [before.full_name, before.headline, before.bio, before.institution, before.city]",
+                  "  );",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Restore: contributor skills",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contributors/me/skills",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contributors",
+                "me",
+                "skills"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skill_codes\": {{alexSkillCodesJson}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 as they were\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const before = JSON.parse(pm.collectionVariables.get(\"alexSkillCodesJson\"));",
+                  "  pm.expect(pm.response.json().skills.map((s) => s.code).sort()).to.eql([...before].sort());",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Restore: creator name",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": {{creatorNameJson}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 as it was\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().full_name).to.eql(JSON.parse(pm.collectionVariables.get(\"creatorNameJson\")));",
+                  "});"
                 ]
               }
             }
