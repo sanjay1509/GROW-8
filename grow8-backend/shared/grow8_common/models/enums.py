@@ -47,6 +47,23 @@ class ReviewDecision(StrEnum):
     REJECTED = "rejected"
 
 
+class ReportReason(StrEnum):
+    """Why a contributor reports an opportunity (opportunity_report.reason, ADR 0016)."""
+
+    MISLEADING_TERMS = "misleading_terms"
+    UNSAFE_CONDITIONS = "unsafe_conditions"
+    DISCRIMINATORY = "discriminatory"
+    SCAM_OR_SPAM = "scam_or_spam"
+    OTHER = "other"
+
+
+class ReportDecision(StrEnum):
+    """report_review.decision: upheld means the opportunity was taken down."""
+
+    UPHELD = "upheld"
+    DISMISSED = "dismissed"
+
+
 class PointSource(StrEnum):
     WORK_VERIFIED = "work_verified"
     BADGE_AWARDED = "badge_awarded"
@@ -67,3 +84,6 @@ class NotificationType(StrEnum):
     FEEDBACK_SUBMITTED = "feedback_submitted"  # to every active admin
     FEEDBACK_APPROVED = "feedback_approved"  # to the author and the subject
     FEEDBACK_REJECTED = "feedback_rejected"  # to the author only
+    OPPORTUNITY_REPORTED = "opportunity_reported"  # to every active admin
+    OPPORTUNITY_TAKEN_DOWN = "opportunity_taken_down"  # to the owner, applicants and reporters
+    REPORT_DISMISSED = "report_dismissed"  # to the contributor who reported

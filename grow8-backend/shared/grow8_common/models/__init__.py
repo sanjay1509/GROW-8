@@ -8,6 +8,8 @@ from grow8_common.models.enums import (
     OpportunityStatus,
     OrganizationType,
     PointSource,
+    ReportDecision,
+    ReportReason,
     ReviewDecision,
     UserRole,
     WorkMode,
@@ -21,6 +23,7 @@ from grow8_common.models.opportunities import (
     Skill,
     opportunity_skill,
 )
+from grow8_common.models.reports import OpportunityReport, ReportReview
 from grow8_common.models.rewards import Badge, ContributorBadge, PointTransaction
 from grow8_common.models.users import (
     ContributorProfile,
@@ -52,10 +55,14 @@ __all__ = [
     "NotificationType",
     "Opportunity",
     "OpportunityCategory",
+    "OpportunityReport",
     "OpportunityStatus",
     "OrganizationType",
     "PointSource",
     "PointTransaction",
+    "ReportDecision",
+    "ReportReason",
+    "ReportReview",
     "ReviewDecision",
     "Skill",
     "SubmissionAttachment",
