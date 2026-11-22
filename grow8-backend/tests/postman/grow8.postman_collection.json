@@ -100,6 +100,22 @@
     {
       "key": "discrepancyFeedbackId",
       "value": ""
+    },
+    {
+      "key": "reportedId",
+      "value": ""
+    },
+    {
+      "key": "reportId",
+      "value": ""
+    },
+    {
+      "key": "secondReportId",
+      "value": ""
+    },
+    {
+      "key": "workReportId",
+      "value": ""
     }
   ],
   "item": [
@@ -6006,6 +6022,1184 @@
                   "  pm.response.to.have.status(404);",
                   "  pm.expect(pm.response.json().error.code).to.eql(\"USER_NOT_FOUND\");",
                   "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11. Reports and takedown",
+      "item": [
+        {
+          "name": "Creator creates an opportunity to report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman: weekend bread delivery\",\n  \"description\": \"Created by the Postman collection for the report and takedown flow.\",\n  \"category\": \"knowledge\",\n  \"skills\": [\n    \"photography\"\n  ],\n  \"requirements\": \"A phone camera is enough.\",\n  \"work_mode\": \"on_site\",\n  \"location\": \"Calgary (Kensington)\",\n  \"start_date\": \"2027-07-01\",\n  \"end_date\": \"2027-07-05\",\n  \"expected_hours\": 6,\n  \"compensation_type\": \"paid\",\n  \"compensation_amount\": 120,\n  \"applicant_limit\": 2,\n  \"application_deadline\": \"2027-06-30T23:59:00Z\",\n  \"working_conditions\": \"Indoors, at the bakery counter.\",\n  \"safety_information\": \"Kitchen areas are off limits.\",\n  \"accessibility_details\": \"Step-free entrance.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 draft\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"reportedId\", pm.response.json().opportunity_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator publishes it",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{reportedId}}/publish",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{reportedId}}",
+                "publish"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 and open\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql(\"open\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor 3 applies (stays pending)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributor3Token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{reportedId}}/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{reportedId}}",
+                "applications"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 pending\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor reports it",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{reportedId}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{reportedId}}",
+                "reports"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"misleading_terms\",\n  \"details\": \"Listed as paid, but the pay is not real.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 pending, without naming the reporter\", () => {",
+                  "  pm.response.to.have.status(201);",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.status).to.eql(\"pending\");",
+                  "  pm.expect(r.reason).to.eql(\"misleading_terms\");",
+                  "  pm.expect(r).to.not.have.property(\"reporter\");",
+                  "  pm.collectionVariables.set(\"reportId\", r.report_id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Report again -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{reportedId}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{reportedId}}",
+                "reports"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"other\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"409 OPPORTUNITY_ALREADY_REPORTED\", () => {",
+                  "  pm.response.to.have.status(409);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"OPPORTUNITY_ALREADY_REPORTED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator cannot report -> 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{reportedId}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{reportedId}}",
+                "reports"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"other\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 ROLE_FORBIDDEN\", () => {",
+                  "  pm.response.to.have.status(403);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"ROLE_FORBIDDEN\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor 2 reports it as a scam",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributor2Token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{reportedId}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{reportedId}}",
+                "reports"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"scam_or_spam\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 pending\", () => {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.collectionVariables.set(\"secondReportId\", pm.response.json().report_id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor reports the work opportunity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{workDraftId}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{workDraftId}}",
+                "reports"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"unsafe_conditions\",\n  \"details\": \"No safety briefing.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 pending\", () => {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.collectionVariables.set(\"workReportId\", pm.response.json().report_id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator cannot open the report queue -> 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "reports"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 ROLE_FORBIDDEN\", () => {",
+                  "  pm.response.to.have.status(403);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"ROLE_FORBIDDEN\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin queue shows both reports with their count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/reports?status=pending&opportunity_id={{reportedId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "reports?status=pending&opportunity_id={{reportedId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 with two open reports on the opportunity\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const items = pm.response.json().items;",
+                  "  pm.expect(items).to.have.lengthOf(2);",
+                  "  pm.expect(items.every((r) => r.open_reports_on_opportunity === 2)).to.eql(true);",
+                  "  pm.expect(items[0].reporter.full_name).to.eql(\"Alex Chen\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Takedown without a reason -> 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/reports/{{reportId}}/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "reports",
+                "{{reportId}}",
+                "review"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"upheld\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 TAKEDOWN_REASON_REQUIRED\", () => {",
+                  "  pm.response.to.have.status(422);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"TAKEDOWN_REASON_REQUIRED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "No takedown once work is submitted -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/reports/{{workReportId}}/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "reports",
+                "{{workReportId}}",
+                "review"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"upheld\",\n  \"reason\": \"No safety briefing.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"409 WORK_ALREADY_SUBMITTED\", () => {",
+                  "  pm.response.to.have.status(409);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"WORK_ALREADY_SUBMITTED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin dismisses that report with a note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/reports/{{workReportId}}/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "reports",
+                "{{workReportId}}",
+                "review"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"dismissed\",\n  \"reason\": \"The safety information is in the posting.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 dismissed, opportunity still open\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql(\"dismissed\");",
+                  "  pm.expect(pm.response.json().opportunity.status).to.eql(\"open\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin takes the opportunity down",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/reports/{{reportId}}/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "reports",
+                "{{reportId}}",
+                "review"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"upheld\",\n  \"reason\": \"The advertised pay is not real.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 upheld and cancelled\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.status).to.eql(\"upheld\");",
+                  "  pm.expect(r.opportunity.status).to.eql(\"cancelled\");",
+                  "  pm.expect(r.open_reports_on_opportunity).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "The other report was upheld too -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/reports/{{secondReportId}}/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "reports",
+                "{{secondReportId}}",
+                "review"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"dismissed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"409 REPORT_ALREADY_REVIEWED\", () => {",
+                  "  pm.response.to.have.status(409);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"REPORT_ALREADY_REVIEWED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator sees it cancelled, with no reporter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{reportedId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{reportedId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 cancelled\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql(\"cancelled\");",
+                  "  pm.expect(JSON.stringify(pm.response.json())).to.not.include(\"Alex Chen\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "It is gone from browse",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities?limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities?limit=100"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 without the opportunity\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const id = Number(pm.collectionVariables.get(\"reportedId\"));",
+                  "  pm.expect(pm.response.json().items.map((o) => o.opportunity_id)).to.not.include(id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contributor 2 sees their report upheld",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributor2Token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/mine",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "mine"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 upheld\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const id = Number(pm.collectionVariables.get(\"secondReportId\"));",
+                  "  const r = pm.response.json().items.find((x) => x.report_id === id);",
+                  "  pm.expect(r.status).to.eql(\"upheld\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reporting a taken-down opportunity -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributor3Token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/opportunities/{{reportedId}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "opportunities",
+                "{{reportedId}}",
+                "reports"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"other\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"409 OPPORTUNITY_CANCELLED\", () => {",
+                  "  pm.response.to.have.status(409);",
+                  "  pm.expect(pm.response.json().error.code).to.eql(\"OPPORTUNITY_CANCELLED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin gets 'Opportunity reported'",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?unread_only=true&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications?unread_only=true&limit=100"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// The consumer services write notifications just after the API responds:",
+                  "// retry this request (up to 10 x 0.5 s) until it shows up.",
+                  "const id = Number(pm.collectionVariables.get(\"reportedId\"));",
+                  "const found = pm.response.json().items.find(",
+                  "  (n) => n.opportunity_id === id && n.notification_type === \"opportunity_reported\"",
+                  ");",
+                  "const tries = Number(pm.collectionVariables.get(\"opportunity_reported_reportedId_Tries\") || 0);",
+                  "if (!found && tries < 10) {",
+                  "  pm.collectionVariables.set(\"opportunity_reported_reportedId_Tries\", tries + 1);",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "  setTimeout(() => {}, 500);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(\"opportunity_reported_reportedId_Tries\");",
+                  "  pm.test(\"200 and an unread opportunity_reported notification for the admin\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(found, \"notification for opportunity \" + id).to.be.an(\"object\");",
+                  "    pm.expect(found.title).to.include(\"Opportunity reported\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Creator gets 'Opportunity taken down' with the reason",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{creatorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?unread_only=true&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications?unread_only=true&limit=100"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// The consumer services write notifications just after the API responds:",
+                  "// retry this request (up to 10 x 0.5 s) until it shows up.",
+                  "const id = Number(pm.collectionVariables.get(\"reportedId\"));",
+                  "const found = pm.response.json().items.find(",
+                  "  (n) => n.opportunity_id === id && n.notification_type === \"opportunity_taken_down\"",
+                  ");",
+                  "const tries = Number(pm.collectionVariables.get(\"opportunity_taken_down_reportedId_Tries\") || 0);",
+                  "if (!found && tries < 10) {",
+                  "  pm.collectionVariables.set(\"opportunity_taken_down_reportedId_Tries\", tries + 1);",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "  setTimeout(() => {}, 500);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(\"opportunity_taken_down_reportedId_Tries\");",
+                  "  pm.test(\"200 and an unread opportunity_taken_down notification for the creator\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(found, \"notification for opportunity \" + id).to.be.an(\"object\");",
+                  "    pm.expect(found.message).to.include(\"The advertised pay is not real.\");",
+                  "    pm.expect(found.message).to.not.include(\"Alex\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Applicant (contributor 3) is told it won't go ahead",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributor3Token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?unread_only=true&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications?unread_only=true&limit=100"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// The consumer services write notifications just after the API responds:",
+                  "// retry this request (up to 10 x 0.5 s) until it shows up.",
+                  "const id = Number(pm.collectionVariables.get(\"reportedId\"));",
+                  "const found = pm.response.json().items.find(",
+                  "  (n) => n.opportunity_id === id && n.notification_type === \"opportunity_taken_down\"",
+                  ");",
+                  "const tries = Number(pm.collectionVariables.get(\"opportunity_taken_down_reportedId_Tries\") || 0);",
+                  "if (!found && tries < 10) {",
+                  "  pm.collectionVariables.set(\"opportunity_taken_down_reportedId_Tries\", tries + 1);",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "  setTimeout(() => {}, 500);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(\"opportunity_taken_down_reportedId_Tries\");",
+                  "  pm.test(\"200 and an unread opportunity_taken_down notification for the applicant\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(found, \"notification for opportunity \" + id).to.be.an(\"object\");",
+                  "    pm.expect(found.message).to.include(\"won't go ahead\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reporter gets 'Thanks for your report'",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?unread_only=true&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications?unread_only=true&limit=100"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// The consumer services write notifications just after the API responds:",
+                  "// retry this request (up to 10 x 0.5 s) until it shows up.",
+                  "const id = Number(pm.collectionVariables.get(\"reportedId\"));",
+                  "const found = pm.response.json().items.find(",
+                  "  (n) => n.opportunity_id === id && n.notification_type === \"opportunity_taken_down\"",
+                  ");",
+                  "const tries = Number(pm.collectionVariables.get(\"opportunity_taken_down_reportedId_Tries\") || 0);",
+                  "if (!found && tries < 10) {",
+                  "  pm.collectionVariables.set(\"opportunity_taken_down_reportedId_Tries\", tries + 1);",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "  setTimeout(() => {}, 500);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(\"opportunity_taken_down_reportedId_Tries\");",
+                  "  pm.test(\"200 and an unread opportunity_taken_down notification for the reporter\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(found, \"notification for opportunity \" + id).to.be.an(\"object\");",
+                  "    pm.expect(found.title).to.include(\"Thanks for your report\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reporter of the dismissed report gets 'Report reviewed'",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contributorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?unread_only=true&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications?unread_only=true&limit=100"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// The consumer services write notifications just after the API responds:",
+                  "// retry this request (up to 10 x 0.5 s) until it shows up.",
+                  "const id = Number(pm.collectionVariables.get(\"workDraftId\"));",
+                  "const found = pm.response.json().items.find(",
+                  "  (n) => n.opportunity_id === id && n.notification_type === \"report_dismissed\"",
+                  ");",
+                  "const tries = Number(pm.collectionVariables.get(\"report_dismissed_workDraftId_Tries\") || 0);",
+                  "if (!found && tries < 10) {",
+                  "  pm.collectionVariables.set(\"report_dismissed_workDraftId_Tries\", tries + 1);",
+                  "  postman.setNextRequest(pm.info.requestName);",
+                  "  setTimeout(() => {}, 500);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(\"report_dismissed_workDraftId_Tries\");",
+                  "  pm.test(\"200 and an unread report_dismissed notification for the reporter\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(found, \"notification for opportunity \" + id).to.be.an(\"object\");",
+                  "    pm.expect(found.message).to.include(\"The safety information is in the posting.\");",
+                  "  });",
+                  "}"
                 ]
               }
             }

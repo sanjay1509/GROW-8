@@ -156,6 +156,41 @@ class FeedbackRejectedPayload(BaseModel):
     reason: str
 
 
+class OpportunityReportedPayload(BaseModel):
+    """Sent when a contributor reports a published opportunity (ADR 0016). The reporter
+    is not named: admins see who reported through the API."""
+
+    report_id: int
+    opportunity_id: int
+    opportunity_title: str
+    reason: Literal[
+        "misleading_terms", "unsafe_conditions", "discriminatory", "scam_or_spam", "other"
+    ]
+    open_reports: int  # pending reports on this opportunity, this one included
+
+
+class OpportunityTakenDownPayload(BaseModel):
+    """Sent when an admin upholds a report and the opportunity is cancelled (ADR 0016).
+    `reason` is what the admin told the creator. Applicants are looked up when the event
+    is handled; the reporters are listed here, since every pending report was upheld."""
+
+    opportunity_id: int
+    organization_id: int
+    title: str
+    reason: str
+    reporter_user_ids: list[int]
+
+
+class ReportDismissedPayload(BaseModel):
+    """Sent when an admin dismisses one report; only its reporter is told."""
+
+    report_id: int
+    opportunity_id: int
+    opportunity_title: str
+    reporter_user_id: int
+    reason: str | None
+
+
 # Payload schema per event type. Add the others as their features are built.
 PAYLOAD_SCHEMAS: dict[EventType, type[BaseModel]] = {
     EventType.OPPORTUNITY_CREATED: OpportunityCreatedPayload,
@@ -169,4 +204,7 @@ PAYLOAD_SCHEMAS: dict[EventType, type[BaseModel]] = {
     EventType.FEEDBACK_SUBMITTED: FeedbackSubmittedPayload,
     EventType.FEEDBACK_APPROVED: FeedbackApprovedPayload,
     EventType.FEEDBACK_REJECTED: FeedbackRejectedPayload,
+    EventType.OPPORTUNITY_REPORTED: OpportunityReportedPayload,
+    EventType.OPPORTUNITY_TAKEN_DOWN: OpportunityTakenDownPayload,
+    EventType.REPORT_DISMISSED: ReportDismissedPayload,
 }

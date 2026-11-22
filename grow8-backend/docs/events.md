@@ -25,9 +25,9 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 | Queue | Bound to (routing keys) | Retry queues | Dead-letter queue |
 | --- | --- | --- | --- |
-| `grow8.contributor_service` | `opportunity.created`, `application.decided`, `opportunity.cancelled`, `work.verified`, `work.rejected`, `feedback.approved`, `feedback.rejected` | `grow8.contributor_service.retry.{5s,30s,120s}` | `grow8.contributor_service.dlq` |
-| `grow8.creator_service` | `opportunity.created`, `application.submitted`, `application.withdrawn`, `work.submitted`, `feedback.approved`, `feedback.rejected` | `grow8.creator_service.retry.{5s,30s,120s}` | `grow8.creator_service.dlq` |
-| `grow8.admin_service` | `feedback.submitted` | `grow8.admin_service.retry.{5s,30s,120s}` | `grow8.admin_service.dlq` |
+| `grow8.contributor_service` | `opportunity.created`, `application.decided`, `opportunity.cancelled`, `work.verified`, `work.rejected`, `feedback.approved`, `feedback.rejected`, `opportunity.taken.down`, `report.dismissed` | `grow8.contributor_service.retry.{5s,30s,120s}` | `grow8.contributor_service.dlq` |
+| `grow8.creator_service` | `opportunity.created`, `application.submitted`, `application.withdrawn`, `work.submitted`, `feedback.approved`, `feedback.rejected`, `opportunity.taken.down` | `grow8.creator_service.retry.{5s,30s,120s}` | `grow8.creator_service.dlq` |
+| `grow8.admin_service` | `feedback.submitted`, `opportunity.reported` | `grow8.admin_service.retry.{5s,30s,120s}` | `grow8.admin_service.dlq` |
 
 - A message is **acked only after its handler returns**, so a crash mid-handler means RabbitMQ redelivers it.
 - A **bad message** (unreadable JSON, no handler, payload fails its schema) can never succeed, so it is **rejected without requeue** and moves to the service's `.dlq` via the `grow8.events.dlx` exchange at once.
@@ -218,6 +218,52 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 | `author_role` | string | `contributor` \| `creator` |
 | `subject_name` | string | Named in the author's message. |
 | `reason` | string | Required when rejecting, at most 500 characters. |
+
+### `OPPORTUNITY_REPORTED` (v1)
+
+- **When:** a contributor reports a published opportunity (`POST /api/v1/opportunities/{id}/reports`), after the commit ([ADR 0016](adr/0016-opportunity-reports-and-takedown.md)). A refused report sends nothing. One report per contributor per opportunity.
+- **Consumed by:** **admin_service** → `app/handlers/opportunity_reported.py`. It stores one `opportunity_reported` notification for every active admin: `Opportunity reported: <title>`, with the reason in words and how many reports are open on it. The reporter isn't named; admins see who reported in `GET /admin/reports`.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `report_id` | int | |
+| `opportunity_id` | int | |
+| `opportunity_title` | string | |
+| `reason` | string | `misleading_terms` \| `unsafe_conditions` \| `discriminatory` \| `scam_or_spam` \| `other` |
+| `open_reports` | int | Pending reports on the opportunity, this one included. |
+
+### `OPPORTUNITY_TAKEN_DOWN` (v1)
+
+- **When:** an admin upholds a report (`POST /api/v1/admin/reports/{id}/review` with `decision: "upheld"`), after the opportunity is cancelled and every pending report on it is upheld in one transaction. An opportunity is taken down at most once (cancelled is final).
+- **Consumed by:**
+  - **creator_service** → `app/handlers/opportunity_taken_down.py`: one notification for the organization's owner (skipped if inactive), `Opportunity taken down: <title>`, quoting the admin's reason. Who reported is never said.
+  - **contributor_service** → `app/handlers/opportunity_taken_down.py`: one notification per pending or accepted applicant (looked up at handling time) and per reporter (from the event). Applicants hear it "won't go ahead", without the reason; reporters get `Thanks for your report: <title>`. A reporter who also applied gets the reporter message only.
+
+  All use `opportunity_taken_down`. Commit-then-ack and duplicate-safe insert as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `opportunity_id` | int | |
+| `organization_id` | int | Used to find the owner. |
+| `title` | string | |
+| `reason` | string | What the admin told the creator. |
+| `reporter_user_ids` | int[] | Everyone whose report was upheld by this takedown. |
+
+### `REPORT_DISMISSED` (v1)
+
+- **When:** an admin dismisses one report (`decision: "dismissed"`), after the commit. Sent at most once per report.
+- **Consumed by:** **contributor_service** → `app/handlers/report_dismissed.py`: one `report_dismissed` notification for the reporter, `Report reviewed: <title>`, with the admin's note if any. Nobody else is told.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `report_id` | int | |
+| `opportunity_id` | int | |
+| `opportunity_title` | string | |
+| `reporter_user_id` | int | Whom to notify. |
+| `reason` | string \| null | The admin's optional note. |
 
 ### Seeing it end to end (Check-in I demo)
 

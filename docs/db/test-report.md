@@ -6,12 +6,12 @@ This report covers the tests that check the database itself: the integrity rules
 
 ## Result
 
-**Run on Nov 22, 2026: 604 passed, 0 failed, 0 skipped.**
+**Run on Nov 22, 2026: 702 passed, 0 failed, 0 skipped.**
 
 | Suite | Tests | Result |
 |---|---|---|
-| API and database tests (`grow8-backend/api/tests`) | 524 | all passed |
-| Consumer service tests (`grow8-backend/services/*/tests`) | 80 | all passed |
+| API and database tests (`grow8-backend/api/tests`) | 607 | all passed |
+| Consumer service tests (`grow8-backend/services/*/tests`) | 95 | all passed |
 
 Environment: MySQL 8.0, RabbitMQ 3.12, Python 3. Each API test starts from a fresh copy of `002_seed.sql` in a separate `grow8_test` database, so tests never touch the dev data and don't depend on each other. Applications in the tests use fixed dates, so the results don't change as real dates pass the seeded deadlines.
 
@@ -19,16 +19,18 @@ How to run: `make test` and `make test-services` from `grow8-backend/` with the 
 
 ## Database tests by area
 
-64 of the 524 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
+74 of the 607 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
 
 | File | Tests | What it proves |
 |---|---|---|
 | `test_db_integrity.py` | 16 | Every cross-table rule (I1–I9 in `relationship-validation.md`) is refused by MySQL when broken and accepted when followed, plus the derived views, decision 7 (verified skills) and the `contributor_resume` constraints. |
 | `test_db_applications.py` | 8 | Decision 4: open status, deadline, applicant limit, freed places, immutable applications, and a two-connection race for the last place. |
 | `test_db_workflow_seed.py` | 11 | `004_seed_workflow.sql` loads with every trigger active, the views return its history, and each of the eight database questions returns the documented answer. |
-| `test_schema_mirror.py` | 20 | The ORM models match `001_schema.sql` exactly: same tables, columns, types, keys and constraints, for all 19 tables. |
+| `test_schema_mirror.py` | 22 | The ORM models match `001_schema.sql` exactly: same tables, columns, types, keys and constraints, for all 21 tables. |
 | `test_notification_schema.py` | 4 | One notification per user per event, and notifications survive their opportunity being deleted. |
 | `test_submission_repository.py` | 5 | Work submissions and their attachments are stored and read back, an attachment is found only through its own submission, and MySQL refuses work for an application that isn't accepted (I7) and a second submission for the same application (R9). |
+
+| `test_db_reports.py` | 8 | Opportunity reports (R24–R27): only contributors report and only admins review (I6), only open or closed opportunities can be reported (I7), one report per contributor per opportunity and one review per report, a takedown always has a reason, and report rows lock the account's role. |
 
 ## Rules covered
 
@@ -55,6 +57,10 @@ Each rule has at least one accepted and one refused case.
 | Rating from approved feedback only (I3) | `v_user_rating` | `test_feedback_status_and_public_rating_use_admin_decisions_only` |
 | Leaderboard summed, never stored (I3) | `v_leaderboard` | `test_leaderboard_sums_points_and_ranks_contributors` |
 | Verified skill derived (decision 7) | `v_contributor_skill` | `test_skill_is_verified_only_by_approved_work_that_required_it` |
+| Reporters are contributors, report reviewers are admins (I6, R25, R27) | `trg_opportunity_report_*`, `trg_report_review_*` | `test_only_contributors_report`, `test_only_admins_review_reports` |
+| Only published opportunities can be reported (I7, R24) | `trg_opportunity_report_bi` | `test_only_published_opportunities_can_be_reported` |
+| One report per contributor per opportunity, one review per report (R25, R26) | `uq_opportunity_report_reporter`, `uq_report_review_report` | `test_one_report_per_contributor_per_opportunity`, `test_each_report_is_reviewed_once` |
+| A takedown always has a reason | `chk_report_review_reason` | `test_a_takedown_always_has_a_reason` |
 | One resume per contributor, non-empty, unique storage key, deleted with the profile (R23) | `contributor_resume` PK = FK, `chk_contributor_resume_size`, `uq_contributor_resume_storage_key`, `ON DELETE CASCADE` | `test_contributor_resume_is_one_per_contributor_and_goes_with_the_profile` |
 | Discrepancy flag on feedback | `feedback.reports_discrepancy` | `test_feedback_can_report_a_discrepancy`, `test_q7_open_discrepancy_reports` |
 | One notification per user per event (R21) | `uq_notification_event_user` | `test_same_event_for_same_user_is_stored_once`, `test_same_event_notifies_each_user_once` |
@@ -72,6 +78,7 @@ Without the row lock, both transactions would count zero active applications and
 
 ## Changes made for this report
 
+- Nov 22 (reports and takedown, ADR 0016): two new tables, `opportunity_report` and `report_review` (19 → 21), with `test_db_reports.py` for their rules and the schema mirror covering both. `notification_type` gained `opportunity_reported`, `opportunity_taken_down` and `report_dismissed`. `test_report_service.py` adds two two-connection races: two admins upholding different reports on the same opportunity (the second waits on the opportunity lock and finds its report already upheld; locking the report first deadlocks, which the test catches), and a report racing a takedown (it waits and sees the cancel).
 - Nov 22 (feedback and admin review, ADR 0015): counts updated. `notification_type` gained `feedback_submitted`, `feedback_approved` and `feedback_rejected` (covered by `test_db_notifier.py`, which also tests the new `find_active_admins` query). `test_feedback_service.py` checks that pending and rejected feedback never change `v_user_rating`, and adds a two-connection race: a second admin review of the same feedback waits for the first one's row lock and is refused by the locking read, not by `uq_admin_review_feedback`.
 - Nov 22 (work verification, ADR 0013): counts updated for the work verification feature. `notification_type` gained `work_verified` and `work_rejected` (covered by `test_db_notifier.py`). `test_verification_service.py` adds a two-connection race like the one above: a second verification of the same submission waits for the first one's row lock, then its locking read sees the committed verification and it is refused with `SUBMISSION_ALREADY_VERIFIED`, not by the unique-key backstop.
 - Nov 17 (work submission, ADR 0012): added `test_submission_repository.py`, and counts updated for the work submission feature. `notification_type` gained `work_submitted`; `test_db_notifier.py` now checks that every notification type can be stored once per event.
