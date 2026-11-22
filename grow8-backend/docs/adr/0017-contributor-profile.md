@@ -1,6 +1,6 @@
 # ADR 0017: Contributors edit their own profile and skills; everyone edits their name
 
-- **Status:** accepted
+- **Status:** accepted; decision 5 amended by [ADR 0019](0019-earned-skills.md) (earned skills now appear, listed or not)
 - **Date:** 2026-11-22
 - **Builds on:** [ADR 0006](0006-application-lifecycle.md) (creators see the applicant's current public profile), [ADR 0008](0008-contributor-resume.md) (the profile row the resume hangs off).
 

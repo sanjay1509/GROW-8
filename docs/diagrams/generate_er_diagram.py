@@ -134,7 +134,7 @@ VIEW_NOTES = {
     "v_user_rating": "AVG(rating) of feedback approved in admin_review",
     "v_feedback_status": "pending until an admin_review row exists",
     "v_leaderboard": "SUM(points) from point_transaction, RANK() OVER",
-    "v_contributor_skill": "verified once approved work used the skill",
+    "v_contributor_skill": "listed or earned; verified once approved work used it",
 }
 
 

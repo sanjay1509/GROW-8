@@ -2,7 +2,7 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Written Oct 14 from the ENSF 608 proposal (submitted Oct 9). Updated Oct 23, Oct 27 (`notification`, R21–R22) Nov 17 (`contributor_resume`, R23) and Nov 22 (`opportunity_report`, `report_review`, R24–R27): section 7 shows how the committed schema (`grow8-backend/db/init/001_schema.sql`) resolves every issue below. Sections 3–6 keep the proposal's attribute names; section 6 of `functional-dependencies.md` maps them to the schema's.
+> Written Oct 14 from the ENSF 608 proposal (submitted Oct 9). Updated Oct 23, Oct 27 (`notification`, R21–R22) Nov 17 (`contributor_resume`, R23) and Nov 22 (`opportunity_report`, `report_review`, R24–R27; earned skills, ADR 0019): section 7 shows how the committed schema (`grow8-backend/db/init/001_schema.sql`) resolves every issue below. Sections 3–6 keep the proposal's attribute names; section 6 of `functional-dependencies.md` maps them to the schema's.
 
 ## 1. Purpose
 
@@ -223,7 +223,7 @@ Every issue is now enforced by the database itself, so it holds whichever servic
 | I7 hours only when approved | `chk_work_verification_hours`. |
 | I7 points only from approved work | `trg_point_transaction_bi/bu`. |
 | I7 open, deadline and applicant limit | `trg_application_bi/bu` (procedure `grow8_require_application_capacity`): opportunity must be `open`, `submitted_at` on or before the deadline, and active applications below `applicant_limit`. The opportunity row is locked with `SELECT … FOR UPDATE`, so concurrent applications cannot both take the last place (tested with two connections). Contributor, opportunity and `submitted_at` cannot change afterwards. |
-| Decision 7 verified skills | Not stored; `v_contributor_skill` derives `is_verified` from approved work on an opportunity that required the skill. |
+| Decision 7 verified skills | Not stored; `v_contributor_skill` derives `is_verified` from approved work on an opportunity that required the skill, listed or not (amended Nov 22, ADR 0019: `is_listed` marks skills in `contributor_skill`). |
 | I9 badge once | Composite PK `(contributor_id, badge_id)` on `contributor_badge`. |
 | R21 one notification per user per event | `uq_notification_event_user`; consumers insert with a no-op `ON DUPLICATE KEY UPDATE` (not `INSERT IGNORE`, which would also hide FK errors). |
 | R24 report only published opportunities | `trg_opportunity_report_bi` (procedure `grow8_require_reportable_opportunity`): the opportunity must be `open` or `closed`. Tested in `test_db_reports.py`. |

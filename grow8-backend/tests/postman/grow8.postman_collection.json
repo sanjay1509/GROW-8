@@ -7485,9 +7485,10 @@
                 "exec": [
                   "pm.test(\"200 sorted by name, duplicates collapsed\", () => {",
                   "  pm.response.to.have.status(200);",
-                  "  const codes = pm.response.json().skills.map((s) => s.code);",
+                  "  // Earned skills (listed: false) stay whatever is sent (ADR 0019).",
+                  "  const codes = pm.response.json().skills.filter((s) => s.listed).map((s) => s.code);",
                   "  pm.expect(codes).to.eql([\"spreadsheets\", \"translation\"]);",
-                  "  pm.expect(pm.response.json().skills.every((s) => s.listed)).to.eql(true);",
+                  "  pm.expect(pm.response.json().skills.filter((s) => !s.listed).every((s) => s.verified)).to.eql(true);",
                   "});"
                 ]
               }
@@ -7830,7 +7831,7 @@
                   "pm.test(\"200 as they were\", () => {",
                   "  pm.response.to.have.status(200);",
                   "  const before = JSON.parse(pm.collectionVariables.get(\"alexSkillCodesJson\"));",
-                  "  pm.expect(pm.response.json().skills.map((s) => s.code).sort()).to.eql([...before].sort());",
+                  "  pm.expect(pm.response.json().skills.filter((s) => s.listed).map((s) => s.code).sort()).to.eql([...before].sort());",
                   "});"
                 ]
               }

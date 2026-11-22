@@ -44,7 +44,8 @@ def replace_skills(
     session: Session, contributor: UserAccount, data: SkillsReplace
 ) -> ContributorProfileRead:
     """Make your listed skills exactly these. Skills you keep are left alone (their
-    listed-since date stays); unknown codes are a 422 UNKNOWN_SKILL listing them."""
+    listed-since date stays); unknown codes are a 422 UNKNOWN_SKILL listing them. Skills
+    earned through approved work aren't listed skills, so this never removes them."""
     skills = reference_service.resolve_skills(session, data.skill_codes)
     wanted = {skill.skill_id for skill in skills}
     profile = user_repository.lock_contributor_profile(session, contributor.user_id)
@@ -71,20 +72,18 @@ def _commit_and_read(
 def _read(
     session: Session, contributor: UserAccount, profile: ContributorProfile | None
 ) -> ContributorProfileRead:
-    skills = (
-        [
-            ProfileSkill(
-                code=s.code,
-                name=s.name,
-                listed=True,  # until earned-but-unlisted skills arrive (#29)
-                verified=s.is_verified,
-                verified_at=s.verified_at,
-            )
-            for s in user_repository.listed_skills(session, contributor.user_id)
-        ]
-        if profile
-        else []
-    )
+    # Listed and earned skills alike (ADR 0019). Without a profile row there are none:
+    # applications, and so approved work, need one.
+    skills = [
+        ProfileSkill(
+            code=s.code,
+            name=s.name,
+            listed=s.is_listed,
+            verified=s.is_verified,
+            verified_at=s.verified_at,
+        )
+        for s in user_repository.skills_of(session, contributor.user_id)
+    ]
     return ContributorProfileRead(
         user_id=contributor.user_id,
         full_name=contributor.full_name,
