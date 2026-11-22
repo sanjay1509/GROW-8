@@ -319,7 +319,33 @@ Then sign in as `maple.bakery@grow8.dev`: `GET /api/v1/notifications` shows "Wor
 
 The file type is decided by the content, not the name: a text file named `notes.pdf` is accepted as plain text and offered for download as `notes.pdf.txt`, and a GIF gets 415.
 
-### 3.6 When something is refused
+### 3.6 Work verification
+
+The creator who owns the opportunity reviews submitted work and decides once: **approve** it with the hours they verify (at most the hours claimed), or **reject** it with a comment saying why. The contributor is notified either way. Approved work counts as completed, and its hours and skills count toward the contributor's verified hours and skills; the database views compute these, so nothing else is updated ([ADR 0013](grow8-backend/docs/adr/0013-work-verification.md)).
+
+| Task | Request |
+| --- | --- |
+| Review queue (creator) | `GET /api/v1/submissions/received?status=awaiting` (oldest first; also `approved`, `rejected`, `opportunity_id`) |
+| Read one, with its decision (applicant or creator) | `GET /api/v1/submissions/{id}` |
+| Approve (creator) | `POST /api/v1/submissions/{id}/verification` with `{"decision": "approved", "verified_hours": "6", "comment": "optional"}` |
+| Reject (creator) | `POST /api/v1/submissions/{id}/verification` with `{"decision": "rejected", "comment": "why"}` |
+
+Every application also shows `work_status`: `not_submitted`, `awaiting_verification`, `completed` or `work_rejected`.
+
+Try it on the dev data. Seeded submission **5** is Alex's 8 hours on the food bank's warehouse count, still awaiting verification. Sign in as `foodbank@grow8.dev`:
+
+```bash
+curl http://localhost:8000/api/v1/submissions/received?status=awaiting -H "Authorization: Bearer <food bank's token>"
+curl -X POST http://localhost:8000/api/v1/submissions/5/verification \
+  -H "Authorization: Bearer <food bank's token>" -H "Content-Type: application/json" \
+  -d '{"decision": "approved", "verified_hours": "7.5", "comment": "Thanks for the recount!"}'
+```
+
+Then sign in as `alex.chen@grow8.dev`: `GET /api/v1/notifications` shows "Work verified: Warehouse inventory count" ("… was verified (7.5 h)"), and `GET /api/v1/applications/6` shows `"work_status": "completed"`. Verifying again gets 409 `SUBMISSION_ALREADY_VERIFIED`; `9` hours gets 422 `VERIFIED_HOURS_EXCEED_CLAIMED`; signed in as another creator you get 404. `make reset-db` puts submission 5 back if you want to repeat it.
+
+If you keep your local data instead of running `make reset-db`, add the two new notification types first (the `ALTER TABLE` is in ADR 0013) and restart `contributor_service`.
+
+### 3.7 When something is refused
 
 Every error has the body `{"error": {"code": "...", "message": "..."}}`. All codes are listed in [`grow8-backend/docs/error-codes.md`](grow8-backend/docs/error-codes.md).
 
