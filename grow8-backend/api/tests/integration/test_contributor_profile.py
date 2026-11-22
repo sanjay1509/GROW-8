@@ -94,11 +94,20 @@ def test_a_skill_is_verified_by_approved_work_that_required_it(
 
     skills = {s["code"]: s for s in _ok(client.get(PROFILE, headers=contributor))["skills"]}
 
-    assert skills["spreadsheets"]["verified"] is True
-    assert skills["spreadsheets"]["verified_at"] == "2026-10-15T15:00:00Z"
-    # Opportunity 1 didn't require data-cleaning; data-entry was required but isn't listed.
-    assert skills["data-cleaning"]["verified"] is False
-    assert "data-entry" not in skills
+    def kind(code: str) -> tuple[bool, bool, str | None]:
+        return skills[code]["listed"], skills[code]["verified"], skills[code]["verified_at"]
+
+    assert kind("spreadsheets") == (True, True, "2026-10-15T15:00:00Z")
+    # Opportunity 1 also required data-entry, which Alex never listed: earned (ADR 0019).
+    assert kind("data-entry") == (False, True, "2026-10-15T15:00:00Z")
+    # Opportunity 1 didn't require data-cleaning.
+    assert kind("data-cleaning") == (True, False, None)
+    assert [s["code"] for s in skills.values()] == [
+        "data-cleaning",
+        "data-entry",
+        "spreadsheets",
+        "web-basics",
+    ]  # sorted by name, earned and listed together
 
 
 def test_has_resume(
@@ -232,13 +241,22 @@ def test_more_than_25_skills_is_a_validation_error(
     assert _error(response, 422) == "VALIDATION_ERROR"
 
 
-def test_removing_a_verified_skill_and_adding_it_back_restores_it(
+def test_editing_skills_never_removes_an_earned_one(
     client: TestClient, contributor: dict[str, str], seeded_db: pymysql.Connection
 ) -> None:
+    """ADR 0019: removing a verified skill removes only the listing; it stays, earned."""
     _approved_work_on_opportunity_1(seeded_db, ALEX)
 
     removed = _ok(client.put(SKILLS, json={"skill_codes": ["web-basics"]}, headers=contributor))
-    assert _skills(removed) == [("web-basics", True, False)]
+    assert _skills(removed) == [
+        ("data-entry", False, True),
+        ("spreadsheets", False, True),
+        ("web-basics", True, False),
+    ]
+    assert _skills(_ok(client.put(SKILLS, json={"skill_codes": []}, headers=contributor))) == [
+        ("data-entry", False, True),
+        ("spreadsheets", False, True),
+    ]
 
     back = _ok(
         client.put(
@@ -246,8 +264,20 @@ def test_removing_a_verified_skill_and_adding_it_back_restores_it(
         )
     )
     spreadsheets = next(s for s in back["skills"] if s["code"] == "spreadsheets")
-    assert spreadsheets["verified"] is True
+    assert (spreadsheets["listed"], spreadsheets["verified"]) == (True, True)
     assert spreadsheets["verified_at"] == "2026-10-15T15:00:00Z"
+
+
+def test_listing_an_earned_skill(
+    client: TestClient, contributor: dict[str, str], seeded_db: pymysql.Connection
+) -> None:
+    _approved_work_on_opportunity_1(seeded_db, ALEX)
+    codes = ["data-cleaning", "data-entry", "spreadsheets", "web-basics"]
+
+    profile = _ok(client.put(SKILLS, json={"skill_codes": codes}, headers=contributor))
+
+    assert ("data-entry", True, True) in _skills(profile)
+    assert len(profile["skills"]) == 4  # one entry per skill, never two
 
 
 def test_changing_skills_marks_the_profile_updated(
@@ -280,6 +310,17 @@ def test_new_skills_affect_opportunity_matching(
         assert ALEX not in [
             m.user_id for m in find_matching_contributors(session, ["spreadsheets"])
         ]
+
+
+def test_matching_uses_listed_skills_only(
+    contributor: dict[str, str], seeded_db: pymysql.Connection
+) -> None:
+    """ADR 0019: an earned skill the contributor hasn't listed doesn't trigger matches;
+    they choose what to be notified about by listing it."""
+    _approved_work_on_opportunity_1(seeded_db, ALEX)
+
+    with get_sessionmaker()() as session:
+        assert ALEX not in [m.user_id for m in find_matching_contributors(session, ["data-entry"])]
 
 
 # --- a contributor without a profile row --------------------------------------

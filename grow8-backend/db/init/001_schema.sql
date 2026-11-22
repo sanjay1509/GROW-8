@@ -180,8 +180,8 @@ CREATE TABLE contributor_skill (
     contributor_id INT UNSIGNED NOT NULL,
     skill_id       INT UNSIGNED NOT NULL,
     created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    -- Whether a skill is verified is derived from approved work (decision 7),
-    -- see v_contributor_skill; it is not stored here.
+    -- Listed skills only. Whether a skill is verified is derived from approved work
+    -- (decision 7, ADR 0019), see v_contributor_skill; it is not stored here.
     PRIMARY KEY (contributor_id, skill_id),
     KEY ix_contributor_skill_skill (skill_id),
     CONSTRAINT fk_contributor_skill_contributor
@@ -809,22 +809,30 @@ JOIN user_account ua ON ua.user_id = cp.user_id AND ua.is_active = TRUE
 LEFT JOIN point_transaction pt ON pt.contributor_id = cp.user_id
 GROUP BY cp.user_id, ua.full_name;
 
--- Decision 7: a skill is verified once the contributor has approved work on an
--- opportunity that required it. Derived, so it can never disagree with the
--- verifications it comes from. verified_at is the first such approval.
+-- Decision 7 (amended by ADR 0019): one row per contributor and skill, for every
+-- skill the contributor listed (contributor_skill) and every skill they earned, i.e.
+-- one required by an opportunity where their work was approved, listed or not.
+-- is_listed: in contributor_skill (created_at is when it was listed, NULL if never).
+-- is_verified: approved work proved it; verified_at is the first such approval.
+-- Derived, so it can never disagree with the rows it comes from; editing the listed
+-- skills never removes an earned one.
 CREATE OR REPLACE VIEW v_contributor_skill AS
-SELECT cs.contributor_id,
-       cs.skill_id,
-       cs.created_at,
-       (MIN(wv.verified_at) IS NOT NULL) AS is_verified,
-       MIN(wv.verified_at) AS verified_at
-FROM contributor_skill cs
-LEFT JOIN application a ON a.contributor_id = cs.contributor_id
-LEFT JOIN opportunity_skill os
-       ON os.opportunity_id = a.opportunity_id AND os.skill_id = cs.skill_id
-LEFT JOIN work_submission ws ON ws.application_id = a.application_id
-LEFT JOIN work_verification wv
-       ON wv.submission_id = ws.submission_id
-      AND wv.decision = 'approved'
-      AND os.skill_id IS NOT NULL
-GROUP BY cs.contributor_id, cs.skill_id, cs.created_at;
+SELECT k.contributor_id,
+       k.skill_id,
+       MAX(k.is_listed) AS is_listed,
+       MAX(k.listed_at) AS created_at,
+       (MIN(k.verified_at) IS NOT NULL) AS is_verified,
+       MIN(k.verified_at) AS verified_at
+FROM (
+    SELECT cs.contributor_id, cs.skill_id, 1 AS is_listed, cs.created_at AS listed_at,
+           CAST(NULL AS DATETIME) AS verified_at
+    FROM contributor_skill cs
+    UNION ALL
+    SELECT a.contributor_id, os.skill_id, 0, NULL, wv.verified_at
+    FROM application a
+    JOIN work_submission ws ON ws.application_id = a.application_id
+    JOIN work_verification wv
+         ON wv.submission_id = ws.submission_id AND wv.decision = 'approved'
+    JOIN opportunity_skill os ON os.opportunity_id = a.opportunity_id
+) k
+GROUP BY k.contributor_id, k.skill_id;

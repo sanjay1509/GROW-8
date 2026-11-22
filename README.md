@@ -184,7 +184,7 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole st
 
 - Sign-in with JWT, role-based access (creator, contributor, admin), password change, and changing your name.
 - Creator organizations: creators edit their organization's name, type, description, website and city, and every one of their opportunities shows the change.
-- Contributor profiles: contributors edit their headline, bio, institution, city and listed skills, and see which skills approved work has verified; new skills change which opportunities they're notified about.
+- Contributor profiles: contributors edit their headline, bio, institution, city and listed skills, and see every skill approved work has verified, including ones they never listed; new skills change which opportunities they're notified about.
 - Opportunities: drafts, validation of mandatory disclosures, publishing, public browse with search, filters and sorting, closing and cancelling.
 - Applications: apply, review, accept or reject, withdraw, and the creator's view of applications received, with applicant limits and deadlines enforced.
 - Optional PDF resume upload for contributors, visible to creators they applied to.

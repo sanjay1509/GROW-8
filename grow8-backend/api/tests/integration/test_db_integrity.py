@@ -321,26 +321,70 @@ def test_leaderboard_sums_points_and_ranks_contributors(
 def test_skill_is_verified_only_by_approved_work_that_required_it(
     db: Exec, seeded_db: pymysql.Connection
 ) -> None:
-    """Decision 7: contributor 6 has skills 7, 8 and 9; opportunity 4 requires 7 and 9."""
+    """Decision 7 (amended by ADR 0019): contributor 6 lists skills 7, 8 and 9;
+    opportunity 4 requires 7 and 9, opportunity 1 requires 1 and 2 (not listed)."""
 
-    def verified() -> list[tuple]:
+    def skills() -> list[tuple]:
         return query(
             seeded_db,
-            "SELECT skill_id FROM v_contributor_skill "
-            "WHERE contributor_id = 6 AND is_verified ORDER BY skill_id",
+            "SELECT skill_id, is_listed, is_verified FROM v_contributor_skill "
+            "WHERE contributor_id = 6 ORDER BY skill_id",
         )
+
+    listed = [(7, 1, 0), (8, 1, 0), (9, 1, 0)]
+    assert skills() == listed
 
     rejected = submission(db, application(db, contributor_id=6, opportunity_id=4))
     verification(db, rejected, "rejected")
-    assert verified() == []
+    assert skills() == listed  # rejected work proves nothing
 
     approved = submission(db, application(db, contributor_id=6, opportunity_id=1))
     verification(db, approved, "approved")
-    assert verified() == []  # opportunity 1 needs skills 1 and 2, which they don't list
+    # Skills 1 and 2 are earned although never listed.
+    assert skills() == [(1, 0, 1), (2, 0, 1), *listed]
 
     db("DELETE FROM work_verification WHERE submission_id = %s", rejected)
     verification(db, rejected, "approved")
-    assert verified() == [(7,), (9,)]  # skill 8 was not required, so it stays unverified
+    # Skill 8 was not required, so it stays unverified.
+    assert skills() == [(1, 0, 1), (2, 0, 1), (7, 1, 1), (8, 1, 0), (9, 1, 1)]
+
+
+def test_an_earned_skill_stays_when_its_listing_is_removed(
+    db: Exec, seeded_db: pymysql.Connection
+) -> None:
+    """ADR 0019: removing a listed skill removes only the listing. A skill earned through
+    approved work stays, verified, with its listed date gone; one that wasn't earned goes."""
+    approved = submission(db, application(db, contributor_id=6, opportunity_id=4))
+    verification(db, approved, "approved")
+    db("DELETE FROM contributor_skill WHERE contributor_id = 6 AND skill_id IN (7, 8)")
+
+    rows = query(
+        seeded_db,
+        "SELECT skill_id, is_listed, created_at IS NULL, is_verified, verified_at IS NOT NULL "
+        "FROM v_contributor_skill WHERE contributor_id = 6 ORDER BY skill_id",
+    )
+    assert rows == [(7, 0, 1, 1, 1), (9, 1, 0, 1, 1)]
+
+
+OWNERS = {1: 2, 6: 3}  # opportunity -> owning creator
+
+
+def test_an_earned_skill_is_one_row_with_its_first_approval(
+    db: Exec, seeded_db: pymysql.Connection
+) -> None:
+    """Two approvals that prove the same skill give one row, verified at the first.
+    Opportunities 1 and 6 both require skill 1, which Sam (7) doesn't list."""
+    for opportunity_id, at in ((6, "2026-10-15 10:00:00"), (1, "2026-10-14 10:00:00")):
+        work = submission(db, application(db, contributor_id=7, opportunity_id=opportunity_id))
+        verification(db, work, by=OWNERS[opportunity_id])
+        db("UPDATE work_verification SET verified_at = %s WHERE submission_id = %s", at, work)
+
+    rows = query(
+        seeded_db,
+        "SELECT skill_id, is_listed, verified_at FROM v_contributor_skill "
+        "WHERE contributor_id = 7 AND skill_id = 1",
+    )
+    assert [(r[0], r[1], str(r[2])) for r in rows] == [(1, 0, "2026-10-14 10:00:00")]
 
 
 def test_feedback_can_report_a_discrepancy(db: Exec, seeded_db: pymysql.Connection) -> None:

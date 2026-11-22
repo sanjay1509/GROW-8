@@ -153,6 +153,7 @@ Creators and admins get 403 `ROLE_FORBIDDEN`. A profile:
   "city": "Calgary",
   "skills": [
     { "code": "data-cleaning", "name": "Data cleaning", "listed": true, "verified": false, "verified_at": null },
+    { "code": "data-entry", "name": "Data entry", "listed": false, "verified": true, "verified_at": "2026-10-15T15:00:00Z" },
     { "code": "spreadsheets", "name": "Spreadsheets", "listed": true, "verified": true, "verified_at": "2026-10-15T15:00:00Z" }
   ],
   "has_resume": false,
@@ -160,7 +161,8 @@ Creators and admins get 403 `ROLE_FORBIDDEN`. A profile:
 }
 ```
 
-- **Skills** are sorted by name. `listed`: on your profile. `verified`: a creator approved your work on an opportunity that required the skill, first at `verified_at`. Removing a verified skill hides its verification, and adding it back restores it with the same date. Today every skill returned is listed; skills earned through work but never listed will appear as `listed: false, verified: true` (#29), with no change to this shape.
+- **Skills** are sorted by name: every skill you listed, plus every skill you **earned**, i.e. one an opportunity required where a creator approved your work, listed or not ([ADR 0019](adr/0019-earned-skills.md)). `listed`: on your profile. `verified`: proved by approved work, first at `verified_at`. An earned skill you haven't listed is `listed: false, verified: true`. `PUT /contributors/me/skills` changes listed skills only, so it never removes an earned one: removing a verified skill leaves it as `listed: false`.
+- **Matching uses listed skills only.** New opportunities are matched against the skills you list, so list an earned skill to be notified about opportunities that need it.
 - **`updated_at`** is when the profile or its skills last changed. It is `null` for an account with no profile row yet: then the profile fields are `null`, `skills` is `[]`, and the first `PATCH` or `PUT` creates the row. Until then, applying and uploading a resume are refused with 409 `CONTRIBUTOR_PROFILE_REQUIRED` ("Save your profile first").
 - Changing your name here or with `PATCH /auth/me` is the same thing: both change the account's name.
 - Changing skills affects which new opportunities you're notified about straight away.

@@ -23,7 +23,7 @@
 | 5 | [`skill`](#skill) | Fixed list of skills that opportunities ask for and contributors have. | 3 |
 | 6 | [`opportunity`](#opportunity) | A short-term task a creator's organization posts. Drafts may be incomplete; a published opportunity must carry every mandatory disclosure (`chk_opportunity_published_complete`, ADR 0001). | 23 |
 | 7 | [`opportunity_skill`](#opportunity_skill) | Skills an opportunity asks for (M : N between `opportunity` and `skill`). | 2 |
-| 8 | [`contributor_skill`](#contributor_skill) | Skills a contributor has (M : N between `contributor_profile` and `skill`). Whether a skill is verified is derived (`v_contributor_skill`). | 3 |
+| 8 | [`contributor_skill`](#contributor_skill) | Skills a contributor lists (M : N between `contributor_profile` and `skill`). Whether a skill is verified, and skills earned without being listed, are derived (`v_contributor_skill`). | 3 |
 | 9 | [`application`](#application) | A contributor applying for an opportunity. One application per contributor per opportunity, only while the opportunity is open, before its deadline and under its applicant limit. | 7 |
 | 10 | [`work_submission`](#work_submission) | The contributor's claim that the work for an accepted application is done. At most one per application. | 5 |
 | 11 | [`submission_attachment`](#submission_attachment) | Metadata for a file attached to a submission. The file itself is stored outside MySQL. | 7 |
@@ -187,7 +187,7 @@ Skills an opportunity asks for (M : N between `opportunity` and `skill`).
 
 ### contributor_skill
 
-Skills a contributor has (M : N between `contributor_profile` and `skill`). Whether a skill is verified is not stored: `v_contributor_skill` derives it from approved work (decision 7).
+Skills a contributor lists on their profile (M : N between `contributor_profile` and `skill`). Whether a skill is verified is not stored: `v_contributor_skill` derives it from approved work, and also returns skills earned through approved work that aren't listed here (decision 7, amended by ADR 0019).
 
 | Column | Type | Null | Default | Key | Description |
 |---|---|---|---|---|---|
@@ -468,13 +468,14 @@ Every feedback with its status (`pending`, `approved`, `rejected`) derived from 
 
 ### v_contributor_skill
 
-Every contributor skill, with whether it is verified (decision 7). A skill is verified once the contributor has approved work on an opportunity that required it.
+One row per contributor and skill: every skill the contributor listed, plus every skill they earned (decision 7, amended by ADR 0019). A skill is verified once the contributor has approved work on an opportunity that required it, listed or not.
 
 | Column | Type | Description |
 |---|---|---|
 | `contributor_id` | `int unsigned` | The contributor. |
 | `skill_id` | `int unsigned` | The skill. |
-| `created_at` | `datetime` | From `contributor_skill`. |
+| `is_listed` | `bigint` | 1 when the skill is in `contributor_skill`, 0 when it was only earned. |
+| `created_at` | `datetime` | When it was listed (from `contributor_skill`); empty when never listed. |
 | `is_verified` | `int` | 1 when verified, otherwise 0. |
 | `verified_at` | `datetime` | First approval that verified it; empty when not verified. |
 
