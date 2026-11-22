@@ -405,7 +405,7 @@
 <line x1="1426.6666666666667" y1="1090" x2="2080.0" y2="1090" stroke="#E2E8F0" stroke-width="1.2"/>
 <text x="1426.7" y="1120.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12" font-weight="700" fill="#0F172A" text-anchor="start">VIEWS (DERIVED, NOT STORED)</text>
 <text x="1426.7" y="1148.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="14" font-weight="600" fill="#0F172A" text-anchor="start">v_contributor_skill</text>
-<text x="1454.7" y="1167.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">verified once approved work used the skill</text>
+<text x="1454.7" y="1167.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">listed or earned; verified once approved work used it</text>
 <text x="1426.7" y="1192.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="14" font-weight="600" fill="#0F172A" text-anchor="start">v_contributor_verified_hours</text>
 <text x="1454.7" y="1211.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">SUM(verified_hours) of approved work_verification rows</text>
 <text x="1426.7" y="1236.0" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="14" font-weight="600" fill="#0F172A" text-anchor="start">v_feedback_status</text>
