@@ -12,6 +12,7 @@ from grow8_common.db import get_sessionmaker
 from grow8_common.models import ApplicationStatus, Notification, NotificationType, UserAccount
 from grow8_common.notifications import DbNotifier
 from grow8_common.queries import (
+    find_active_admins,
     find_active_applicants,
     find_active_owner,
     find_matching_contributors,
@@ -142,6 +143,21 @@ def test_inactive_owner_is_not_found(session: Session) -> None:
     session.execute(update(UserAccount).where(UserAccount.user_id == 4).values(is_active=False))
     session.commit()
     assert find_active_owner(session, 3) is None
+
+
+def test_find_active_admins(session: Session, seeded_db: pymysql.Connection) -> None:
+    assert find_active_admins(session) == [1]  # Ada Admin; creators and contributors aren't
+    with seeded_db.cursor() as cur:
+        cur.execute(
+            "INSERT INTO user_account (user_id, email, password_hash, role, full_name) "
+            "VALUES (50, 'second.admin@grow8.dev', 'x', 'admin', 'Second Admin')"
+        )
+    session.rollback()
+    assert find_active_admins(session) == [1, 50]
+
+    session.execute(update(UserAccount).where(UserAccount.user_id == 1).values(is_active=False))
+    session.commit()
+    assert find_active_admins(session) == [50]
 
 
 def test_find_active_applicants(session: Session, seeded_db: pymysql.Connection) -> None:
