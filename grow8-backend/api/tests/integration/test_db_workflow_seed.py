@@ -80,9 +80,9 @@ def test_views_return_the_seeded_history(workflow_db: pymysql.Connection) -> Non
     ) == [(6, Decimal(195), 1), (5, Decimal(80), 2), (7, Decimal(0), 3)]
     assert _rows(
         workflow_db,
-        "SELECT contributor_id, skill_id FROM v_contributor_skill WHERE is_verified "
+        "SELECT contributor_id, skill_id, is_listed FROM v_contributor_skill WHERE is_verified "
         "ORDER BY contributor_id, skill_id",
-    ) == [(6, 7), (6, 9)]
+    ) == [(5, 7, 0), (5, 9, 0), (6, 7, 1), (6, 9, 1), (6, 10, 0)]  # earned, listed or not
 
 
 def test_seeded_full_opportunity_refuses_another_applicant(
