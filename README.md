@@ -64,7 +64,7 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 | File Storage | A Docker volume for uploaded files (contributor resumes and work submission attachments), behind a storage interface that could later be swapped for cloud storage. |
 | RabbitMQ | Routes published events to subscribed consumer services, with delayed retries and a dead-letter queue per service. |
 | Creator Service | Notifies creators when their opportunity is published, when someone applies or withdraws, and when work awaits verification. |
-| Contributor Service | Notifies contributors of matching opportunities, application decisions, and cancellations; (planned) updates verified hours and skills. |
+| Contributor Service | Notifies contributors of matching opportunities, application decisions, cancellations, and whether their work was verified. Verified hours and skills are computed from approved work. |
 | Admin Service | (Planned) Handles feedback awaiting review and administrative feedback decisions. |
 
 ### Event Flow
@@ -74,8 +74,8 @@ FastAPI validates user actions and commits changes to MySQL before publishing th
 | Creator actions | `OPPORTUNITY_CREATED` | Contributor Service, Creator Service | Notifies matching contributors about the new opportunity, and confirms to the creator that it was published. | Implemented |
 | Creator actions | `APPLICATION_DECIDED` | Contributor Service | Notifies contributors of application decisions. | Implemented |
 | Creator actions | `OPPORTUNITY_CANCELLED` | Contributor Service | Notifies pending and accepted applicants that the opportunity was cancelled. | Implemented |
-| Creator actions | `WORK_VERIFIED` | Contributor Service | Updates verified hours and skills. | Planned |
-| Creator actions | `WORK_REJECTED` | Contributor Service | Notifies contributors about rejected work. | Planned |
+| Creator actions | `WORK_VERIFIED` | Contributor Service | Notifies contributors that their work was verified, with the hours; it now counts toward their verified hours and skills. | Implemented |
+| Creator actions | `WORK_REJECTED` | Contributor Service | Notifies contributors about rejected work, with the creator's comment. | Implemented |
 | Contributor actions | `APPLICATION_SUBMITTED` | Creator Service | Notifies creators about new applications. | Implemented |
 | Contributor actions | `APPLICATION_WITHDRAWN` | Creator Service | Notifies creators when an applicant withdraws, and whether a place opened up. | Implemented |
 | Contributor actions | `WORK_SUBMITTED` | Creator Service | Notifies creators about work awaiting verification. | Implemented |
@@ -184,11 +184,12 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole st
 - Applications: apply, review, accept or reject, withdraw, and the creator's view of applications received, with applicant limits and deadlines enforced.
 - Optional PDF resume upload for contributors, visible to creators they applied to.
 - Work submission: accepted contributors submit their work once, with up to 5 files, for the creator to verify.
-- Event-driven notifications for publishing, applications, decisions, withdrawals, cancellations and work submissions, with delayed retries and dead-letter queues.
+- Work verification: creators review submitted work and approve it with verified hours or reject it with a comment; approved work counts toward the contributor's verified hours and skills.
+- Event-driven notifications for publishing, applications, decisions, withdrawals, cancellations, work submissions and verification decisions, with delayed retries and dead-letter queues.
 
 **In progress:** connecting the frontend to the applications, close and cancel endpoints.
 
-**Planned:** work verification, verified hours and skills, feedback and admin review, and the stretch goals below.
+**Planned:** feedback and admin review, and the stretch goals below.
 
 **Getting started:** setup, dev accounts, everyday commands and an API walkthrough are in [docs.md](docs.md).
 

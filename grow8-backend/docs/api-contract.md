@@ -122,11 +122,12 @@ An application:
     "skills": [{ "code": "data-cleaning", "name": "Data cleaning" }, { "code": "spreadsheets", "name": "Spreadsheets" }, { "code": "web-basics", "name": "Web basics (HTML/CSS)" }],
     "has_resume": true
   },
-  "submission_id": null
+  "submission_id": null,
+  "work_status": "not_submitted"
 }
 ```
 
-The applicant's email and other contact details are not included. `applicant.has_resume` says whether `GET /applications/{id}/resume` has a file to return. `submission_id` is the submitted work's id, or `null` until the applicant submits work (see [Work submissions](#work-submissions)), so a list can show "Submit work" or "Submitted" without a call per application.
+The applicant's email and other contact details are not included. `applicant.has_resume` says whether `GET /applications/{id}/resume` has a file to return. `submission_id` is the submitted work's id, or `null` until the applicant submits work (see [Work submissions](#work-submissions)), so a list can show "Submit work" or "Submitted" without a call per application. `work_status` says where the work stands: `not_submitted` (also for every application that was never accepted), `awaiting_verification`, `completed` (the creator approved it) or `work_rejected`. It is derived, not stored ([ADR 0013](adr/0013-work-verification.md)).
 
 ## Resumes
 
@@ -167,6 +168,9 @@ An accepted contributor submits their work once, with optional files, for the ow
 | POST | `/applications/{id}/submission` | the applicant | `multipart/form-data`: `description` (1–5000 chars), `hours_claimed` (> 0, at most 9999.99, 2 decimals), and up to 5 `files` (optional, repeat the field). → 201 with the submission. The application must be `accepted` (409 `APPLICATION_NOT_ACCEPTED`) and the opportunity not cancelled (409 `OPPORTUNITY_CANCELLED`; closed is fine). Once per application, no resubmitting (409 `WORK_ALREADY_SUBMITTED`). Emits `WORK_SUBMITTED` (the owning creator is notified). |
 | GET | `/applications/{id}/submission` | the applicant or the owning creator | The submission with its attachments' metadata. Anyone else → 404 `APPLICATION_NOT_FOUND`; nothing submitted yet → 404 `SUBMISSION_NOT_FOUND`. |
 | GET | `/submissions/{id}/attachments/{attachment_id}` | the applicant or the owning creator | Downloads the file. Anything you can't see or that doesn't exist → 404 `ATTACHMENT_NOT_FOUND`. |
+| GET | `/submissions/received` | creator | Your review queue: submissions to all your opportunities, **oldest first**. `status` (repeatable: `awaiting`, `approved`, `rejected`; default all), `opportunity_id` (one of yours; another's matches nothing), `limit`, `offset`. |
+| GET | `/submissions/{id}` | the applicant or the owning creator | The submission with its verification. Anyone else → 404 `SUBMISSION_NOT_FOUND`. |
+| POST | `/submissions/{id}/verification` | owning creator | Approve or reject the work, once → 200 with the submission. See [Verifying work](#verifying-work). |
 
 Files: PDF, PNG, JPEG, DOCX, XLSX, CSV or TXT, at most 5 MB each (413 `ATTACHMENT_TOO_LARGE`), non-empty (422 `EMPTY_FILE`). The type is decided by the content (415 `UNSUPPORTED_FILE_TYPE`), and one bad file refuses the whole submission. More than 5 files → 422 `TOO_MANY_FILES`. The request needs `Content-Length` (411 `LENGTH_REQUIRED`).
 
@@ -176,16 +180,20 @@ A submission:
 {
   "submission_id": 6,
   "application_id": 12,
+  "status": "approved",
   "description": "Typed up 40 recipes into the shared sheet.",
   "hours_claimed": "6.50",
   "submitted_at": "2026-11-18T15:00:00Z",
+  "opportunity": { "opportunity_id": 2, "title": "Inventory spreadsheet cleanup", "status": "open" },
+  "applicant": { "user_id": 5, "full_name": "Alex Chen" },
   "attachments": [
     { "attachment_id": 3, "file_name": "recipes.xlsx", "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "size_bytes": 23855, "uploaded_at": "2026-11-18T15:00:00Z" }
-  ]
+  ],
+  "verification": { "decision": "approved", "verified_hours": "6.00", "comment": "Thanks, this is great.", "verified_at": "2026-11-19T10:00:00Z" }
 }
 ```
 
-`hours_claimed` is a decimal sent as a string. `file_name` is for display only: cleaned, and always ending in an extension that matches the detected type. Downloads use the stored `content_type` with the same headers as resumes (`Content-Disposition: attachment`, `nosniff`, `no-store`).
+`status` is `awaiting` (and `verification` is `null`) until the creator decides, then `approved` or `rejected`. `hours_claimed` and `verified_hours` are decimals sent as strings. `file_name` is for display only: cleaned, and always ending in an extension that matches the detected type. Downloads use the stored `content_type` with the same headers as resumes (`Content-Disposition: attachment`, `nosniff`, `no-store`).
 
 From a browser:
 
@@ -196,6 +204,24 @@ form.append("hours_claimed", "6.5");
 for (const file of fileInput.files) form.append("files", file);
 await fetch(`${API}/applications/${applicationId}/submission`, { method: "POST", body: form, headers: { Authorization: `Bearer ${token}` } });
 ```
+
+### Verifying work
+
+The creator who owns the opportunity approves or rejects each submission once ([ADR 0013](adr/0013-work-verification.md)). `POST /submissions/{id}/verification`:
+
+```json
+{ "decision": "approved", "verified_hours": "6", "comment": "Thanks, this is great." }
+```
+
+```json
+{ "decision": "rejected", "comment": "Only 10 of the 40 recipes are in the sheet." }
+```
+
+- **Approve:** `verified_hours` is required, > 0 with at most 2 decimals, and no more than `hours_claimed` (422 `VERIFIED_HOURS_EXCEED_CLAIMED`). Verifying fewer hours than claimed is fine. `comment` is optional.
+- **Reject:** `comment` is required (422 `REJECTION_COMMENT_REQUIRED`) and `verified_hours` must be left out.
+- `comment` is trimmed, at most 2000 characters.
+- Once per submission, final (409 `SUBMISSION_ALREADY_VERIFIED`). Not once the opportunity is cancelled (409 `OPPORTUNITY_CANCELLED`); closed is fine. Another creator, or a submission that doesn't exist → 404 `SUBMISSION_NOT_FOUND`.
+- Emits `WORK_VERIFIED` or `WORK_REJECTED`; the contributor is notified. Approved hours count toward the contributor's verified hours and skills from then on (computed by the database views, never stored).
 
 ## Notifications
 
@@ -232,6 +258,8 @@ A notification:
 | `application_withdrawn` | the creator who owns the opportunity | An applicant withdrew; the message says if an accepted place opened up. |
 | `opportunity_cancelled` | each pending or accepted applicant | The opportunity was cancelled. |
 | `work_submitted` | the creator who owns the opportunity | An accepted applicant submitted their work for verification. |
+| `work_verified` | the contributor who submitted the work | The creator approved it; the message gives the verified hours. |
+| `work_rejected` | the contributor who submitted the work | The creator rejected it; the message quotes their comment. |
 
 `opportunity_id` links to `GET /opportunities/{id}`. It is `null` if the opportunity was deleted. `title` and `message` are stored as written and don't change if the opportunity is edited later.
 

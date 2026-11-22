@@ -112,9 +112,17 @@ def test_submit_with_files_then_read_and_download(
     submission_id = body.pop("submission_id")
     assert body == {
         "application_id": accepted,
+        "status": "awaiting",
         "description": "Typed up 40 recipes into the shared sheet.",
         "hours_claimed": "6.50",
         "submitted_at": "2026-10-16T12:00:00Z",
+        "opportunity": {
+            "opportunity_id": 1,
+            "title": "Digitize paper recipe archive",
+            "status": "open",
+        },
+        "applicant": {"user_id": 5, "full_name": "Alex Chen"},
+        "verification": None,
     }
     assert [(a["file_name"], a["content_type"], a["size_bytes"]) for a in attachments] == [
         ("count sheets.pdf", "application/pdf", len(PDF)),

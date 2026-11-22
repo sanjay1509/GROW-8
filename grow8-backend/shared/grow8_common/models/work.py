@@ -79,6 +79,8 @@ class WorkSubmission(Base):
     attachments: Mapped[list["SubmissionAttachment"]] = relationship(
         order_by="SubmissionAttachment.attachment_id"
     )
+    # At most one (uq_work_verification_submission); None while awaiting verification.
+    verification: Mapped["WorkVerification | None"] = relationship()
 
 
 class SubmissionAttachment(Base):

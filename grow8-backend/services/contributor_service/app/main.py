@@ -10,6 +10,8 @@ from grow8_common.events import (
     EventType,
     OpportunityCancelledPayload,
     OpportunityCreatedPayload,
+    WorkRejectedPayload,
+    WorkVerifiedPayload,
 )
 from grow8_common.logging import configure_logging
 from grow8_common.messaging import Handler, run_consumer
@@ -19,6 +21,8 @@ from grow8_common.notifications import DbNotifier
 from app.handlers.application_decided import handle_application_decided
 from app.handlers.opportunity_cancelled import handle_opportunity_cancelled
 from app.handlers.opportunity_created import handle_opportunity_created
+from app.handlers.work_rejected import handle_work_rejected
+from app.handlers.work_verified import handle_work_verified
 
 SERVICE_NAME = "contributor_service"
 
@@ -54,11 +58,27 @@ def _on_opportunity_cancelled(
         session.commit()
 
 
+def _on_work_verified(envelope: EventEnvelope, payload: WorkVerifiedPayload) -> None:
+    with get_sessionmaker()() as session:
+        notifier = DbNotifier(session, envelope.event_id, NotificationType.WORK_VERIFIED)
+        handle_work_verified(payload, session=session, notifier=notifier)
+        session.commit()
+
+
+def _on_work_rejected(envelope: EventEnvelope, payload: WorkRejectedPayload) -> None:
+    with get_sessionmaker()() as session:
+        notifier = DbNotifier(session, envelope.event_id, NotificationType.WORK_REJECTED)
+        handle_work_rejected(payload, session=session, notifier=notifier)
+        session.commit()
+
+
 # Event type -> handler. Each key becomes a binding on this service's queue.
 HANDLERS: dict[EventType, Handler] = {
     EventType.OPPORTUNITY_CREATED: _on_opportunity_created,
     EventType.APPLICATION_DECIDED: _on_application_decided,
     EventType.OPPORTUNITY_CANCELLED: _on_opportunity_cancelled,
+    EventType.WORK_VERIFIED: _on_work_verified,
+    EventType.WORK_REJECTED: _on_work_rejected,
 }
 
 
