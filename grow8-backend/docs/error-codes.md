@@ -107,6 +107,21 @@ A missing or invalid `description` or `hours_claimed` is a `VALIDATION_ERROR`.
 
 Checked in this order: not found, already verified, cancelled, then the two 422s. A missing or invalid `decision`, `verified_hours` sent with a rejection, no `verified_hours` with an approval, hours that aren't > 0 with at most 2 decimals, or a comment over 2000 characters is a `VALIDATION_ERROR`. So is an unknown `status` filter on `GET /submissions/received`.
 
+### Feedback and admin review ([ADR 0015](adr/0015-feedback-and-admin-review.md))
+
+| Status | Code | Endpoint(s) | When |
+| --- | --- | --- | --- |
+| 403 | `ROLE_FORBIDDEN` | `GET /admin/feedback`, `POST /admin/feedback/{id}/review` | You aren't an admin. |
+| 404 | `APPLICATION_NOT_FOUND` | `POST`, `GET /applications/{id}/feedback` | Missing, or you aren't the applicant or the owning creator. |
+| 404 | `FEEDBACK_NOT_FOUND` | `POST /admin/feedback/{id}/review` | No such feedback. |
+| 404 | `USER_NOT_FOUND` | `GET /users/{id}/rating` | No such user, or their account is inactive. |
+| 409 | `WORK_NOT_VERIFIED` | `POST /applications/{id}/feedback` | No work was submitted yet, or the creator hasn't verified it. Feedback opens once the work is approved or rejected. |
+| 409 | `FEEDBACK_ALREADY_SUBMITTED` | `POST /applications/{id}/feedback` | You already left feedback on this application; it can't be changed. |
+| 409 | `FEEDBACK_ALREADY_REVIEWED` | `POST /admin/feedback/{id}/review` | It was already approved or rejected. Each feedback is reviewed once. |
+| 422 | `REJECTION_REASON_REQUIRED` | `POST /admin/feedback/{id}/review` | Rejecting without a `reason`, or with a blank one. |
+
+A `rating` that isn't a whole number from 1 to 5, a comment over 2000 characters, a reason over 500, an unknown field (the subject is never chosen by the client), or an unknown `status` or `discrepancy` filter is a `VALIDATION_ERROR`. Pending and rejected feedback never change a rating; the tests check this for each case.
+
 ### Account
 
 | Status | Code | Endpoint(s) | When |

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -11,10 +12,14 @@ from sqlalchemy import (
     false,
 )
 from sqlalchemy.dialects.mysql import TINYINT
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from grow8_common.models.base import Base, UnsignedInt, created_at_column, enum_column
 from grow8_common.models.enums import ReviewDecision
+
+if TYPE_CHECKING:
+    from grow8_common.models.users import UserAccount
+    from grow8_common.models.work import Application
 
 
 class Feedback(Base):
@@ -44,6 +49,12 @@ class Feedback(Base):
     comment: Mapped[str | None] = mapped_column(Text)
     reports_discrepancy: Mapped[bool] = mapped_column(Boolean, server_default=false())
     created_at: Mapped[datetime] = created_at_column()
+
+    application: Mapped["Application"] = relationship()
+    author: Mapped["UserAccount"] = relationship(foreign_keys=[author_user_id])
+    subject: Mapped["UserAccount"] = relationship(foreign_keys=[subject_user_id])
+    # At most one (uq_admin_review_feedback); None while pending.
+    review: Mapped["AdminReview | None"] = relationship()
 
 
 class AdminReview(Base):
