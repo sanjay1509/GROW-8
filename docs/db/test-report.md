@@ -6,12 +6,12 @@ This report covers the tests that check the database itself: the integrity rules
 
 ## Result
 
-**Run on Nov 22, 2026: 491 passed, 0 failed, 0 skipped.**
+**Run on Nov 22, 2026: 604 passed, 0 failed, 0 skipped.**
 
 | Suite | Tests | Result |
 |---|---|---|
-| API and database tests (`grow8-backend/api/tests`) | 429 | all passed |
-| Consumer service tests (`grow8-backend/services/*/tests`) | 62 | all passed |
+| API and database tests (`grow8-backend/api/tests`) | 524 | all passed |
+| Consumer service tests (`grow8-backend/services/*/tests`) | 80 | all passed |
 
 Environment: MySQL 8.0, RabbitMQ 3.12, Python 3. Each API test starts from a fresh copy of `002_seed.sql` in a separate `grow8_test` database, so tests never touch the dev data and don't depend on each other. Applications in the tests use fixed dates, so the results don't change as real dates pass the seeded deadlines.
 
@@ -19,7 +19,7 @@ How to run: `make test` and `make test-services` from `grow8-backend/` with the 
 
 ## Database tests by area
 
-64 of the 429 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
+64 of the 524 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
 
 | File | Tests | What it proves |
 |---|---|---|
@@ -72,6 +72,7 @@ Without the row lock, both transactions would count zero active applications and
 
 ## Changes made for this report
 
+- Nov 22 (feedback and admin review, ADR 0015): counts updated. `notification_type` gained `feedback_submitted`, `feedback_approved` and `feedback_rejected` (covered by `test_db_notifier.py`, which also tests the new `find_active_admins` query). `test_feedback_service.py` checks that pending and rejected feedback never change `v_user_rating`, and adds a two-connection race: a second admin review of the same feedback waits for the first one's row lock and is refused by the locking read, not by `uq_admin_review_feedback`.
 - Nov 22 (work verification, ADR 0013): counts updated for the work verification feature. `notification_type` gained `work_verified` and `work_rejected` (covered by `test_db_notifier.py`). `test_verification_service.py` adds a two-connection race like the one above: a second verification of the same submission waits for the first one's row lock, then its locking read sees the committed verification and it is refused with `SUBMISSION_ALREADY_VERIFIED`, not by the unique-key backstop.
 - Nov 17 (work submission, ADR 0012): added `test_submission_repository.py`, and counts updated for the work submission feature. `notification_type` gained `work_submitted`; `test_db_notifier.py` now checks that every notification type can be stored once per event.
 - Nov 17: added the `contributor_resume` test after the table was added on Nov 15 (ADR 0008); counts updated for the application lifecycle and resume features.
