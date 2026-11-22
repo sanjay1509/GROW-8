@@ -206,7 +206,8 @@ CREATE TABLE notification (
                            'application_withdrawn', 'opportunity_cancelled',
                            'work_submitted', 'work_verified', 'work_rejected',
                            'feedback_submitted', 'feedback_approved',
-                           'feedback_rejected') NOT NULL,
+                           'feedback_rejected', 'opportunity_reported',
+                           'opportunity_taken_down', 'report_dismissed') NOT NULL,
     title             VARCHAR(200) NOT NULL,
     message           VARCHAR(500) NOT NULL,
     opportunity_id    INT UNSIGNED NULL,
@@ -344,6 +345,47 @@ CREATE TABLE admin_review (
         FOREIGN KEY (admin_user_id) REFERENCES user_account (user_id)
 ) ENGINE = InnoDB;
 
+-- A contributor reports a published opportunity they think is misleading, unsafe,
+-- discriminatory or a scam (ADR 0016). A report with no report_review row is "pending".
+CREATE TABLE opportunity_report (
+    report_id        INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    opportunity_id   INT UNSIGNED NOT NULL,
+    reporter_user_id INT UNSIGNED NOT NULL,
+    reason           ENUM('misleading_terms', 'unsafe_conditions', 'discriminatory',
+                          'scam_or_spam', 'other') NOT NULL,
+    details          TEXT         NULL,
+    created_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (report_id),
+    -- one report per contributor per opportunity, ever
+    UNIQUE KEY uq_opportunity_report_reporter (opportunity_id, reporter_user_id),
+    KEY ix_opportunity_report_reporter (reporter_user_id),
+    CONSTRAINT fk_opportunity_report_opportunity
+        FOREIGN KEY (opportunity_id) REFERENCES opportunity (opportunity_id),
+    CONSTRAINT fk_opportunity_report_reporter
+        FOREIGN KEY (reporter_user_id) REFERENCES user_account (user_id)
+) ENGINE = InnoDB;
+
+-- An admin's decision on a report: upheld (the opportunity was taken down) or
+-- dismissed. Upholding one report upholds every pending report on the opportunity.
+CREATE TABLE report_review (
+    review_id     INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    report_id     INT UNSIGNED NOT NULL,
+    admin_user_id INT UNSIGNED NOT NULL,
+    decision      ENUM('upheld', 'dismissed') NOT NULL,
+    reason        VARCHAR(500) NULL,
+    reviewed_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (review_id),
+    -- each report is reviewed once
+    UNIQUE KEY uq_report_review_report (report_id),
+    KEY ix_report_review_admin (admin_user_id),
+    CONSTRAINT fk_report_review_report
+        FOREIGN KEY (report_id) REFERENCES opportunity_report (report_id),
+    CONSTRAINT fk_report_review_admin
+        FOREIGN KEY (admin_user_id) REFERENCES user_account (user_id),
+    -- a takedown always says why: the creator is told the reason
+    CONSTRAINT chk_report_review_reason CHECK (decision = 'dismissed' OR reason IS NOT NULL)
+) ENGINE = InnoDB;
+
 -- -----------------------------------------------------------------------------
 -- Rewards (stretch goal; schema supported from day one)
 -- -----------------------------------------------------------------------------
@@ -439,6 +481,8 @@ BEGIN
         OR EXISTS (SELECT 1 FROM creator_organization WHERE owner_user_id = p_user_id)
         OR EXISTS (SELECT 1 FROM admin_review WHERE admin_user_id = p_user_id)
         OR EXISTS (SELECT 1 FROM work_verification WHERE verified_by_user_id = p_user_id)
+        OR EXISTS (SELECT 1 FROM opportunity_report WHERE reporter_user_id = p_user_id)
+        OR EXISTS (SELECT 1 FROM report_review WHERE admin_user_id = p_user_id)
     ) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'role_locked: account already has rows that depend on its role';
@@ -565,6 +609,17 @@ BEGIN
     END IF;
 END $$
 
+-- I7 (R24): only a published opportunity (open or closed) can be reported.
+DROP PROCEDURE IF EXISTS grow8_require_reportable_opportunity $$
+CREATE PROCEDURE grow8_require_reportable_opportunity(IN p_opportunity_id INT UNSIGNED)
+BEGIN
+    IF (SELECT status FROM opportunity WHERE opportunity_id = p_opportunity_id)
+            NOT IN ('open', 'closed') THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'report_requires_published: only open or closed opportunities can be reported';
+    END IF;
+END $$
+
 -- I2 (R13): author and subject must be the two people on the application: the
 -- contributor who applied and the creator who owns the opportunity's organization.
 -- (author <> subject is already chk_feedback_not_self.)
@@ -677,6 +732,20 @@ CREATE TRIGGER trg_admin_review_bi BEFORE INSERT ON admin_review FOR EACH ROW
     CALL grow8_require_role(NEW.admin_user_id, 'admin', 'reviewer_role') $$
 CREATE TRIGGER trg_admin_review_bu BEFORE UPDATE ON admin_review FOR EACH ROW
     CALL grow8_require_role(NEW.admin_user_id, 'admin', 'reviewer_role') $$
+
+-- I6 (R25, R27): reporters are contributors and report reviewers are admins.
+CREATE TRIGGER trg_opportunity_report_bi BEFORE INSERT ON opportunity_report FOR EACH ROW
+BEGIN
+    CALL grow8_require_role(NEW.reporter_user_id, 'contributor', 'reporter_role');
+    CALL grow8_require_reportable_opportunity(NEW.opportunity_id);
+END $$
+CREATE TRIGGER trg_opportunity_report_bu BEFORE UPDATE ON opportunity_report FOR EACH ROW
+    CALL grow8_require_role(NEW.reporter_user_id, 'contributor', 'reporter_role') $$
+
+CREATE TRIGGER trg_report_review_bi BEFORE INSERT ON report_review FOR EACH ROW
+    CALL grow8_require_role(NEW.admin_user_id, 'admin', 'report_reviewer_role') $$
+CREATE TRIGGER trg_report_review_bu BEFORE UPDATE ON report_review FOR EACH ROW
+    CALL grow8_require_role(NEW.admin_user_id, 'admin', 'report_reviewer_role') $$
 
 CREATE TRIGGER trg_point_transaction_bi BEFORE INSERT ON point_transaction FOR EACH ROW
     CALL grow8_require_point_source(NEW.contributor_id, NEW.verification_id) $$
