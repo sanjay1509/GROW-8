@@ -2,7 +2,7 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Generated Nov 16, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`) by `docs/diagrams/generate_er_diagram.py`: 19 relations, 130 attributes, 27 foreign keys. The same schema is drawn as an ER diagram in `docs/diagrams/GROW8-ER-Diagram.pdf` (page 1) and as this notation on page 2.
+> Generated Nov 22, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`) by `docs/diagrams/generate_er_diagram.py`: 21 relations, 142 attributes, 31 foreign keys. The same schema is drawn as an ER diagram in `docs/diagrams/GROW8-ER-Diagram.pdf` (page 1) and as this notation on page 2.
 
 Notation: primary-key attributes are <ins>underlined</ins>, foreign-key attributes are *in italics*, and each foreign key is listed under its relation as `columns → relation(key)`. Types, nullability and meanings are in `data-dictionary.md`; functional dependencies and the BCNF check are in `functional-dependencies.md`.
 
@@ -121,6 +121,20 @@ Notation: primary-key attributes are <ins>underlined</ins>, foreign-key attribut
 - FK `opportunity_id` → `opportunity(opportunity_id)`
 - FK `user_id` → `user_account(user_id)`
 - Candidate key `(user_id, event_id)`
+
+## Reports and takedown
+
+**opportunity_report**(<ins>report_id</ins>, *opportunity_id*, *reporter_user_id*, reason, details, created_at)
+
+- FK `opportunity_id` → `opportunity(opportunity_id)`
+- FK `reporter_user_id` → `user_account(user_id)`
+- Candidate key `(opportunity_id, reporter_user_id)`
+
+**report_review**(<ins>review_id</ins>, *report_id*, *admin_user_id*, decision, reason, reviewed_at)
+
+- FK `admin_user_id` → `user_account(user_id)`
+- FK `report_id` → `opportunity_report(report_id)`
+- Candidate key `(report_id)`
 
 ## Views (derived, not stored)
 

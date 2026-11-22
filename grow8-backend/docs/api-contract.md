@@ -257,6 +257,33 @@ A feedback:
 
 `status` is `pending` (and `review` is `null`) until an admin reviews it. Feedback can't be edited or withdrawn.
 
+## Reports and takedown
+
+A contributor can report a published opportunity that is misleading, unsafe, discriminatory or a scam. An admin dismisses the report, or upholds it and **takes the opportunity down**: it is cancelled, its applicants are told, and the creator is told why. The creator never learns who reported. Rules and reasons: [ADR 0016](adr/0016-opportunity-reports-and-takedown.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| POST | `/opportunities/{id}/reports` | contributor | Body `{reason, details?}` → 201. `reason`: `misleading_terms` \| `unsafe_conditions` \| `discriminatory` \| `scam_or_spam` \| `other`; `details` optional, at most 2000 characters. Only `open` or `closed` opportunities (a draft is 404, cancelled is 409). Once per opportunity (409 `OPPORTUNITY_ALREADY_REPORTED`). Emits `OPPORTUNITY_REPORTED`. |
+| GET | `/reports/mine` | contributor | Your reports and what was decided, newest first. `limit`, `offset`. |
+| GET | `/admin/reports` | admin | Review queue: **most-reported opportunities first**, then the oldest report. Each item has `reporter` and `open_reports_on_opportunity`. `status` (repeatable: `pending`, `upheld`, `dismissed`; default all), `opportunity_id`, `limit`, `offset`. |
+| POST | `/admin/reports/{id}/review` | admin | Body `{decision: "upheld" \| "dismissed", reason?}` → 200 with the report. **Upheld** takes the opportunity down: it becomes `cancelled` and every pending report on it is upheld with the same reason. A reason is required (422 `TAKEDOWN_REASON_REQUIRED`). Refused once work is submitted (409 `WORK_ALREADY_SUBMITTED`) or if it is already cancelled (409 `OPPORTUNITY_CANCELLED`). **Dismissed** affects that report only; the reason is optional. Once per report (409 `REPORT_ALREADY_REVIEWED`). Emits `OPPORTUNITY_TAKEN_DOWN` or `REPORT_DISMISSED`. |
+
+A report as its reporter sees it (admins also get `reporter` and `open_reports_on_opportunity`):
+
+```json
+{
+  "report_id": 4,
+  "opportunity": { "opportunity_id": 3, "title": "Social media content calendar for the holiday season", "status": "cancelled" },
+  "reason": "misleading_terms",
+  "details": "Listed as paid, but the pay is not real.",
+  "created_at": "2026-11-22T15:00:00Z",
+  "status": "upheld",
+  "review": { "decision": "upheld", "reason": "The advertised pay is not real.", "reviewed_at": "2026-11-22T16:00:00Z" }
+}
+```
+
+A taken-down opportunity is an ordinary cancelled one (ADR 0011): it leaves browse, its applications keep their statuses and can't be decided, and it can't be reopened.
+
 ## Notifications
 
 Every signed-in user (any role) has an inbox. The consumer services write the notifications when events happen (see [events.md](events.md) and [ADR 0003](adr/0003-persisted-notifications.md)); the API only reads them and marks them read. You only ever see your own: someone else's `id` → 404, the same as one that doesn't exist.
@@ -297,6 +324,9 @@ A notification:
 | `feedback_submitted` | every active admin | Feedback is waiting for review; the title starts "Discrepancy reported" for discrepancy reports. |
 | `feedback_approved` | the author and the subject | The author: their feedback was published. The subject: they received a rating. |
 | `feedback_rejected` | the author only | An admin didn't approve their feedback; the message quotes the reason. The subject isn't told. |
+| `opportunity_reported` | every active admin | A contributor reported an opportunity; the message gives the reason and how many reports are open on it. |
+| `opportunity_taken_down` | the owning creator, pending and accepted applicants, and the reporters | An admin took the opportunity down. The creator is told the reason; applicants that it won't go ahead; reporters are thanked. One notification per person. |
+| `report_dismissed` | the reporter | An admin reviewed their report and left the opportunity up, with the admin's note if any. |
 
 `opportunity_id` links to `GET /opportunities/{id}`. It is `null` if the opportunity was deleted. `title` and `message` are stored as written and don't change if the opportunity is edited later.
 

@@ -122,6 +122,21 @@ Checked in this order: not found, already verified, cancelled, then the two 422s
 
 A `rating` that isn't a whole number from 1 to 5, a comment over 2000 characters, a reason over 500, an unknown field (the subject is never chosen by the client), or an unknown `status` or `discrepancy` filter is a `VALIDATION_ERROR`. Pending and rejected feedback never change a rating; the tests check this for each case.
 
+### Reports and takedown ([ADR 0016](adr/0016-opportunity-reports-and-takedown.md))
+
+| Status | Code | Endpoint(s) | When |
+| --- | --- | --- | --- |
+| 403 | `ROLE_FORBIDDEN` | `POST /opportunities/{id}/reports`, `GET /reports/mine`; `GET /admin/reports`, `POST /admin/reports/{id}/review` | Only contributors report; only admins use the admin routes. |
+| 404 | `OPPORTUNITY_NOT_FOUND` | `POST /opportunities/{id}/reports` | Missing, or a draft. |
+| 404 | `REPORT_NOT_FOUND` | `POST /admin/reports/{id}/review` | No such report. |
+| 409 | `OPPORTUNITY_ALREADY_REPORTED` | `POST /opportunities/{id}/reports` | You already reported this opportunity (once, ever). |
+| 409 | `OPPORTUNITY_CANCELLED` | `POST /opportunities/{id}/reports`; upholding on `POST /admin/reports/{id}/review` | The opportunity is cancelled (by its creator or a takedown). An admin can still dismiss reports on it. |
+| 409 | `REPORT_ALREADY_REVIEWED` | `POST /admin/reports/{id}/review` | It was already upheld or dismissed. A takedown upholds every pending report on the opportunity, so those get this too. |
+| 409 | `WORK_ALREADY_SUBMITTED` | upholding on `POST /admin/reports/{id}/review` | Work was submitted for one of its applications, so it can't be taken down (as for a creator's cancel, ADR 0011). The report stays pending; it can be dismissed. |
+| 422 | `TAKEDOWN_REASON_REQUIRED` | `POST /admin/reports/{id}/review` | Upholding without a `reason`, or with a blank one. The creator is shown it. |
+
+Checked in this order when reviewing: not found, already reviewed, reason required, then cancelled and work submitted. An unknown `reason` on a report, details over 2000 characters, a review reason over 500, an unknown field, or an unknown `status` filter on `GET /admin/reports` is a `VALIDATION_ERROR`.
+
 ### Account
 
 | Status | Code | Endpoint(s) | When |
