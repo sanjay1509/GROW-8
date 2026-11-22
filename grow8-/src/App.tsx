@@ -19,7 +19,7 @@ import CreatorApplications from "./pages/CreatorApplications/CreatorApplications
 import ContributorLayout from "./components/Contributor/ContributorLayout/ContributorLayout";
 import ContributorDashboard from "./components/Contributor/ContributorDashboard/ContributorDashboard";
 import ContributorApplications from "./pages/ContributorApplications/ContributorApplications";
-import ContributorProfile from "./pages/ContributorProfile /ContributorProfile";
+import ContributorProfile from "./pages/ContributorProfile/ContributorProfile";
 import ContributorSettings from "./pages/ContributorSettings/ContributorSettings";
 
 import "./App.css";
