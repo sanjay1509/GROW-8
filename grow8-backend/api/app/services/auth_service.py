@@ -26,6 +26,13 @@ def login(session: Session, email: str, password: str) -> TokenResponse:
     )
 
 
+def update_me(session: Session, user: UserAccount, full_name: str) -> UserAccount:
+    """Change the caller's display name. Tokens don't carry the name, so they stay valid."""
+    user.full_name = full_name
+    session.commit()
+    return user
+
+
 def change_password(
     session: Session, user: UserAccount, current_password: str, new_password: str
 ) -> None:

@@ -20,6 +20,15 @@ class UserRead(BaseModel):
     role: UserRole
 
 
+class UserUpdate(BaseModel):
+    """PATCH /auth/me body, for every role. Email is the sign-in, so it can't be changed
+    here (sending it is a 422 like any unknown field)."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    full_name: str = Field(min_length=1, max_length=150)
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

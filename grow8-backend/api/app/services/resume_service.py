@@ -89,7 +89,7 @@ def upload(
 
     if resume_repository.lock_profile(session, contributor.user_id) is None:
         raise ConflictError(
-            "Your account has no contributor profile to attach a resume to",
+            "Save your profile first",
             code="CONTRIBUTOR_PROFILE_REQUIRED",
         )
 

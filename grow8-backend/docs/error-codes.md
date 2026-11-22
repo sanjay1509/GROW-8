@@ -47,7 +47,7 @@ Clients should branch on `code`, never on `message` (messages are for people and
 | 422 | `DEADLINE_PASSED` | `POST …/publish` | The application deadline is not in the future. |
 | 422 | `INVALID_DATES` | `POST`, `PATCH /opportunities` | `end_date` is before `start_date`. |
 | 422 | `UNKNOWN_CATEGORY` | `POST`, `PATCH /opportunities` | The category code doesn't exist (see `GET /categories`). |
-| 422 | `UNKNOWN_SKILL` | `POST`, `PATCH /opportunities` | Skill code(s) don't exist; `details.unknown_skills` lists them (see `GET /skills`). |
+| 422 | `UNKNOWN_SKILL` | `POST`, `PATCH /opportunities`, `PUT /contributors/me/skills` | Skill code(s) don't exist; `details.unknown_skills` lists them (see `GET /skills`). |
 
 ### Applications ([ADR 0006](adr/0006-application-lifecycle.md))
 
@@ -58,7 +58,7 @@ Clients should branch on `code`, never on `message` (messages are for people and
 | 409 | `APPLICATION_DEADLINE_PASSED` | `POST /opportunities/{id}/applications` | The application deadline has passed. |
 | 409 | `APPLICANT_LIMIT_REACHED` | `POST /opportunities/{id}/applications` | Pending + accepted applications already fill `applicant_limit`. A place frees up if one is rejected or withdrawn. |
 | 409 | `APPLICATION_DUPLICATE` | `POST /opportunities/{id}/applications` | You already applied (in any status, including withdrawn); `details.application_id` points to it when known. |
-| 409 | `CONTRIBUTOR_PROFILE_REQUIRED` | `POST /opportunities/{id}/applications`, `PUT /contributors/me/resume` | The contributor account has no profile. |
+| 409 | `CONTRIBUTOR_PROFILE_REQUIRED` | `POST /opportunities/{id}/applications`, `PUT /contributors/me/resume` | The contributor account has no profile row yet. The message is "Save your profile first": the first `PATCH /contributors/me/profile` or `PUT /contributors/me/skills` creates it ([ADR 0017](adr/0017-contributor-profile.md)). |
 | 409 | `APPLICATION_NOT_PENDING` | `POST /applications/{id}/decision` | It was already decided or withdrawn; each application is decided once. |
 | 409 | `OPPORTUNITY_CANCELLED` | `POST /applications/{id}/decision` | The opportunity was cancelled, so its applications can't be decided ([ADR 0011](adr/0011-close-and-cancel-opportunities.md)). |
 | 409 | `APPLICATION_NOT_ACTIVE` | `POST /applications/{id}/withdraw` | It is already rejected or withdrawn. |
@@ -69,7 +69,7 @@ Clients should branch on `code`, never on `message` (messages are for people and
 | Status | Code | Endpoint(s) | When |
 | --- | --- | --- | --- |
 | 404 | `RESUME_NOT_FOUND` | `/contributors/me/resume…`, `GET /applications/{id}/resume` | The contributor has no resume (or its file is missing from storage). |
-| 409 | `CONTRIBUTOR_PROFILE_REQUIRED` | `PUT /contributors/me/resume` | The contributor account has no profile to attach it to. |
+| 409 | `CONTRIBUTOR_PROFILE_REQUIRED` | `PUT /contributors/me/resume` | The contributor account has no profile row to attach it to yet ("Save your profile first"). |
 | 411 | `LENGTH_REQUIRED` | `PUT /contributors/me/resume` | The upload was sent without `Content-Length` (e.g. chunked). Browsers always send it. |
 | 413 | `RESUME_TOO_LARGE` | `PUT /contributors/me/resume` | Over 10 MB. Refused before the body is read when `Content-Length` shows it. |
 | 415 | `UNSUPPORTED_FILE_TYPE` | `PUT /contributors/me/resume` | Not a PDF. Decided by the file's content, not its name or `Content-Type`. |
@@ -144,6 +144,8 @@ Checked in this order when reviewing: not found, already reviewed, reason requir
 | 422 | `PASSWORD_UNCHANGED` | `POST /auth/change-password` | The new password equals the current one, as bcrypt sees it: the first 72 bytes match ([ADR 0005](adr/0005-password-change.md)). |
 
 A new password shorter than 8 characters or longer than 72 bytes (UTF-8) is a `VALIDATION_ERROR`.
+
+Changing your name (`PATCH /auth/me`, `PATCH /contributors/me/profile`) has no codes of its own: an empty name, sending `email`, or more than 25 skills is a `VALIDATION_ERROR` ([ADR 0017](adr/0017-contributor-profile.md)).
 
 ### Notifications
 
