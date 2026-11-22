@@ -12,6 +12,8 @@ from grow8_common.events import (
     FeedbackRejectedPayload,
     OpportunityCancelledPayload,
     OpportunityCreatedPayload,
+    OpportunityTakenDownPayload,
+    ReportDismissedPayload,
     WorkRejectedPayload,
     WorkVerifiedPayload,
 )
@@ -25,6 +27,8 @@ from app.handlers.feedback_approved import handle_feedback_approved
 from app.handlers.feedback_rejected import handle_feedback_rejected
 from app.handlers.opportunity_cancelled import handle_opportunity_cancelled
 from app.handlers.opportunity_created import handle_opportunity_created
+from app.handlers.opportunity_taken_down import handle_opportunity_taken_down
+from app.handlers.report_dismissed import handle_report_dismissed
 from app.handlers.work_rejected import handle_work_rejected
 from app.handlers.work_verified import handle_work_verified
 
@@ -90,6 +94,22 @@ def _on_feedback_rejected(envelope: EventEnvelope, payload: FeedbackRejectedPayl
         session.commit()
 
 
+def _on_opportunity_taken_down(
+    envelope: EventEnvelope, payload: OpportunityTakenDownPayload
+) -> None:
+    with get_sessionmaker()() as session:
+        notifier = DbNotifier(session, envelope.event_id, NotificationType.OPPORTUNITY_TAKEN_DOWN)
+        handle_opportunity_taken_down(payload, session=session, notifier=notifier)
+        session.commit()
+
+
+def _on_report_dismissed(envelope: EventEnvelope, payload: ReportDismissedPayload) -> None:
+    with get_sessionmaker()() as session:
+        notifier = DbNotifier(session, envelope.event_id, NotificationType.REPORT_DISMISSED)
+        handle_report_dismissed(payload, session=session, notifier=notifier)
+        session.commit()
+
+
 # Event type -> handler. Each key becomes a binding on this service's queue.
 HANDLERS: dict[EventType, Handler] = {
     EventType.OPPORTUNITY_CREATED: _on_opportunity_created,
@@ -99,6 +119,8 @@ HANDLERS: dict[EventType, Handler] = {
     EventType.WORK_REJECTED: _on_work_rejected,
     EventType.FEEDBACK_APPROVED: _on_feedback_approved,
     EventType.FEEDBACK_REJECTED: _on_feedback_rejected,
+    EventType.OPPORTUNITY_TAKEN_DOWN: _on_opportunity_taken_down,
+    EventType.REPORT_DISMISSED: _on_report_dismissed,
 }
 
 
