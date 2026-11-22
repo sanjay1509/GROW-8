@@ -13,9 +13,11 @@ from app.core.config import get_api_settings
 from app.core.exceptions import register_exception_handlers
 from app.dependencies.request import REQUEST_ID_HEADER, register_request_id_middleware
 from app.routers import (
+    admin,
     applications,
     auth,
     contributors,
+    feedback,
     notifications,
     opportunities,
     reference,
@@ -95,6 +97,8 @@ def create_app() -> FastAPI:
     app.include_router(contributors.router, prefix=API_PREFIX)
     app.include_router(submissions.router, prefix=API_PREFIX)
     app.include_router(notifications.router, prefix=API_PREFIX)
+    app.include_router(feedback.router, prefix=API_PREFIX)
+    app.include_router(admin.router, prefix=API_PREFIX)
 
     @app.get("/health", tags=["health"])
     def health() -> JSONResponse:
