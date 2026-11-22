@@ -1,0 +1,324 @@
+/* Creator Applications page. Uses the creator workspace look (CreatorLayout.css). */
+
+.capp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.capp-filters,
+.capp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.capp-filter {
+  padding: 6px 12px;
+  border: 1px solid #e1e7f0;
+  border-radius: 999px;
+  background: #fff;
+  color: #4a5568;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.capp-filter span {
+  margin-left: 4px;
+  color: #8a94a6;
+  font-weight: 500;
+}
+
+.capp-filter.is-active {
+  border-color: #155ce8;
+  background: #eaf1ff;
+  color: #155ce8;
+}
+
+.capp-filter.is-active span {
+  color: #155ce8;
+}
+
+.capp-select select,
+.capp-search {
+  height: 36px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #172235;
+  font: inherit;
+  font-size: 13px;
+}
+
+.capp-select select {
+  max-width: 260px;
+  padding: 0 10px;
+}
+
+.capp-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 240px;
+  padding: 0 12px;
+  color: #7c8799;
+}
+
+.capp-search input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #172235;
+  font: inherit;
+}
+
+.capp-message {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.capp-message.is-ok {
+  background: #e6f6ec;
+  color: #1c7c45;
+}
+
+.capp-message.is-error {
+  background: #fdecec;
+  color: #a12b2b;
+}
+
+.capp-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.capp-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid #e7ebf2;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+}
+
+.capp-card-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.capp-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #eaf1ff;
+  color: #155ce8;
+  font-weight: 750;
+}
+
+.capp-who,
+.capp-for {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: #4a5568;
+}
+
+.capp-who strong {
+  color: #172235;
+  font-size: 14px;
+}
+
+.capp-meta,
+.capp-for span {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.capp-label,
+.capp-meta {
+  color: #7c8799;
+  font-size: 12px;
+}
+
+.capp-status {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.capp-status.is-pending {
+  background: #fff4dd;
+  color: #a0611b;
+}
+
+.capp-status.is-accepted {
+  background: #e6f6ec;
+  color: #1c7c45;
+}
+
+.capp-status.is-rejected {
+  background: #fdecec;
+  color: #a12b2b;
+}
+
+.capp-status.is-withdrawn {
+  background: #eef1f5;
+  color: #5b6577;
+}
+
+.capp-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.capp-skills span {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #f2f5f9;
+  color: #4a5568;
+  font-size: 11px;
+}
+
+.capp-details {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f8faff;
+}
+
+.capp-details h3 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: #303d52;
+}
+
+.capp-details p {
+  margin: 0;
+  color: #4a5568;
+  white-space: pre-wrap;
+}
+
+.capp-note {
+  margin: 0;
+  color: #a0611b;
+  font-size: 12px;
+}
+
+.capp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.capp-button,
+.capp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.capp-button {
+  padding: 6px 12px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #303d52;
+}
+
+.capp-button.is-accept {
+  border-color: #1c7c45;
+  background: #1c7c45;
+  color: #fff;
+}
+
+.capp-button.is-reject {
+  border-color: #e3a5a5;
+  background: #fff5f5;
+  color: #a12b2b;
+}
+
+.capp-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.capp-link {
+  margin-right: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #155ce8;
+}
+
+.capp-confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: #303d52;
+  font-weight: 600;
+}
+
+.capp-confirm .capp-link {
+  margin-right: 0;
+}
+
+.capp-card :focus-visible,
+.capp-toolbar :focus-visible {
+  outline: 3px solid #83adff;
+  outline-offset: 2px;
+}
+
+.capp-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .capp-card-main {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .capp-for,
+  .capp-status {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .capp-search {
+    min-width: 0;
+    width: 100%;
+  }
+}

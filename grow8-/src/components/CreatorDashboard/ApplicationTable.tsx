@@ -31,10 +31,9 @@ export default function ApplicationTable({ applications, label }: Props) {
               <td><Status>{application.status}</Status></td>
               <td className="creator-date">{application.appliedDate}</td>
               <td>
-                {/* TODO: Open this application’s details when the Applications page is implemented. */}
                 <Link
                   className="creator-text-link"
-                  to="/creator/applications"
+                  to={`/creator/applications?opportunity=${application.opportunityId}`}
                   aria-label={`View ${application.name}’s application`}
                 >
                   View

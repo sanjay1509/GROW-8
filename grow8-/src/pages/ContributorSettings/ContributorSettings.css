@@ -1,0 +1,85 @@
+/* Contributor Settings. Shares the card styles in ContributorProfile.css. */
+
+.cs-sections {
+  display: grid;
+  gap: 16px;
+}
+
+.cp-card-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cs-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin: 0;
+}
+
+.cs-details div {
+  padding: 12px 14px;
+  border: 1px solid #e1e7f0;
+  border-radius: 9px;
+  background: #f8faff;
+}
+
+.cs-details dt {
+  margin-bottom: 2px;
+  color: #7c8799;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.cs-details dd {
+  margin: 0;
+  color: #172235;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cs-form {
+  display: grid;
+  gap: 12px;
+  max-width: 420px;
+}
+
+.cs-form label {
+  display: grid;
+  gap: 5px;
+  color: #303d52;
+  font-weight: 600;
+}
+
+.cs-form input {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #cfd8e6;
+  border-radius: 8px;
+  background: #fff;
+  color: #172235;
+  font: inherit;
+  font-weight: 400;
+}
+
+.cs-form input:focus-visible {
+  outline: 3px solid #83adff;
+  outline-offset: 1px;
+}
+
+.cs-form-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cs-show {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}

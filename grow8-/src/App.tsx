@@ -13,10 +13,14 @@ import MyOpportunities from "./pages/CreatorOpportunities/MyOpportunities";
 import CreatorProfile from "./pages/CreatorProfile/CreatorProfile";
 import CreatorFeedback from "./pages/CreatorFeedback/CreatorFeedback";
 import CreatorSettings from "./pages/CreatorSettings/CreatorSettings";
+import CreatorApplications from "./pages/CreatorApplications/CreatorApplications";
 
 // Contributor components
 import ContributorLayout from "./components/Contributor/ContributorLayout/ContributorLayout";
 import ContributorDashboard from "./components/Contributor/ContributorDashboard/ContributorDashboard";
+import ContributorApplications from "./pages/ContributorApplications/ContributorApplications";
+import ContributorProfile from "./pages/ContributorProfile/ContributorProfile";
+import ContributorSettings from "./pages/ContributorSettings/ContributorSettings";
 
 import "./App.css";
 
@@ -29,12 +33,27 @@ export default function App() {
       <Route path="/opportunities" element={<BrowseOpportunities />} />
 
       {/* Contributor pages */}
-      <Route element={<ContributorLayout />}>
-        <Route
-          path="/contributor-dashboard"
-          element={<ContributorDashboard />}
-        />
-      </Route>
+        <Route element={<ContributorLayout />}>
+          <Route
+            path="/contributor-dashboard"
+            element={<ContributorDashboard />}
+          />
+
+          <Route
+            path="/contributor/applications"
+            element={<ContributorApplications />}
+          />
+
+          <Route
+            path="/contributor/profile"
+            element={<ContributorProfile />}
+          />
+
+          <Route
+            path="/contributor/settings"
+            element={<ContributorSettings />}
+          />
+        </Route>
 
       {/* Creator pages */}
       <Route path="/creator" element={<CreatorLayout />}>
@@ -56,8 +75,9 @@ export default function App() {
           element={<MyOpportunities />}
         />
 
+        <Route path="applications" element={<CreatorApplications />} />
+
         {/* Creator pages not implemented yet */}
-        <Route path="applications" element={null} />
         <Route path="submissions" element={null} />
         <Route path="settings" element={<CreatorSettings/>} />
 
