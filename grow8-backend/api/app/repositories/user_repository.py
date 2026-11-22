@@ -26,6 +26,21 @@ def get_organization_of(session: Session, owner_user_id: int) -> CreatorOrganiza
     return session.scalars(stmt).first()
 
 
+def lock_organization_of(session: Session, owner_user_id: int) -> CreatorOrganization | None:
+    """Row-lock the creator's account, then return their organization (locked too), or
+    None. Locking the account first means two saves by the same creator run one after the
+    other even when there is no organization row yet to lock (ADR 0018)."""
+    session.execute(
+        select(UserAccount.user_id).where(UserAccount.user_id == owner_user_id).with_for_update()
+    )
+    stmt = select(CreatorOrganization).where(CreatorOrganization.owner_user_id == owner_user_id)
+    return session.scalars(stmt.with_for_update().execution_options(populate_existing=True)).first()
+
+
+def add_organization(session: Session, organization: CreatorOrganization) -> None:
+    session.add(organization)
+
+
 def get_contributor_profile(session: Session, user_id: int) -> ContributorProfile | None:
     return session.get(ContributorProfile, user_id)
 
