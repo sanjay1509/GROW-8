@@ -42,7 +42,7 @@ Clients should branch on `code`, never on `message` (messages are for people and
 | 409 | `OPPORTUNITY_NOT_PUBLISHED` | `POST …/cancel` | A draft can't be cancelled; delete it instead. |
 | 409 | `OPPORTUNITY_CANCELLED` | `POST …/cancel` | It is already cancelled. |
 | 409 | `WORK_ALREADY_SUBMITTED` | `POST …/cancel` | Work was submitted for one of its applications. |
-| 409 | `ORGANIZATION_REQUIRED` | `POST /opportunities` | The creator account has no organization to post for. |
+| 409 | `ORGANIZATION_REQUIRED` | `POST /opportunities` | The creator account has no organization to post for. Create it with `PATCH /creators/me/organization` ([ADR 0018](adr/0018-creator-organization.md)). |
 | 422 | `OPPORTUNITY_INCOMPLETE` | `POST …/publish` | Mandatory disclosures are missing; `details.missing_fields` lists them. |
 | 422 | `DEADLINE_PASSED` | `POST …/publish` | The application deadline is not in the future. |
 | 422 | `INVALID_DATES` | `POST`, `PATCH /opportunities` | `end_date` is before `start_date`. |
@@ -136,6 +136,15 @@ A `rating` that isn't a whole number from 1 to 5, a comment over 2000 characters
 | 422 | `TAKEDOWN_REASON_REQUIRED` | `POST /admin/reports/{id}/review` | Upholding without a `reason`, or with a blank one. The creator is shown it. |
 
 Checked in this order when reviewing: not found, already reviewed, reason required, then cancelled and work submitted. An unknown `reason` on a report, details over 2000 characters, a review reason over 500, an unknown field, or an unknown `status` filter on `GET /admin/reports` is a `VALIDATION_ERROR`.
+
+### Creator organization ([ADR 0018](adr/0018-creator-organization.md))
+
+| Status | Code | Endpoint(s) | When |
+| --- | --- | --- | --- |
+| 404 | `ORGANIZATION_NOT_FOUND` | `GET /creators/me/organization` | You have no organization yet. |
+| 409 | `ORGANIZATION_REQUIRED` | `PATCH /creators/me/organization` | You have no organization yet, and this save doesn't send both `name` and `organization_type` to create it. |
+
+A website that isn't an `http://` or `https://` address, or clearing `name` or `organization_type`, is a `VALIDATION_ERROR`.
 
 ### Account
 

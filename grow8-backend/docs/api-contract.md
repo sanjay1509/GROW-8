@@ -165,6 +165,32 @@ Creators and admins get 403 `ROLE_FORBIDDEN`. A profile:
 - Changing your name here or with `PATCH /auth/me` is the same thing: both change the account's name.
 - Changing skills affects which new opportunities you're notified about straight away.
 
+## Creator organization
+
+A creator reads and edits their own organization (one per creator). Rules: [ADR 0018](adr/0018-creator-organization.md). Your own name is changed with `PATCH /auth/me`.
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| GET | `/creators/me/organization` | creator | Your organization (below). None yet → 404 `ORGANIZATION_NOT_FOUND`. |
+| PATCH | `/creators/me/organization` | creator | Any of `name` (1–150), `organization_type` (`small_business`, `nonprofit`, `event_organizer`, `other`), `description` (≤ 5000), `website` (≤ 255, `http://` or `https://` with a host), `city` (≤ 100). Only the fields sent change. Whitespace is trimmed; for `description`, `website` and `city`, `null` or `""` clears the value. `name` and `organization_type` can't be cleared. Bad input or unknown fields → 422 `VALIDATION_ERROR`. Returns the organization. |
+
+Contributors and admins get 403 `ROLE_FORBIDDEN`. An organization:
+
+```json
+{
+  "organization_id": 1,
+  "name": "Maple Street Bakery",
+  "organization_type": "small_business",
+  "description": "Family-run neighbourhood bakery.",
+  "website": "https://example.com/maple-street-bakery",
+  "city": "Calgary",
+  "updated_at": "2026-11-22T10:00:00Z"
+}
+```
+
+- **No organization yet:** the first `PATCH` creates it if it sends both `name` and `organization_type`; otherwise 409 `ORGANIZATION_REQUIRED` (the same code `POST /opportunities` returns until then).
+- **Edits show on every one of your opportunities straight away**, past ones included, and in search by organization name. Notifications already sent keep the old name.
+
 ## Resumes
 
 A contributor can keep one optional PDF resume (at most 10 MB). Creators can download it through an application to one of their opportunities. Rules: [ADR 0008](adr/0008-contributor-resume.md); storage: [ADR 0007](adr/0007-local-file-storage.md).
