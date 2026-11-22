@@ -64,3 +64,6 @@ class NotificationType(StrEnum):
     WORK_SUBMITTED = "work_submitted"  # to the creator who owns the opportunity
     WORK_VERIFIED = "work_verified"  # to the contributor whose work was approved
     WORK_REJECTED = "work_rejected"  # to the contributor whose work was rejected
+    FEEDBACK_SUBMITTED = "feedback_submitted"  # to every active admin
+    FEEDBACK_APPROVED = "feedback_approved"  # to the author and the subject
+    FEEDBACK_REJECTED = "feedback_rejected"  # to the author only
