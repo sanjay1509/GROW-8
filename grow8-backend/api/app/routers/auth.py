@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter
 
 from app.dependencies.auth import CurrentUser, DbSession
@@ -7,6 +6,7 @@ from app.schemas.auth import (
     LoginRequest,
     TokenResponse,
     UserRead,
+    UserUpdate,
 )
 from app.services import auth_service
 
@@ -23,6 +23,12 @@ def login(body: LoginRequest, session: DbSession) -> TokenResponse:
 def me(user: CurrentUser) -> UserRead:
     """Return the authenticated user's profile."""
     return UserRead.model_validate(user)
+
+
+@router.patch("/me", response_model=UserRead)
+def update_me(body: UserUpdate, session: DbSession, user: CurrentUser) -> UserRead:
+    """Change your name (any role). Email can't be changed here."""
+    return UserRead.model_validate(auth_service.update_me(session, user, body.full_name))
 
 
 @router.post("/change-password")

@@ -6,8 +6,6 @@ never leave a row that points at nothing.
 """
 
 import logging
-import re
-import unicodedata
 from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import BinaryIO
@@ -24,6 +22,7 @@ from app.core.exceptions import (
 )
 from app.core.time import utcnow
 from app.repositories import application_repository, resume_repository
+from app.services.file_names import clean_display_name
 from app.storage import FileStorage, StoredFileMissing, new_key
 
 logger = logging.getLogger(__name__)
@@ -58,16 +57,7 @@ def _not_found() -> NotFoundError:
 def clean_file_name(name: str | None) -> str:
     """A display name only (never a path): last path segment, no control characters,
     at most 255 characters, ending in .pdf."""
-    name = (name or "").replace("\\", "/").rsplit("/", 1)[-1]
-    name = "".join(
-        c for c in unicodedata.normalize("NFC", name) if unicodedata.category(c)[0] != "C"
-    )
-    name = re.sub(r"\s+", " ", name).strip(" .")
-    if not name:
-        return _DEFAULT_NAME
-    if not name.lower().endswith(".pdf"):
-        name = f"{name}.pdf"
-    return name if len(name) <= 255 else name[: 255 - 4] + ".pdf"
+    return clean_display_name(name, _DEFAULT_NAME, (".pdf",))
 
 
 def _checked_chunks(head: bytes, upload: BinaryIO, counter: list[int]) -> Iterator[bytes]:
@@ -99,7 +89,7 @@ def upload(
 
     if resume_repository.lock_profile(session, contributor.user_id) is None:
         raise ConflictError(
-            "Your account has no contributor profile to attach a resume to",
+            "Save your profile first",
             code="CONTRIBUTOR_PROFILE_REQUIRED",
         )
 

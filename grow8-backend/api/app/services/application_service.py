@@ -119,7 +119,7 @@ def apply(
     profile = user_repository.get_contributor_profile(session, contributor.user_id)
     if profile is None:
         raise ConflictError(
-            "Your account has no contributor profile to apply with",
+            "Save your profile first",
             code="CONTRIBUTOR_PROFILE_REQUIRED",
         )
 

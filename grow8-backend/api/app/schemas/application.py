@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.schemas.common import UtcDateTime
 from app.schemas.opportunity import OrganizationSummary
 from app.schemas.reference import SkillRead
+from app.services.verification_rules import WorkStatus, work_status
 
 
 class ApplicationCreate(BaseModel):
@@ -60,10 +61,17 @@ class ApplicationRead(BaseModel):
     decided_at: UtcDateTime | None
     opportunity: ApplicationOpportunity
     applicant: Applicant
+    submission_id: int | None = Field(
+        description="The submitted work's id, or null if no work has been submitted yet"
+    )
+    work_status: WorkStatus = Field(
+        description="not_submitted, awaiting_verification, completed (approved) or work_rejected"
+    )
 
     @classmethod
     def from_model(cls, application: Application) -> Self:
         profile = application.contributor
+        submission = application.submission
         return cls(
             application_id=application.application_id,
             status=application.status,
@@ -79,6 +87,13 @@ class ApplicationRead(BaseModel):
                 city=profile.city,
                 skills=[SkillRead.model_validate(s) for s in profile.skills],
                 has_resume=profile.resume is not None,
+            ),
+            submission_id=submission.submission_id if submission else None,
+            work_status=work_status(
+                submission is not None,
+                submission.verification.decision
+                if submission and submission.verification
+                else None,
             ),
         )
 

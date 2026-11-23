@@ -22,6 +22,7 @@ Base path: `/api/v1`. JSON bodies, `snake_case` fields. Interactive docs: <http:
 | --- | --- | --- | --- |
 | POST | `/auth/login` | anyone | Body `{email, password}`. Returns `{access_token, token_type, expires_in, user}`. Wrong email or password → 401 `INVALID_CREDENTIALS`. |
 | GET | `/auth/me` | any signed-in user | The caller's `{user_id, email, full_name, role}`. |
+| PATCH | `/auth/me` | any signed-in user | Body `{full_name}` (1–150 characters, trimmed). Changes your name and returns the same body as `GET /auth/me`. Email can't be changed: sending it is a 422 `VALIDATION_ERROR` ([ADR 0017](adr/0017-contributor-profile.md)). |
 | POST | `/auth/change-password` | any signed-in user | Body `{current_password, new_password}` (new: 8 characters to 72 bytes in UTF-8, bcrypt's limit). Wrong current password → 401 `INVALID_CURRENT_PASSWORD`; same as current → 422 `PASSWORD_UNCHANGED`. Tokens already issued stay valid until they expire ([ADR 0005](adr/0005-password-change.md)). |
 
 There is no sign-up endpoint yet; use the seeded dev accounts (see [docs.md](../../docs.md)).
@@ -121,11 +122,76 @@ An application:
     "city": "Calgary",
     "skills": [{ "code": "data-cleaning", "name": "Data cleaning" }, { "code": "spreadsheets", "name": "Spreadsheets" }, { "code": "web-basics", "name": "Web basics (HTML/CSS)" }],
     "has_resume": true
-  }
+  },
+  "submission_id": null,
+  "work_status": "not_submitted"
 }
 ```
 
-The applicant's email and other contact details are not included. `applicant.has_resume` says whether `GET /applications/{id}/resume` has a file to return.
+The applicant's email and other contact details are not included. `applicant.has_resume` says whether `GET /applications/{id}/resume` has a file to return. `submission_id` is the submitted work's id, or `null` until the applicant submits work (see [Work submissions](#work-submissions)), so a list can show "Submit work" or "Submitted" without a call per application. `work_status` says where the work stands: `not_submitted` (also for every application that was never accepted), `awaiting_verification`, `completed` (the creator approved it) or `work_rejected`. It is derived, not stored ([ADR 0013](adr/0013-work-verification.md)).
+
+## Contributor profile
+
+A contributor reads and edits their own profile and the skills they list. Creators see the public part through applications only, always the current version (`applicant` above). Rules: [ADR 0017](adr/0017-contributor-profile.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| GET | `/contributors/me/profile` | contributor | Your profile (below). |
+| PATCH | `/contributors/me/profile` | contributor | Any of `full_name` (1–150), `headline` (≤ 150), `bio` (≤ 5000), `institution` (≤ 150), `city` (≤ 100). Only the fields sent change. Whitespace is trimmed; for the optional fields `null` or `""` clears the value. `full_name` can't be cleared, and `email` can't be changed: both are 422 `VALIDATION_ERROR`, as is any unknown field. Returns the profile. |
+| PUT | `/contributors/me/skills` | contributor | Body `{skill_codes: [...]}` (codes from `GET /skills`). **Replaces** your listed skills; duplicates are collapsed and `[]` removes them all. More than 25 different skills → 422 `VALIDATION_ERROR`; unknown codes → 422 `UNKNOWN_SKILL` with `details.unknown_skills`. Returns the profile. |
+
+Creators and admins get 403 `ROLE_FORBIDDEN`. A profile:
+
+```json
+{
+  "user_id": 5,
+  "full_name": "Alex Chen",
+  "email": "alex.chen@grow8.dev",
+  "headline": "Software engineering student",
+  "bio": null,
+  "institution": "University of Calgary",
+  "city": "Calgary",
+  "skills": [
+    { "code": "data-cleaning", "name": "Data cleaning", "listed": true, "verified": false, "verified_at": null },
+    { "code": "data-entry", "name": "Data entry", "listed": false, "verified": true, "verified_at": "2026-10-15T15:00:00Z" },
+    { "code": "spreadsheets", "name": "Spreadsheets", "listed": true, "verified": true, "verified_at": "2026-10-15T15:00:00Z" }
+  ],
+  "has_resume": false,
+  "updated_at": "2026-11-22T09:30:00Z"
+}
+```
+
+- **Skills** are sorted by name: every skill you listed, plus every skill you **earned**, i.e. one an opportunity required where a creator approved your work, listed or not ([ADR 0019](adr/0019-earned-skills.md)). `listed`: on your profile. `verified`: proved by approved work, first at `verified_at`. An earned skill you haven't listed is `listed: false, verified: true`. `PUT /contributors/me/skills` changes listed skills only, so it never removes an earned one: removing a verified skill leaves it as `listed: false`.
+- **Matching uses listed skills only.** New opportunities are matched against the skills you list, so list an earned skill to be notified about opportunities that need it.
+- **`updated_at`** is when the profile or its skills last changed. It is `null` for an account with no profile row yet: then the profile fields are `null`, `skills` is `[]`, and the first `PATCH` or `PUT` creates the row. Until then, applying and uploading a resume are refused with 409 `CONTRIBUTOR_PROFILE_REQUIRED` ("Save your profile first").
+- Changing your name here or with `PATCH /auth/me` is the same thing: both change the account's name.
+- Changing skills affects which new opportunities you're notified about straight away.
+
+## Creator organization
+
+A creator reads and edits their own organization (one per creator). Rules: [ADR 0018](adr/0018-creator-organization.md). Your own name is changed with `PATCH /auth/me`.
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| GET | `/creators/me/organization` | creator | Your organization (below). None yet → 404 `ORGANIZATION_NOT_FOUND`. |
+| PATCH | `/creators/me/organization` | creator | Any of `name` (1–150), `organization_type` (`small_business`, `nonprofit`, `event_organizer`, `other`), `description` (≤ 5000), `website` (≤ 255, `http://` or `https://` with a host), `city` (≤ 100). Only the fields sent change. Whitespace is trimmed; for `description`, `website` and `city`, `null` or `""` clears the value. `name` and `organization_type` can't be cleared. Bad input or unknown fields → 422 `VALIDATION_ERROR`. Returns the organization. |
+
+Contributors and admins get 403 `ROLE_FORBIDDEN`. An organization:
+
+```json
+{
+  "organization_id": 1,
+  "name": "Maple Street Bakery",
+  "organization_type": "small_business",
+  "description": "Family-run neighbourhood bakery.",
+  "website": "https://example.com/maple-street-bakery",
+  "city": "Calgary",
+  "updated_at": "2026-11-22T10:00:00Z"
+}
+```
+
+- **No organization yet:** the first `PATCH` creates it if it sends both `name` and `organization_type`; otherwise 409 `ORGANIZATION_REQUIRED` (the same code `POST /opportunities` returns until then).
+- **Edits show on every one of your opportunities straight away**, past ones included, and in search by organization name. Notifications already sent keep the old name.
 
 ## Resumes
 
@@ -145,7 +211,7 @@ Metadata:
 { "file_name": "Alex Chen CV.pdf", "content_type": "application/pdf", "size_bytes": 48213, "uploaded_at": "2026-11-15T22:10:04Z" }
 ```
 
-`file_name` is for display only (cleaned, always ends in `.pdf`). Downloads are `application/pdf` with `Content-Disposition: attachment` (the name also sent as UTF-8 `filename*`), `X-Content-Type-Options: nosniff` and `Cache-Control: private, no-store`.
+`file_name` is for display only (cleaned, always ends in `.pdf`). Downloads are `application/pdf` with `Content-Disposition: attachment` (the name also sent as UTF-8 `filename*`), `X-Content-Type-Options: nosniff` and `Cache-Control: private, no-store`. `Content-Disposition` is exposed to cross-origin JavaScript (CORS), so a frontend that downloads with `fetch` can read the file name from it.
 
 From a browser:
 
@@ -156,6 +222,131 @@ await fetch(`${API}/contributors/me/resume`, { method: "PUT", body: form, header
 ```
 
 Don't set `Content-Type` yourself; the browser adds the multipart boundary and `Content-Length`.
+
+## Work submissions
+
+An accepted contributor submits their work once, with optional files, for the owning creator to verify. Rules and reasons: [ADR 0012](adr/0012-work-submission.md); storage: [ADR 0007](adr/0007-local-file-storage.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| POST | `/applications/{id}/submission` | the applicant | `multipart/form-data`: `description` (1–5000 chars), `hours_claimed` (> 0, at most 9999.99, 2 decimals), and up to 5 `files` (optional, repeat the field). → 201 with the submission. The application must be `accepted` (409 `APPLICATION_NOT_ACCEPTED`) and the opportunity not cancelled (409 `OPPORTUNITY_CANCELLED`; closed is fine). Once per application, no resubmitting (409 `WORK_ALREADY_SUBMITTED`). Emits `WORK_SUBMITTED` (the owning creator is notified). |
+| GET | `/applications/{id}/submission` | the applicant or the owning creator | The submission with its attachments' metadata. Anyone else → 404 `APPLICATION_NOT_FOUND`; nothing submitted yet → 404 `SUBMISSION_NOT_FOUND`. |
+| GET | `/submissions/{id}/attachments/{attachment_id}` | the applicant or the owning creator | Downloads the file. Anything you can't see or that doesn't exist → 404 `ATTACHMENT_NOT_FOUND`. |
+| GET | `/submissions/received` | creator | Your review queue: submissions to all your opportunities, **oldest first**. `status` (repeatable: `awaiting`, `approved`, `rejected`; default all), `opportunity_id` (one of yours; another's matches nothing), `limit`, `offset`. |
+| GET | `/submissions/{id}` | the applicant or the owning creator | The submission with its verification. Anyone else → 404 `SUBMISSION_NOT_FOUND`. |
+| POST | `/submissions/{id}/verification` | owning creator | Approve or reject the work, once → 200 with the submission. See [Verifying work](#verifying-work). |
+
+Files: PDF, PNG, JPEG, DOCX, XLSX, CSV or TXT, at most 5 MB each (413 `ATTACHMENT_TOO_LARGE`), non-empty (422 `EMPTY_FILE`). The type is decided by the content (415 `UNSUPPORTED_FILE_TYPE`), and one bad file refuses the whole submission. More than 5 files → 422 `TOO_MANY_FILES`. The request needs `Content-Length` (411 `LENGTH_REQUIRED`).
+
+A submission:
+
+```json
+{
+  "submission_id": 6,
+  "application_id": 12,
+  "status": "approved",
+  "description": "Typed up 40 recipes into the shared sheet.",
+  "hours_claimed": "6.50",
+  "submitted_at": "2026-11-18T15:00:00Z",
+  "opportunity": { "opportunity_id": 2, "title": "Inventory spreadsheet cleanup", "status": "open" },
+  "applicant": { "user_id": 5, "full_name": "Alex Chen" },
+  "attachments": [
+    { "attachment_id": 3, "file_name": "recipes.xlsx", "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "size_bytes": 23855, "uploaded_at": "2026-11-18T15:00:00Z" }
+  ],
+  "verification": { "decision": "approved", "verified_hours": "6.00", "comment": "Thanks, this is great.", "verified_at": "2026-11-19T10:00:00Z" }
+}
+```
+
+`status` is `awaiting` (and `verification` is `null`) until the creator decides, then `approved` or `rejected`. `hours_claimed` and `verified_hours` are decimals sent as strings. `file_name` is for display only: cleaned, and always ending in an extension that matches the detected type. Downloads use the stored `content_type` with the same headers as resumes (`Content-Disposition: attachment`, `nosniff`, `no-store`).
+
+From a browser:
+
+```js
+const form = new FormData();
+form.append("description", "Typed up 40 recipes.");
+form.append("hours_claimed", "6.5");
+for (const file of fileInput.files) form.append("files", file);
+await fetch(`${API}/applications/${applicationId}/submission`, { method: "POST", body: form, headers: { Authorization: `Bearer ${token}` } });
+```
+
+### Verifying work
+
+The creator who owns the opportunity approves or rejects each submission once ([ADR 0013](adr/0013-work-verification.md)). `POST /submissions/{id}/verification`:
+
+```json
+{ "decision": "approved", "verified_hours": "6", "comment": "Thanks, this is great." }
+```
+
+```json
+{ "decision": "rejected", "comment": "Only 10 of the 40 recipes are in the sheet." }
+```
+
+- **Approve:** `verified_hours` is required, > 0 with at most 2 decimals, and no more than `hours_claimed` (422 `VERIFIED_HOURS_EXCEED_CLAIMED`). Verifying fewer hours than claimed is fine. `comment` is optional.
+- **Reject:** `comment` is required (422 `REJECTION_COMMENT_REQUIRED`) and `verified_hours` must be left out.
+- `comment` is trimmed, at most 2000 characters.
+- Once per submission, final (409 `SUBMISSION_ALREADY_VERIFIED`). Not once the opportunity is cancelled (409 `OPPORTUNITY_CANCELLED`); closed is fine. Another creator, or a submission that doesn't exist → 404 `SUBMISSION_NOT_FOUND`.
+- Emits `WORK_VERIFIED` or `WORK_REJECTED`; the contributor is notified. Approved hours count toward the contributor's verified hours and skills from then on (computed by the database views, never stored).
+
+## Feedback and ratings
+
+Once the work on an application has been verified (approved or rejected), the applicant and the owning creator can each rate the other once. An admin reviews every feedback, and only approved feedback is shown to the person rated and counts toward their public rating. Rules and reasons: [ADR 0015](adr/0015-feedback-and-admin-review.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| POST | `/applications/{id}/feedback` | the applicant or the owning creator | Body `{rating, comment?, reports_discrepancy?}` → 201. The subject is always the other participant. Only once the work is verified (409 `WORK_NOT_VERIFIED`), once per author (409 `FEEDBACK_ALREADY_SUBMITTED`). Emits `FEEDBACK_SUBMITTED` (admins are notified). |
+| GET | `/applications/{id}/feedback` | the applicant or the owning creator | `{given, received}`: your feedback in any status, and theirs about you **only once approved**. Each is `null` when there's nothing to show. Anyone else → 404 `APPLICATION_NOT_FOUND`. |
+| GET | `/admin/feedback` | admin | Review queue: **discrepancy reports first**, then oldest first. `status` (repeatable: `pending`, `approved`, `rejected`; default all), `discrepancy` (`true`/`false`), `limit`, `offset`. |
+| POST | `/admin/feedback/{id}/review` | admin | Body `{decision: "approved" \| "rejected", reason?}` → 200 with the feedback. A reason is required when rejecting (422 `REJECTION_REASON_REQUIRED`), at most 500 characters. Once per feedback (409 `FEEDBACK_ALREADY_REVIEWED`). Emits `FEEDBACK_APPROVED` or `FEEDBACK_REJECTED`. |
+| GET | `/users/{id}/rating` | anyone (no token) | `{user_id, average_rating, approved_feedback_count}` from approved feedback only. `average_rating` is a 2-decimal string, or `null` with no approved feedback. |
+
+Body rules: `rating` is a whole number from 1 to 5; `comment` is optional, trimmed, at most 2000 characters; `reports_discrepancy` (default `false`) flags that something on the application went wrong, such as disputed hours, and puts it at the front of the admin queue.
+
+A feedback:
+
+```json
+{
+  "feedback_id": 8,
+  "application_id": 12,
+  "opportunity": { "opportunity_id": 2, "title": "Inventory spreadsheet cleanup" },
+  "author": { "user_id": 5, "full_name": "Alex Chen" },
+  "subject": { "user_id": 2, "full_name": "Priya Nair" },
+  "rating": 5,
+  "comment": "Clear instructions and quick feedback.",
+  "reports_discrepancy": false,
+  "created_at": "2026-11-20T15:00:00Z",
+  "status": "approved",
+  "review": { "decision": "approved", "reason": null, "reviewed_at": "2026-11-21T09:00:00Z" }
+}
+```
+
+`status` is `pending` (and `review` is `null`) until an admin reviews it. Feedback can't be edited or withdrawn.
+
+## Reports and takedown
+
+A contributor can report a published opportunity that is misleading, unsafe, discriminatory or a scam. An admin dismisses the report, or upholds it and **takes the opportunity down**: it is cancelled, its applicants are told, and the creator is told why. The creator never learns who reported. Rules and reasons: [ADR 0016](adr/0016-opportunity-reports-and-takedown.md).
+
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| POST | `/opportunities/{id}/reports` | contributor | Body `{reason, details?}` → 201. `reason`: `misleading_terms` \| `unsafe_conditions` \| `discriminatory` \| `scam_or_spam` \| `other`; `details` optional, at most 2000 characters. Only `open` or `closed` opportunities (a draft is 404, cancelled is 409). Once per opportunity (409 `OPPORTUNITY_ALREADY_REPORTED`). Emits `OPPORTUNITY_REPORTED`. |
+| GET | `/reports/mine` | contributor | Your reports and what was decided, newest first. `limit`, `offset`. |
+| GET | `/admin/reports` | admin | Review queue: **most-reported opportunities first**, then the oldest report. Each item has `reporter` and `open_reports_on_opportunity`. `status` (repeatable: `pending`, `upheld`, `dismissed`; default all), `opportunity_id`, `limit`, `offset`. |
+| POST | `/admin/reports/{id}/review` | admin | Body `{decision: "upheld" \| "dismissed", reason?}` → 200 with the report. **Upheld** takes the opportunity down: it becomes `cancelled` and every pending report on it is upheld with the same reason. A reason is required (422 `TAKEDOWN_REASON_REQUIRED`). Refused once work is submitted (409 `WORK_ALREADY_SUBMITTED`) or if it is already cancelled (409 `OPPORTUNITY_CANCELLED`). **Dismissed** affects that report only; the reason is optional. Once per report (409 `REPORT_ALREADY_REVIEWED`). Emits `OPPORTUNITY_TAKEN_DOWN` or `REPORT_DISMISSED`. |
+
+A report as its reporter sees it (admins also get `reporter` and `open_reports_on_opportunity`):
+
+```json
+{
+  "report_id": 4,
+  "opportunity": { "opportunity_id": 3, "title": "Social media content calendar for the holiday season", "status": "cancelled" },
+  "reason": "misleading_terms",
+  "details": "Listed as paid, but the pay is not real.",
+  "created_at": "2026-11-22T15:00:00Z",
+  "status": "upheld",
+  "review": { "decision": "upheld", "reason": "The advertised pay is not real.", "reviewed_at": "2026-11-22T16:00:00Z" }
+}
+```
+
+A taken-down opportunity is an ordinary cancelled one (ADR 0011): it leaves browse, its applications keep their statuses and can't be decided, and it can't be reopened.
 
 ## Notifications
 
@@ -191,6 +382,15 @@ A notification:
 | `application_decided` | the contributor who applied | Their application was accepted or rejected. |
 | `application_withdrawn` | the creator who owns the opportunity | An applicant withdrew; the message says if an accepted place opened up. |
 | `opportunity_cancelled` | each pending or accepted applicant | The opportunity was cancelled. |
+| `work_submitted` | the creator who owns the opportunity | An accepted applicant submitted their work for verification. |
+| `work_verified` | the contributor who submitted the work | The creator approved it; the message gives the verified hours. |
+| `work_rejected` | the contributor who submitted the work | The creator rejected it; the message quotes their comment. |
+| `feedback_submitted` | every active admin | Feedback is waiting for review; the title starts "Discrepancy reported" for discrepancy reports. |
+| `feedback_approved` | the author and the subject | The author: their feedback was published. The subject: they received a rating. |
+| `feedback_rejected` | the author only | An admin didn't approve their feedback; the message quotes the reason. The subject isn't told. |
+| `opportunity_reported` | every active admin | A contributor reported an opportunity; the message gives the reason and how many reports are open on it. |
+| `opportunity_taken_down` | the owning creator, pending and accepted applicants, and the reporters | An admin took the opportunity down. The creator is told the reason; applicants that it won't go ahead; reporters are thanked. One notification per person. |
+| `report_dismissed` | the reporter | An admin reviewed their report and left the opportunity up, with the admin's note if any. |
 
 `opportunity_id` links to `GET /opportunities/{id}`. It is `null` if the opportunity was deleted. `title` and `message` are stored as written and don't change if the opportunity is edited later.
 

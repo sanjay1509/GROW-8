@@ -25,8 +25,9 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 | Queue | Bound to (routing keys) | Retry queues | Dead-letter queue |
 | --- | --- | --- | --- |
-| `grow8.contributor_service` | `opportunity.created`, `application.decided`, `opportunity.cancelled` | `grow8.contributor_service.retry.{5s,30s,120s}` | `grow8.contributor_service.dlq` |
-| `grow8.creator_service` | `opportunity.created`, `application.submitted`, `application.withdrawn` | `grow8.creator_service.retry.{5s,30s,120s}` | `grow8.creator_service.dlq` |
+| `grow8.contributor_service` | `opportunity.created`, `application.decided`, `opportunity.cancelled`, `work.verified`, `work.rejected`, `feedback.approved`, `feedback.rejected`, `opportunity.taken.down`, `report.dismissed` | `grow8.contributor_service.retry.{5s,30s,120s}` | `grow8.contributor_service.dlq` |
+| `grow8.creator_service` | `opportunity.created`, `application.submitted`, `application.withdrawn`, `work.submitted`, `feedback.approved`, `feedback.rejected`, `opportunity.taken.down` | `grow8.creator_service.retry.{5s,30s,120s}` | `grow8.creator_service.dlq` |
+| `grow8.admin_service` | `feedback.submitted`, `opportunity.reported` | `grow8.admin_service.retry.{5s,30s,120s}` | `grow8.admin_service.dlq` |
 
 - A message is **acked only after its handler returns**, so a crash mid-handler means RabbitMQ redelivers it.
 - A **bad message** (unreadable JSON, no handler, payload fails its schema) can never succeed, so it is **rejected without requeue** and moves to the service's `.dlq` via the `grow8.events.dlx` exchange at once.
@@ -111,6 +112,159 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 | `organization_id` | int | |
 | `title` | string | |
 
+### `WORK_SUBMITTED` (v1)
+
+- **When:** an accepted applicant submits their work (`POST /api/v1/applications/{id}/submission`), after the submission and its attachments are committed ([ADR 0012](adr/0012-work-submission.md)). A refused submission (404/409/413/415/422) sends nothing. There is one submission per application, so this is sent at most once per application.
+- **Consumed by:** **creator_service** → `app/handlers/work_submitted.py`. It looks up the organization's owner (skipped if their account is inactive) and stores one `work_submitted` notification: `Work submitted: <opportunity title>`, with a message such as "Alex Chen submitted 6.5 h of work with 2 files for you to verify.", linked to the opportunity. Commit-then-ack and duplicate-safe insert as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `submission_id` | int | |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `organization_id` | int | Used to find whom to notify. |
+| `opportunity_title` | string | |
+| `contributor_id` | int | |
+| `contributor_name` | string | |
+| `hours_claimed` | string (decimal) | Sent as a JSON string, e.g. `"6.50"`, so no precision is lost. |
+| `attachment_count` | int | 0–5. |
+
+### `WORK_VERIFIED` (v1)
+
+- **When:** the owning creator approves submitted work (`POST /api/v1/submissions/{id}/verification` with `decision: "approved"`), after the verification is committed ([ADR 0013](adr/0013-work-verification.md)). A refused verification (404/409/422) sends nothing. Each submission is verified once, so this is sent at most once per submission, and never together with `WORK_REJECTED` for the same one.
+- **Consumed by:** **contributor_service** → `app/handlers/work_verified.py`. It stores one `work_verified` notification for the contributor: `Work verified: <title>`, with a message such as "Your work on … was verified (6 h).", linked to the opportunity. The decision is taken from the event, not re-read: it is final. Verified hours and skills need no write, since the views compute them from approved verifications. Commit-then-ack and duplicate-safe insert as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `verification_id` | int | Identifies this approval for good: the rewards handler (#24) can award its points once per verification. |
+| `submission_id` | int | |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `organization_id` | int | |
+| `opportunity_title` | string | |
+| `contributor_id` | int | Whom to notify. |
+| `verified_hours` | string (decimal) | Sent as a JSON string, e.g. `"6.00"`. At most the hours claimed. |
+
+### `WORK_REJECTED` (v1)
+
+- **When:** the owning creator rejects submitted work (`POST /api/v1/submissions/{id}/verification` with `decision: "rejected"`), after the commit ([ADR 0013](adr/0013-work-verification.md)). Sent at most once per submission.
+- **Consumed by:** **contributor_service** → `app/handlers/work_rejected.py`. It stores one `work_rejected` notification for the contributor: `Work not verified: <title>`, quoting the creator's comment (shortened if it doesn't fit the 500-character message; the full comment is on the submission), linked to the opportunity. Commit-then-ack and duplicate-safe insert as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `verification_id` | int | |
+| `submission_id` | int | |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `organization_id` | int | |
+| `opportunity_title` | string | |
+| `contributor_id` | int | Whom to notify. |
+| `comment` | string | Why the work was rejected (required when rejecting, 1–2000 characters). |
+
+### `FEEDBACK_SUBMITTED` (v1)
+
+- **When:** the applicant or the owning creator leaves feedback on an application whose work has been verified (`POST /api/v1/applications/{id}/feedback`), after the commit ([ADR 0015](adr/0015-feedback-and-admin-review.md)). A refused feedback (404/409/422) sends nothing. One feedback per author per application, so this is sent at most twice per application.
+- **Consumed by:** **admin_service** → `app/handlers/feedback_submitted.py`. It looks up every active admin (`grow8_common/queries/users.py`) and stores one `feedback_submitted` notification for each: `Feedback to review: <title>`, or `Discrepancy reported: <title>` when `reports_discrepancy` is set. Linked to the opportunity. Commit-then-ack and duplicate-safe insert as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `feedback_id` | int | |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `opportunity_title` | string | |
+| `author_user_id` | int | |
+| `author_name` | string | |
+| `author_role` | string | `contributor` \| `creator` |
+| `subject_user_id` | int | Always the other participant. |
+| `rating` | int | 1–5. |
+| `reports_discrepancy` | bool | |
+
+### `FEEDBACK_APPROVED` (v1)
+
+- **When:** an admin approves feedback (`POST /api/v1/admin/feedback/{id}/review` with `decision: "approved"`), after the commit. Each feedback is reviewed once, so this is sent at most once per feedback, and never together with `FEEDBACK_REJECTED` for the same one.
+- **Consumed by:** **creator_service** and **contributor_service** → `app/handlers/feedback_approved.py` in each. Each service notifies only the participant on its own side, so the author and the subject each get exactly one `feedback_approved` notification. The author gets `Your feedback was published: <title>`; the subject gets `New rating: <title>` ("Alex Chen rated you 5/5 for …"). The wording lives in `grow8_common/notifications/feedback.py`, shared by both services. The rating itself needs no write: `v_user_rating` counts approved feedback.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `feedback_id` | int | |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `opportunity_title` | string | |
+| `author_user_id` | int | |
+| `author_name` | string | |
+| `author_role` | string | `contributor` \| `creator`: decides which service tells the author and which tells the subject. |
+| `subject_user_id` | int | |
+| `subject_name` | string | |
+| `rating` | int | 1–5. |
+
+### `FEEDBACK_REJECTED` (v1)
+
+- **When:** an admin rejects feedback with a reason (`POST /api/v1/admin/feedback/{id}/review` with `decision: "rejected"`), after the commit. Sent at most once per feedback.
+- **Consumed by:** **creator_service** and **contributor_service** → `app/handlers/feedback_rejected.py`. Only the service on the **author's** side acts: it stores one `feedback_rejected` notification, `Your feedback was not published: <title>`, quoting the reason. The other service does nothing. The subject is never told about feedback that doesn't count (ADR 0015 decision 7).
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `feedback_id` | int | |
+| `application_id` | int | |
+| `opportunity_id` | int | |
+| `opportunity_title` | string | |
+| `author_user_id` | int | Whom to notify. |
+| `author_role` | string | `contributor` \| `creator` |
+| `subject_name` | string | Named in the author's message. |
+| `reason` | string | Required when rejecting, at most 500 characters. |
+
+### `OPPORTUNITY_REPORTED` (v1)
+
+- **When:** a contributor reports a published opportunity (`POST /api/v1/opportunities/{id}/reports`), after the commit ([ADR 0016](adr/0016-opportunity-reports-and-takedown.md)). A refused report sends nothing. One report per contributor per opportunity.
+- **Consumed by:** **admin_service** → `app/handlers/opportunity_reported.py`. It stores one `opportunity_reported` notification for every active admin: `Opportunity reported: <title>`, with the reason in words and how many reports are open on it. The reporter isn't named; admins see who reported in `GET /admin/reports`.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `report_id` | int | |
+| `opportunity_id` | int | |
+| `opportunity_title` | string | |
+| `reason` | string | `misleading_terms` \| `unsafe_conditions` \| `discriminatory` \| `scam_or_spam` \| `other` |
+| `open_reports` | int | Pending reports on the opportunity, this one included. |
+
+### `OPPORTUNITY_TAKEN_DOWN` (v1)
+
+- **When:** an admin upholds a report (`POST /api/v1/admin/reports/{id}/review` with `decision: "upheld"`), after the opportunity is cancelled and every pending report on it is upheld in one transaction. An opportunity is taken down at most once (cancelled is final).
+- **Consumed by:**
+  - **creator_service** → `app/handlers/opportunity_taken_down.py`: one notification for the organization's owner (skipped if inactive), `Opportunity taken down: <title>`, quoting the admin's reason. Who reported is never said.
+  - **contributor_service** → `app/handlers/opportunity_taken_down.py`: one notification per pending or accepted applicant (looked up at handling time) and per reporter (from the event). Applicants hear it "won't go ahead", without the reason; reporters get `Thanks for your report: <title>`. A reporter who also applied gets the reporter message only.
+
+  All use `opportunity_taken_down`. Commit-then-ack and duplicate-safe insert as above.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `opportunity_id` | int | |
+| `organization_id` | int | Used to find the owner. |
+| `title` | string | |
+| `reason` | string | What the admin told the creator. |
+| `reporter_user_ids` | int[] | Everyone whose report was upheld by this takedown. |
+
+### `REPORT_DISMISSED` (v1)
+
+- **When:** an admin dismisses one report (`decision: "dismissed"`), after the commit. Sent at most once per report.
+- **Consumed by:** **contributor_service** → `app/handlers/report_dismissed.py`: one `report_dismissed` notification for the reporter, `Report reviewed: <title>`, with the admin's note if any. Nobody else is told.
+- **Payload:**
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `report_id` | int | |
+| `opportunity_id` | int | |
+| `opportunity_title` | string | |
+| `reporter_user_id` | int | Whom to notify. |
+| `reason` | string \| null | The admin's optional note. |
+
 ### Seeing it end to end (Check-in I demo)
 
 1. `make reset-db` (fresh seed: draft 15 back, no notifications; **wipes local data**), then `docker compose logs -f contributor_service creator_service` in a second terminal.
@@ -125,4 +279,4 @@ Each consumer service owns one durable queue, declared on startup by `grow8_comm
 
 ## Not yet implemented
 
-`WORK_SUBMITTED`, `WORK_VERIFIED`, `WORK_REJECTED`, `FEEDBACK_SUBMITTED`, `FEEDBACK_APPROVED`, `FEEDBACK_REJECTED` exist in `EventType` but have no payload schema or producer yet. admin_service has no handlers, so it declares no queue yet; it gets one (with its dead-letter queue) when its first handler is added.
+Every event in `EventType` now has a payload schema, a producer and at least one consumer.

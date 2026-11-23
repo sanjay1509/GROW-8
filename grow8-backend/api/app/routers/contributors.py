@@ -1,47 +1,47 @@
-import unicodedata
-from collections.abc import Iterator
 from typing import Annotated
-from urllib.parse import quote
 
 from fastapi import APIRouter, File, Path, Response, UploadFile, status
 from fastapi.responses import StreamingResponse
 
 from app.dependencies.auth import CurrentContributor, CurrentUser, DbSession
 from app.dependencies.storage import Storage
+from app.routers._files import stream_download
+from app.schemas.contributor_profile import ContributorProfileRead, ProfileUpdate, SkillsReplace
 from app.schemas.resume import ResumeRead
-from app.services import resume_service
+from app.services import contributor_profile_service, resume_service
 from app.services.resume_service import ResumeFile
 
 router = APIRouter(tags=["resumes"])
 
+PROFILE_PATH = "/contributors/me/profile"
 RESUME_PATH = "/contributors/me/resume"
 ApplicationId = Annotated[int, Path(ge=1)]
-_CHUNK = 64 * 1024
-
-
-def _content_disposition(file_name: str) -> str:
-    """attachment with an ASCII fallback name plus the exact UTF-8 name (RFC 6266/5987)."""
-    decomposed = unicodedata.normalize("NFKD", file_name)  # é -> e + accent, then drop the accent
-    ascii_name = decomposed.encode("ascii", "ignore").decode().replace('"', "") or "resume.pdf"
-    return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(file_name)}"
 
 
 def _stream(resume: ResumeFile) -> StreamingResponse:
-    def chunks() -> Iterator[bytes]:
-        with resume.stream as stream:
-            while chunk := stream.read(_CHUNK):
-                yield chunk
+    return stream_download(resume, fallback_name="resume.pdf")
 
-    return StreamingResponse(
-        chunks(),
-        media_type=resume.content_type,
-        headers={
-            "Content-Disposition": _content_disposition(resume.file_name),
-            "Content-Length": str(resume.size_bytes),
-            "X-Content-Type-Options": "nosniff",
-            "Cache-Control": "private, no-store",
-        },
-    )
+
+@router.get(PROFILE_PATH, response_model=ContributorProfileRead, tags=["profile"])
+def get_my_profile(session: DbSession, contributor: CurrentContributor) -> ContributorProfileRead:
+    """Your profile, with your skills (listed, and whether approved work verified them)."""
+    return contributor_profile_service.get_mine(session, contributor)
+
+
+@router.patch(PROFILE_PATH, response_model=ContributorProfileRead, tags=["profile"])
+def update_my_profile(
+    body: ProfileUpdate, session: DbSession, contributor: CurrentContributor
+) -> ContributorProfileRead:
+    """Change your name, headline, bio, institution or city; only the fields sent change."""
+    return contributor_profile_service.update_mine(session, contributor, body)
+
+
+@router.put("/contributors/me/skills", response_model=ContributorProfileRead, tags=["profile"])
+def replace_my_skills(
+    body: SkillsReplace, session: DbSession, contributor: CurrentContributor
+) -> ContributorProfileRead:
+    """Replace the skills you list with exactly these codes (from GET /skills)."""
+    return contributor_profile_service.replace_skills(session, contributor, body)
 
 
 @router.put(RESUME_PATH, response_model=ResumeRead)
