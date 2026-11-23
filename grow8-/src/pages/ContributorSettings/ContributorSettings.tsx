@@ -9,7 +9,7 @@ import {
   passwordErrorMessage,
 } from "../../services/account";
 import type { Me } from "../../services/account";
-import "../ContributorProfile /ContributorProfile.css";
+import "../ContributorProfile/ContributorProfile.css";
 import "./ContributorSettings.css";
 
 /** /contributor/settings: account details and password change. */

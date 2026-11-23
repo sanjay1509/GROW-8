@@ -5,6 +5,7 @@ import {
   authHeaders,
   handleUnauthorized,
 } from "./api";
+import type { WorkStatus } from "./submissions";
 
 // --------------------------------------------------
 // Types
@@ -60,6 +61,10 @@ export interface Application {
   decided_at: string | null;
   opportunity: ApplicationOpportunity;
   applicant: ApplicationApplicant;
+  /** The submitted work's id, or null until the applicant submits work. */
+  submission_id: number | null;
+  /** not_submitted, awaiting_verification, completed or work_rejected (derived). */
+  work_status: WorkStatus;
 }
 
 export interface ApplicationListResponse {

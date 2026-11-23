@@ -1,0 +1,69 @@
+.g8-stars {
+  display: inline-flex;
+  gap: 1px;
+  vertical-align: middle;
+}
+
+.g8-stars svg,
+.g8-star-input svg,
+.g8-rating svg {
+  color: #c9d1de;
+}
+
+.g8-stars svg.is-on,
+.g8-star-input svg.is-on,
+.g8-rating svg.is-on {
+  color: #f0a500;
+  fill: #f0a500;
+}
+
+.g8-star-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.g8-star-input > div {
+  display: inline-flex;
+}
+
+.g8-star-input button {
+  display: inline-flex;
+  padding: 2px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.g8-star-input button:focus-visible {
+  outline: 3px solid #83adff;
+}
+
+.g8-star-input > span {
+  color: #5f6b80;
+  font-size: 13px;
+}
+
+.g8-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #3a465a;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.g8-rating strong {
+  font-weight: 750;
+}
+
+.g8-rating span {
+  color: #7c879a;
+}
+
+.g8-rating.is-empty {
+  color: #8a94a6;
+  font-style: italic;
+}

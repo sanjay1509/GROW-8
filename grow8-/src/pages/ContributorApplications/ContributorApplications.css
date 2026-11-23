@@ -154,6 +154,7 @@
 
 .ca-application-card {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
@@ -457,4 +458,123 @@
   .ca-browse-button {
     width: 100%;
   }
+}
+
+/* Work and feedback on accepted applications */
+
+.ca-work-block,
+.ca-work {
+  flex-basis: 100%;
+}
+
+.ca-work-block {
+  display: grid;
+  gap: 12px;
+}
+
+.ca-work {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  border: 1px solid #d7e5ff;
+  border-radius: 11px;
+  background: #f4f8ff;
+  color: #24304a;
+  font-size: 13px;
+}
+
+.ca-work strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ca-work p {
+  margin: 4px 0 0;
+  color: #66728a;
+}
+
+.ca-work.is-muted {
+  border-color: #e4e9f3;
+  background: #f7f8fb;
+  color: #6b778c;
+}
+
+.ca-work.is-awaiting_verification {
+  border-color: #f2dfae;
+  background: #fffaf0;
+}
+
+.ca-work.is-awaiting_verification strong {
+  color: #8a5a06;
+}
+
+.ca-work.is-completed {
+  border-color: #bfe5cc;
+  background: #f1fbf4;
+}
+
+.ca-work.is-completed strong {
+  color: #1c7c45;
+}
+
+.ca-work.is-work_rejected {
+  border-color: #f0c4c4;
+  background: #fff6f6;
+}
+
+.ca-work.is-work_rejected strong {
+  color: #b83232;
+}
+
+.ca-work-comment {
+  color: #3d4960 !important;
+  font-style: italic;
+}
+
+.ca-work-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.ca-work-files button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border: 1px solid #d6deeb;
+  border-radius: 7px;
+  background: #fff;
+  color: #34425a;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ca-work-error {
+  color: #b83232 !important;
+}
+
+.ca-submit-work-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 15px;
+  border: 0;
+  border-radius: 9px;
+  background: #155ce8;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.ca-submit-work-button:hover {
+  background: #0f4bc4;
 }

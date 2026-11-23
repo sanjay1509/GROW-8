@@ -1,0 +1,185 @@
+/* Admin pages. The shared building blocks (adm-card, adm-button, ...) are in AdminLayout.css. */
+
+.adm-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.adm-stat {
+  display: grid;
+  gap: 4px;
+  padding: 18px 20px;
+  border: 1px solid #e4e9f3;
+  border-radius: 14px;
+  background: #fff;
+  color: #1c2538;
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.adm-stat:hover {
+  border-color: #b9c8ee;
+  box-shadow: 0 6px 18px rgba(31, 48, 85, 0.06);
+}
+
+.adm-stat svg {
+  color: #2557d6;
+}
+
+.adm-stat.is-warn svg {
+  color: #c2860b;
+}
+
+.adm-stat.is-danger svg {
+  color: #c33a3a;
+}
+
+.adm-stat strong {
+  font-size: 30px;
+  letter-spacing: -0.8px;
+}
+
+.adm-stat span {
+  color: #5f6b80;
+}
+
+.adm-stat em {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  color: #2557d6;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 650;
+}
+
+.adm-howto {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: #3d4960;
+}
+
+.adm-fb-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.adm-fb-head p {
+  margin: 2px 0 0;
+}
+
+.adm-fb-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.adm-fb-tags .adm-pill {
+  text-transform: capitalize;
+}
+
+.adm-fb.is-discrepancy {
+  border-left: 4px solid #d9893a;
+}
+
+.adm-fb-body {
+  display: grid;
+  gap: 6px;
+}
+
+.adm-fb-body p {
+  margin: 0;
+  color: #333f55;
+  overflow-wrap: anywhere;
+}
+
+.adm-report-group {
+  border-left: 4px solid #c33a3a;
+}
+
+.adm-report {
+  display: grid;
+  gap: 8px;
+  padding: 13px 14px;
+  border: 1px solid #eceff5;
+  border-radius: 10px;
+  background: #fbfcfe;
+}
+
+.adm-report .adm-pill {
+  text-transform: capitalize;
+}
+
+.adm-report-details {
+  margin: 0;
+  color: #3d4960;
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+.adm-report-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.adm-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.adm-warning svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.adm-account {
+  max-width: 560px;
+}
+
+.adm-account h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-field {
+  display: grid;
+  gap: 5px;
+}
+
+.adm-field > span {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.adm-field input {
+  padding: 9px 11px;
+  border: 1px solid #d6deeb;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 14px;
+}
+
+.adm-field input:disabled {
+  background: #f4f6fa;
+  color: #5f6b80;
+}
+
+.adm-field small {
+  color: #7c879a;
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .adm-stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
