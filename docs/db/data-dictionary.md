@@ -2,7 +2,7 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Generated Oct 27, 2026 and updated Nov 15, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`): 19 tables, 130 columns, 5 views, 17 triggers, 9 procedures. Types, nullability, defaults and keys are read from MySQL's `information_schema`, so they match the DDL exactly; descriptions are written by hand. Rules referenced as R1–R22 and I1–I9 are explained in `relationship-validation.md`; keys and normal forms are in `functional-dependencies.md`.
+> Generated Oct 27, 2026 and updated Nov 22, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`): 21 tables, 142 columns, 5 views, 21 triggers, 10 procedures. Types, nullability, defaults and keys are read from MySQL's `information_schema`, so they match the DDL exactly; descriptions are written by hand. Rules referenced as R1–R27 and I1–I9 are explained in `relationship-validation.md`; keys and normal forms are in `functional-dependencies.md`.
 
 ## How to read this
 
@@ -23,7 +23,7 @@
 | 5 | [`skill`](#skill) | Fixed list of skills that opportunities ask for and contributors have. | 3 |
 | 6 | [`opportunity`](#opportunity) | A short-term task a creator's organization posts. Drafts may be incomplete; a published opportunity must carry every mandatory disclosure (`chk_opportunity_published_complete`, ADR 0001). | 23 |
 | 7 | [`opportunity_skill`](#opportunity_skill) | Skills an opportunity asks for (M : N between `opportunity` and `skill`). | 2 |
-| 8 | [`contributor_skill`](#contributor_skill) | Skills a contributor has (M : N between `contributor_profile` and `skill`). Whether a skill is verified is derived (`v_contributor_skill`). | 3 |
+| 8 | [`contributor_skill`](#contributor_skill) | Skills a contributor lists (M : N between `contributor_profile` and `skill`). Whether a skill is verified, and skills earned without being listed, are derived (`v_contributor_skill`). | 3 |
 | 9 | [`application`](#application) | A contributor applying for an opportunity. One application per contributor per opportunity, only while the opportunity is open, before its deadline and under its applicant limit. | 7 |
 | 10 | [`work_submission`](#work_submission) | The contributor's claim that the work for an accepted application is done. At most one per application. | 5 |
 | 11 | [`submission_attachment`](#submission_attachment) | Metadata for a file attached to a submission. The file itself is stored outside MySQL. | 7 |
@@ -35,6 +35,8 @@
 | 17 | [`point_transaction`](#point_transaction) | Ledger of points awarded, either for approved work or for a badge. Leaderboard totals are summed from it, never stored. | 7 |
 | 18 | [`notification`](#notification) | One message per user per event, written by the consumer services and read by the frontend through `/api/v1/notifications` (ADR 0003). Not in the original 17-entity proposal. | 9 |
 | 19 | [`contributor_resume`](#contributor_resume) | A contributor's optional resume: metadata only, the PDF itself is on the file storage volume (ADRs 0007, 0008). 1 : 0..1 with `contributor_profile`. Not in the original 17-entity proposal. | 6 |
+| 20 | [`opportunity_report`](#opportunity_report) | A contributor's report that a published opportunity is misleading, unsafe, discriminatory or a scam (ADR 0016). Its status is derived from `report_review`. Not in the original 17-entity proposal. | 6 |
+| 21 | [`report_review`](#report_review) | An admin's decision on one report: `upheld` (the opportunity was taken down) or `dismissed`. No row means the report is still pending. Not in the original 17-entity proposal. | 6 |
 
 ## 1. Accounts and organizations
 
@@ -185,7 +187,7 @@ Skills an opportunity asks for (M : N between `opportunity` and `skill`).
 
 ### contributor_skill
 
-Skills a contributor has (M : N between `contributor_profile` and `skill`). Whether a skill is verified is not stored: `v_contributor_skill` derives it from approved work (decision 7).
+Skills a contributor lists on their profile (M : N between `contributor_profile` and `skill`). Whether a skill is verified is not stored: `v_contributor_skill` derives it from approved work, and also returns skills earned through approved work that aren't listed here (decision 7, amended by ADR 0019).
 
 | Column | Type | Null | Default | Key | Description |
 |---|---|---|---|---|---|
@@ -308,6 +310,43 @@ An admin's decision on one feedback. No row means the feedback is still pending.
 - **Foreign keys:** `fk_admin_review_admin` (admin_user_id) → `user_account` (restrict on delete); `fk_admin_review_feedback` (feedback_id) → `feedback` (restrict on delete)
 - **Triggers:** `trg_admin_review_bi`, `trg_admin_review_bu`
 
+### opportunity_report
+
+A contributor's report about a published opportunity (ADR 0016). No `report_review` row means it is still pending. The reporter is never shown to the creator.
+
+| Column | Type | Null | Default | Key | Description |
+|---|---|---|---|---|---|
+| `report_id` | `int unsigned` | NO |  | PK | Surrogate key. |
+| `opportunity_id` | `int unsigned` | NO |  | FK → opportunity.opportunity_id, UQ (with reporter_user_id) | The opportunity reported. Must be `open` or `closed` when reported (`trg_opportunity_report_bi`, I7). |
+| `reporter_user_id` | `int unsigned` | NO |  | FK → user_account.user_id | The contributor who reported. Must have role `contributor` (`trg_opportunity_report_*`, I6). |
+| `reason` | `enum('misleading_terms','unsafe_conditions','discriminatory','scam_or_spam','other')` | NO |  |  | Why it was reported. |
+| `details` | `text` | YES |  |  | Optional explanation (the API allows up to 2000 characters). |
+| `created_at` | `datetime` | NO | now |  | When it was reported. |
+
+- **Unique:** `uq_opportunity_report_reporter` (opportunity_id, reporter_user_id): one report per contributor per opportunity, ever
+- **Foreign keys:** `fk_opportunity_report_opportunity` (opportunity_id) → `opportunity` (restrict on delete); `fk_opportunity_report_reporter` (reporter_user_id) → `user_account` (restrict on delete)
+- **Indexes:** `ix_opportunity_report_reporter` (reporter_user_id)
+- **Triggers:** `trg_opportunity_report_bi`, `trg_opportunity_report_bu`
+
+### report_review
+
+An admin's decision on one report. Upholding takes the opportunity down (it becomes `cancelled`) and upholds every pending report on it in the same transaction, so each has a row with the same admin and reason.
+
+| Column | Type | Null | Default | Key | Description |
+|---|---|---|---|---|---|
+| `review_id` | `int unsigned` | NO |  | PK | Surrogate key. |
+| `report_id` | `int unsigned` | NO |  | FK → opportunity_report.report_id, UQ | The report reviewed. Unique: each report is reviewed once. |
+| `admin_user_id` | `int unsigned` | NO |  | FK → user_account.user_id | The reviewing admin. Must have role `admin` (`trg_report_review_*`, I6). |
+| `decision` | `enum('upheld','dismissed')` | NO |  |  | `upheld` (the opportunity was taken down) or `dismissed`. |
+| `reason` | `varchar(500)` | YES |  |  | Required when upheld, since the creator is told it (`chk_report_review_reason`); optional when dismissed. |
+| `reviewed_at` | `datetime` | NO | now |  | When it was reviewed. |
+
+- **Unique:** `uq_report_review_report` (report_id)
+- **Check:** `chk_report_review_reason`: `decision = 'dismissed' OR reason IS NOT NULL`
+- **Foreign keys:** `fk_report_review_admin` (admin_user_id) → `user_account` (restrict on delete); `fk_report_review_report` (report_id) → `opportunity_report` (restrict on delete)
+- **Indexes:** `ix_report_review_admin` (admin_user_id)
+- **Triggers:** `trg_report_review_bi`, `trg_report_review_bu`
+
 ## 6. Rewards (stretch goal)
 
 ### badge
@@ -367,7 +406,7 @@ One message per user per event, written by the consumer services and read by the
 | `notification_id` | `int unsigned` | NO |  | PK | Surrogate key. |
 | `user_id` | `int unsigned` | NO |  | FK → user_account.user_id, UQ* | Who receives it. Rows are deleted with the account. |
 | `event_id` | `char(36)` | NO |  | UQ* | The RabbitMQ event that caused it (UUID). Unique together with `user_id`, so a redelivered event adds nothing. |
-| `notification_type` | `enum('opportunity_created','opportunity_published','application_submitted','application_decided','application_withdrawn','opportunity_cancelled')` | NO |  |  | `opportunity_created` (to matching contributors), `opportunity_published` (to the creator), `application_submitted` (to the creator when someone applies), `application_decided` (to the applicant), `application_withdrawn` (to the creator when an applicant withdraws), `opportunity_cancelled` (to pending and accepted applicants). Gains a value per notifying event. |
+| `notification_type` | `enum('opportunity_created','opportunity_published','application_submitted','application_decided','application_withdrawn','opportunity_cancelled','work_submitted','work_verified','work_rejected','feedback_submitted','feedback_approved','feedback_rejected','opportunity_reported','opportunity_taken_down','report_dismissed')` | NO |  |  | `opportunity_created` (to matching contributors), `opportunity_published` (to the creator), `application_submitted` (to the creator when someone applies), `application_decided` (to the applicant), `application_withdrawn` (to the creator when an applicant withdraws), `opportunity_cancelled` (to pending and accepted applicants), `work_submitted` (to the creator when an accepted applicant submits work), `work_verified` / `work_rejected` (to the contributor when the creator approves or rejects their work), `feedback_submitted` (to every active admin), `feedback_approved` (to the author and the subject), `feedback_rejected` (to the author), `opportunity_reported` (to every active admin), `opportunity_taken_down` (to the owner, applicants and reporters), `report_dismissed` (to the reporter). Gains a value per notifying event. |
 | `title` | `varchar(200)` | NO |  |  | Headline as shown to the user, stored as written. |
 | `message` | `varchar(500)` | NO |  |  | Body as shown to the user, stored as written. |
 | `opportunity_id` | `int unsigned` | YES |  | FK → opportunity.opportunity_id | Related opportunity, if any. Set to empty if the opportunity is deleted. |
@@ -429,13 +468,14 @@ Every feedback with its status (`pending`, `approved`, `rejected`) derived from 
 
 ### v_contributor_skill
 
-Every contributor skill, with whether it is verified (decision 7). A skill is verified once the contributor has approved work on an opportunity that required it.
+One row per contributor and skill: every skill the contributor listed, plus every skill they earned (decision 7, amended by ADR 0019). A skill is verified once the contributor has approved work on an opportunity that required it, listed or not.
 
 | Column | Type | Description |
 |---|---|---|
 | `contributor_id` | `int unsigned` | The contributor. |
 | `skill_id` | `int unsigned` | The skill. |
-| `created_at` | `datetime` | From `contributor_skill`. |
+| `is_listed` | `bigint` | 1 when the skill is in `contributor_skill`, 0 when it was only earned. |
+| `created_at` | `datetime` | When it was listed (from `contributor_skill`); empty when never listed. |
 | `is_verified` | `int` | 1 when verified, otherwise 0. |
 | `verified_at` | `datetime` | First approval that verified it; empty when not verified. |
 
@@ -451,6 +491,8 @@ Every contributor skill, with whether it is verified (decision 7). A skill is ve
 | `application.status` | `pending`, `accepted`, `rejected`, `withdrawn` |
 | `work_verification.decision` | `approved`, `rejected` |
 | `admin_review.decision` | `approved`, `rejected` |
+| `opportunity_report.reason` | `misleading_terms`, `unsafe_conditions`, `discriminatory`, `scam_or_spam`, `other` |
+| `report_review.decision` | `upheld`, `dismissed` |
 | `point_transaction.source` | `work_verified`, `badge_awarded` |
-| `notification.notification_type` | `opportunity_created`, `opportunity_published`, `application_submitted`, `application_decided`, `application_withdrawn`, `opportunity_cancelled` |
+| `notification.notification_type` | `opportunity_created`, `opportunity_published`, `application_submitted`, `application_decided`, `application_withdrawn`, `opportunity_cancelled`, `work_submitted`, `work_verified`, `work_rejected`, `feedback_submitted`, `feedback_approved`, `feedback_rejected`, `opportunity_reported`, `opportunity_taken_down`, `report_dismissed` |
 

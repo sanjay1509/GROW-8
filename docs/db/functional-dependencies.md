@@ -2,13 +2,13 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Updated Oct 23, 2026 against the committed schema, `grow8-backend/db/init/001_schema.sql`, and on Oct 27 for the `notification` table (ADR 0003). The first version (Oct 14) analysed the proposal's preliminary entities; section 6 lists what changed between the two. Issue codes (I1–I9, R1–R22) refer to `relationship-validation.md`; column-level details are in `data-dictionary.md`.
+> Updated Oct 23, 2026 against the committed schema, `grow8-backend/db/init/001_schema.sql`, on Oct 27 for the `notification` table (ADR 0003), and on Nov 22 for `opportunity_report` and `report_review` (ADR 0016) and for earned skills (decision 7 amended, ADR 0019). The first version (Oct 14) analysed the proposal's preliminary entities; section 6 lists what changed between the two. Issue codes (I1–I9, R1–R27) refer to `relationship-validation.md`; column-level details are in `data-dictionary.md`.
 
 ## 1. Purpose
 
-For each of the 19 tables (the 17 from the proposal plus `notification` and `contributor_resume`) this document gives the keys and the functional dependencies (FDs), then checks the table against 1NF, 2NF, 3NF and BCNF. Section 4 covers redundancy *between* tables, which per-table normalization does not catch, and how each case is either removed or enforced.
+For each of the 21 tables (the 17 from the proposal plus `notification`, `contributor_resume`, `opportunity_report` and `report_review`) this document gives the keys and the functional dependencies (FDs), then checks the table against 1NF, 2NF, 3NF and BCNF. Section 4 covers redundancy *between* tables, which per-table normalization does not catch, and how each case is either removed or enforced.
 
-**Result:** all 19 tables are in BCNF. Every derived total is calculated by a view instead of being stored, and the few cross-table redundancies kept on purpose are each enforced by a constraint or trigger.
+**Result:** all 21 tables are in BCNF. Every derived total is calculated by a view instead of being stored, and the few cross-table redundancies kept on purpose are each enforced by a constraint or trigger.
 
 ## 2. Notation and method
 
@@ -88,7 +88,7 @@ Method for each table: list every FD that holds *within* the table, find the can
 - **FDs:** `(contributor_id, skill_id) → created_at`
 - **2NF:** neither `contributor_id` nor `skill_id` alone determines `created_at` → no partial dependency.
 - **Normal form:** **BCNF**.
-- **`source` removed (decision 7).** "Verified" meant "used in approved work", which follows from `application`, `opportunity_skill` and `work_verification`. Storing it would be a dependency on rows in other tables that could disagree with them, so it is derived in `v_contributor_skill` instead.
+- **`source` removed (decision 7).** "Verified" meant "used in approved work", which follows from `application`, `opportunity_skill` and `work_verification`. Storing it would be a dependency on rows in other tables that could disagree with them, so it is derived in `v_contributor_skill` instead. Since ADR 0019 the view also returns skills earned through approved work that aren't listed, so `contributor_skill` holds only what the contributor chose to list.
 
 ### 3.9 application
 `application(application_id, opportunity_id, contributor_id, status, motivation, submitted_at, decided_at)`
@@ -184,6 +184,22 @@ Added Nov 15 (ADRs 0007, 0008); not in the proposal. A contributor's optional re
 - **Why a separate table:** as columns on `contributor_profile`, all five would be NULL together for contributors without a resume, needing a CHECK to keep them all-or-nothing. A 1 : 0..1 table has no NULLs and keeps the profile's FDs unchanged.
 - **Normal form:** both determinants are candidate keys → **BCNF**.
 
+### 3.20 opportunity_report
+`opportunity_report(report_id, opportunity_id, reporter_user_id, reason, details, created_at)`
+
+- **PK** `report_id` · **CK** `(opportunity_id, reporter_user_id)` (`uq_opportunity_report_reporter`)
+- **FDs:** `report_id → opportunity_id, reporter_user_id, reason, details, created_at`; `(opportunity_id, reporter_user_id) → report_id`
+- **Normal form:** **BCNF**. Both left sides are candidate keys.
+- **Status is not stored here**; it is derived from `report_review` (pending while there is no row), the same pattern as `feedback` and `admin_review` (I1).
+
+### 3.21 report_review
+`report_review(review_id, report_id, admin_user_id, decision, reason, reviewed_at)`
+
+- **PK** `review_id` · **CK** `report_id` (`uq_report_review_report`)
+- **FDs:** `review_id → report_id, admin_user_id, decision, reason, reviewed_at`; `report_id → review_id`
+- **Normal form:** **BCNF**.
+- **Whether an opportunity was taken down is not stored** on `opportunity`: a cancelled opportunity with an upheld report was taken down by an admin. Storing a flag would repeat that fact (R24, R26).
+
 ## 4. Redundancy between tables
 
 Normalization works one table at a time, so it does not catch a fact that is stored in one table and also reachable through others. Each such case is listed here with its treatment.
@@ -201,7 +217,7 @@ Normalization works one table at a time, so it does not catch a fact that is sto
 | Verifier | `work_verification.verified_by_user_id` and the organization's owner | **Not redundant.** Historical fact (R20). `trg_work_verification_bi/bu` checks it was the owner at the time. |
 | Notification text | `notification.title`, `message` and the linked opportunity's title and deadline | **Not redundant.** A record of what the user was told at that time; the opportunity may change later (R22). |
 | Read state | `notification.read_at` | **Single source.** The unread count is `COUNT(*) WHERE read_at IS NULL`, never stored. |
-| Verified skill | `contributor_skill.source = 'verified'` and the approved work that used the skill | **Removed** (decision 7). `v_contributor_skill` derives it. |
+| Verified skill | `contributor_skill.source = 'verified'` and the approved work that used the skill | **Removed** (decision 7). `v_contributor_skill` derives it, for listed and unlisted skills alike (ADR 0019). |
 | Places taken on an opportunity | a stored counter on `opportunity` | **Not stored.** Counted from active applications under the row lock in `grow8_require_application_capacity`. |
 
 ## 5. Decisions
@@ -216,7 +232,7 @@ Decisions 1–6 were open in the first version and 7 was added later; the commit
 | 4 | Applicant limit counts all or only accepted applications | **Active applications** (pending + accepted). Rejected and withdrawn ones free their place. Enforced in the database by `trg_application_bi/bu`, which lock the opportunity row (`SELECT … FOR UPDATE`) and count with a locking read, so it holds for any code path and two people cannot take the last place at once. The deadline is checked against `submitted_at`. Counting only accepted applications would let an unlimited number of pending applications pile up. |
 | 5 | Badge repeatable | **Once only** (composite PK of `contributor_badge`). |
 | 6 | Feedback per application | **One per author** (`uq_feedback_application_author`). |
-| 7 | `contributor_skill.source = 'verified'` | **Derived.** It means "the skill was used in approved work", as the proposal describes verification. `source` is dropped and `v_contributor_skill` computes `is_verified` and `verified_at`. |
+| 7 | `contributor_skill.source = 'verified'` | **Derived.** It means "the skill was used in approved work", as the proposal describes verification. `source` is dropped and `v_contributor_skill` computes `is_verified` and `verified_at`. **Amended Nov 22 (ADR 0019):** the view covers every skill required by an opportunity where the contributor's work was approved, listed or not, with `is_listed` telling the two apart; editing the listed skills never removes an earned one. |
 
 ## 6. Changes since the proposal-stage analysis (Oct 14)
 

@@ -4,8 +4,17 @@ from grow8_common.events.payloads import (
     ApplicationDecidedPayload,
     ApplicationSubmittedPayload,
     ApplicationWithdrawnPayload,
+    FeedbackApprovedPayload,
+    FeedbackRejectedPayload,
+    FeedbackSubmittedPayload,
     OpportunityCancelledPayload,
     OpportunityCreatedPayload,
+    OpportunityReportedPayload,
+    OpportunityTakenDownPayload,
+    ReportDismissedPayload,
+    WorkRejectedPayload,
+    WorkSubmittedPayload,
+    WorkVerifiedPayload,
 )
 from grow8_common.events.types import EventType
 
@@ -16,6 +25,15 @@ __all__ = [
     "ApplicationWithdrawnPayload",
     "EventEnvelope",
     "EventType",
+    "FeedbackApprovedPayload",
+    "FeedbackRejectedPayload",
+    "FeedbackSubmittedPayload",
     "OpportunityCancelledPayload",
     "OpportunityCreatedPayload",
+    "OpportunityReportedPayload",
+    "OpportunityTakenDownPayload",
+    "ReportDismissedPayload",
+    "WorkRejectedPayload",
+    "WorkSubmittedPayload",
+    "WorkVerifiedPayload",
 ]

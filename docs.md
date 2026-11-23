@@ -186,7 +186,7 @@ cd grow8-backend
 make reset-db
 ```
 
-⚠️ This deletes everything in **your** local database, and the files uploaded to it (resumes, kept on the `file_storage` volume), then recreates the database from the files. It does not affect anyone else.
+⚠️ This deletes everything in **your** local database, and the files uploaded to it (resumes and work submission attachments, kept on the `file_storage` volume), then recreates the database from the files. It does not affect anyone else.
 
 If the pull also changed `docker-compose.yml`, run `make up` first so MySQL restarts with the new settings.
 
@@ -280,9 +280,21 @@ Try it on the dev data (with the stack running, since the notifications come fro
 
 Seeded deadlines are real dates, so this works until opportunity 4 closes on 2026-12-01.
 
-### 3.4 Resumes
+### 3.4 Profile and resume
 
-A contributor can keep one PDF resume (at most 10 MB); creators download it from an application. In Swagger, `PUT /api/v1/contributors/me/resume` shows a file picker. With curl:
+Contributors edit their own profile and skills, creators their organization; any user can change their name ([ADR 0017](grow8-backend/docs/adr/0017-contributor-profile.md)).
+
+| Task | Request |
+| --- | --- |
+| See your profile (contributor) | `GET /api/v1/contributors/me/profile` |
+| Change name, headline, bio, institution or city | `PATCH /api/v1/contributors/me/profile` with only the fields to change, e.g. `{"headline": "Data student", "city": null}` |
+| Replace your skills | `PUT /api/v1/contributors/me/skills` with `{"skill_codes": ["spreadsheets", "translation"]}` (codes from `GET /api/v1/skills`) |
+| Change your name (any role) | `PATCH /api/v1/auth/me` with `{"full_name": "..."}` |
+| See or edit your organization (creator) | `GET` / `PATCH /api/v1/creators/me/organization`, e.g. `{"website": "https://example.com", "city": null}` ([ADR 0018](grow8-backend/docs/adr/0018-creator-organization.md)) |
+
+Each skill comes back with `listed` and `verified`; `verified` turns true once a creator approves your work on an opportunity that required that skill, even if you never listed it (then it shows as `listed: false`, and editing your skills can't remove it, [ADR 0019](grow8-backend/docs/adr/0019-earned-skills.md)). Email can't be changed. An account without a profile row (none of the seeded ones) sees empty fields until its first save creates it.
+
+A contributor can also keep one PDF resume (at most 10 MB); creators download it from an application. In Swagger, `PUT /api/v1/contributors/me/resume` shows a file picker. With curl:
 
 ```bash
 curl -X PUT http://localhost:8000/api/v1/contributors/me/resume   -H "Authorization: Bearer <contributor token>" -F "file=@my-cv.pdf"
@@ -297,7 +309,115 @@ curl -X PUT http://localhost:8000/api/v1/contributors/me/resume   -H "Authorizat
 
 Files are stored on the `file_storage` Docker volume, never in MySQL ([ADR 0007](grow8-backend/docs/adr/0007-local-file-storage.md)). A file that isn't really a PDF gets 415, even if it's named `.pdf`.
 
-### 3.5 When something is refused
+### 3.5 Work submission
+
+An accepted contributor submits their work once, with a description, the hours they worked and up to 5 files (PDF, PNG, JPEG, DOCX, XLSX, CSV or TXT, 5 MB each). The creator is notified and can read it and download the files. There is no resubmitting ([ADR 0012](grow8-backend/docs/adr/0012-work-submission.md)).
+
+| Task | Request |
+| --- | --- |
+| Submit (applicant) | `POST /api/v1/applications/{id}/submission` (multipart: `description`, `hours_claimed`, `files`) |
+| Read it (applicant or creator) | `GET /api/v1/applications/{id}/submission` |
+| Download a file (applicant or creator) | `GET /api/v1/submissions/{id}/attachments/{attachment_id}` |
+
+Try it on the dev data. Seeded application **12** is Alex's accepted application to Maple Street Bakery's opportunity 2, with nothing submitted yet:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/applications/12/submission \
+  -H "Authorization: Bearer <alex's token>" \
+  -F "description=Cleaned up the inventory sheet." -F "hours_claimed=4.5" -F "files=@inventory.xlsx"
+```
+
+Then sign in as `maple.bakery@grow8.dev`: `GET /api/v1/notifications` shows "Work submitted: Inventory spreadsheet cleanup", and `GET /api/v1/applications/12/submission` lists the file to download. Submitting again gets 409 `WORK_ALREADY_SUBMITTED`, and Alex can no longer withdraw. `make reset-db` puts application 12 back if you want to repeat it.
+
+The file type is decided by the content, not the name: a text file named `notes.pdf` is accepted as plain text and offered for download as `notes.pdf.txt`, and a GIF gets 415.
+
+### 3.6 Work verification
+
+The creator who owns the opportunity reviews submitted work and decides once: **approve** it with the hours they verify (at most the hours claimed), or **reject** it with a comment saying why. The contributor is notified either way. Approved work counts as completed, and its hours and skills count toward the contributor's verified hours and skills; the database views compute these, so nothing else is updated ([ADR 0013](grow8-backend/docs/adr/0013-work-verification.md)).
+
+| Task | Request |
+| --- | --- |
+| Review queue (creator) | `GET /api/v1/submissions/received?status=awaiting` (oldest first; also `approved`, `rejected`, `opportunity_id`) |
+| Read one, with its decision (applicant or creator) | `GET /api/v1/submissions/{id}` |
+| Approve (creator) | `POST /api/v1/submissions/{id}/verification` with `{"decision": "approved", "verified_hours": "6", "comment": "optional"}` |
+| Reject (creator) | `POST /api/v1/submissions/{id}/verification` with `{"decision": "rejected", "comment": "why"}` |
+
+Every application also shows `work_status`: `not_submitted`, `awaiting_verification`, `completed` or `work_rejected`.
+
+Try it on the dev data. Seeded submission **5** is Alex's 8 hours on the food bank's warehouse count, still awaiting verification. Sign in as `foodbank@grow8.dev`:
+
+```bash
+curl http://localhost:8000/api/v1/submissions/received?status=awaiting -H "Authorization: Bearer <food bank's token>"
+curl -X POST http://localhost:8000/api/v1/submissions/5/verification \
+  -H "Authorization: Bearer <food bank's token>" -H "Content-Type: application/json" \
+  -d '{"decision": "approved", "verified_hours": "7.5", "comment": "Thanks for the recount!"}'
+```
+
+Then sign in as `alex.chen@grow8.dev`: `GET /api/v1/notifications` shows "Work verified: Warehouse inventory count" ("… was verified (7.5 h)"), and `GET /api/v1/applications/6` shows `"work_status": "completed"`. Verifying again gets 409 `SUBMISSION_ALREADY_VERIFIED`; `9` hours gets 422 `VERIFIED_HOURS_EXCEED_CLAIMED`; signed in as another creator you get 404. `make reset-db` puts submission 5 back if you want to repeat it.
+
+If you keep your local data instead of running `make reset-db`, add the two new notification types first (the `ALTER TABLE` is in ADR 0013) and restart `contributor_service`.
+
+### 3.7 Feedback and admin review
+
+Once the work on an application is verified (approved or rejected), the contributor and the creator can each rate the other once, 1 to 5, with an optional comment and a "something went wrong" flag (`reports_discrepancy`). Every feedback waits for an admin. Only approved feedback is shown to the person rated and counts toward their public rating ([ADR 0015](grow8-backend/docs/adr/0015-feedback-and-admin-review.md)).
+
+| Task | Request |
+| --- | --- |
+| Rate the other participant | `POST /api/v1/applications/{id}/feedback` with `{"rating": 5, "comment": "optional", "reports_discrepancy": false}` |
+| See feedback on your application | `GET /api/v1/applications/{id}/feedback` → `{given, received}` |
+| Review queue (admin) | `GET /api/v1/admin/feedback?status=pending` (discrepancy reports first) |
+| Approve or reject (admin) | `POST /api/v1/admin/feedback/{id}/review` with `{"decision": "approved"}` or `{"decision": "rejected", "reason": "why"}` |
+| Someone's public rating (no token) | `GET /api/v1/users/{id}/rating` |
+
+Who sees what: you always see your own feedback and its status (with the admin's reason if it was rejected). Feedback **about** you appears only once an admin approves it. A rejection notifies only its author.
+
+Try it on the dev data. Seeded feedback **5** (Sam's discrepancy report) and **6** (Jordan's rating of the food bank, 3/5) are waiting for review. Sign in as `admin@grow8.dev`:
+
+```bash
+curl "http://localhost:8000/api/v1/admin/feedback?status=pending" -H "Authorization: Bearer <admin token>"
+curl http://localhost:8000/api/v1/users/3/rating     # food bank owner: 4.50 from 2 approved
+curl -X POST http://localhost:8000/api/v1/admin/feedback/6/review \
+  -H "Authorization: Bearer <admin token>" -H "Content-Type: application/json" -d '{"decision": "approved"}'
+curl http://localhost:8000/api/v1/users/3/rating     # now 4.00 from 3
+```
+
+Feedback 5 comes first in the queue because it reports a discrepancy. Rejecting it without a `reason` gets 422 `REJECTION_REASON_REQUIRED`; reviewing anything twice gets 409 `FEEDBACK_ALREADY_REVIEWED`; a creator or contributor on the admin routes gets 403. Jordan (`jordan.lee@grow8.dev`) gets "Your feedback was published" and the food bank gets "New rating". `make reset-db` puts both back to pending.
+
+If you keep your local data instead of running `make reset-db`, add the three new notification types first (the `ALTER TABLE` is in ADR 0015) and restart all three consumers.
+
+### 3.8 Reporting opportunities
+
+A contributor who sees a misleading, unsafe, discriminatory or scam posting can report it once. Admins review each report: dismiss it, or uphold it and **take the opportunity down**. A takedown cancels the opportunity, tells its applicants it won't go ahead, and tells the creator why. The creator never learns who reported ([ADR 0016](grow8-backend/docs/adr/0016-opportunity-reports-and-takedown.md)).
+
+| Task | Request |
+| --- | --- |
+| Report (contributor) | `POST /api/v1/opportunities/{id}/reports` with `{"reason": "misleading_terms", "details": "optional"}` |
+| Your reports and their outcome | `GET /api/v1/reports/mine` |
+| Review queue (admin) | `GET /api/v1/admin/reports?status=pending` (most-reported opportunities first) |
+| Take down (admin) | `POST /api/v1/admin/reports/{id}/review` with `{"decision": "upheld", "reason": "why"}` |
+| Dismiss (admin) | `POST /api/v1/admin/reports/{id}/review` with `{"decision": "dismissed", "reason": "optional note"}` |
+
+Reasons: `misleading_terms`, `unsafe_conditions`, `discriminatory`, `scam_or_spam`, `other`. A takedown upholds every pending report on the opportunity at once. It is refused once work has been submitted on the opportunity (409 `WORK_ALREADY_SUBMITTED`); dismiss the report instead.
+
+Try it on the dev data. Opportunity **3** (Maple Street Bakery's social media calendar) is open, Sam has a pending application, and no work has been submitted:
+
+```bash
+# as alex.chen@grow8.dev
+curl -X POST http://localhost:8000/api/v1/opportunities/3/reports \
+  -H "Authorization: Bearer <alex's token>" -H "Content-Type: application/json" \
+  -d '{"reason": "misleading_terms", "details": "Listed as paid, but the pay is not real."}'
+# as admin@grow8.dev: find the report, then take it down
+curl "http://localhost:8000/api/v1/admin/reports?status=pending" -H "Authorization: Bearer <admin token>"
+curl -X POST http://localhost:8000/api/v1/admin/reports/<report_id>/review \
+  -H "Authorization: Bearer <admin token>" -H "Content-Type: application/json" \
+  -d '{"decision": "upheld", "reason": "The advertised pay is not real."}'
+```
+
+Then `GET /api/v1/opportunities/3` shows `"status": "cancelled"` and it is gone from browse. Notifications: `maple.bakery@grow8.dev` gets "Opportunity taken down" with the reason, `sam.patel@grow8.dev` gets told their application won't go ahead, and Alex gets "Thanks for your report". Reporting again gets 409 `OPPORTUNITY_ALREADY_REPORTED`; a creator reporting gets 403. `make reset-db` puts opportunity 3 back.
+
+This feature adds two tables, so if you keep your local data instead of running `make reset-db`, run the statements listed in ADR 0016 first and restart all three consumers.
+
+### 3.9 When something is refused
 
 Every error has the body `{"error": {"code": "...", "message": "..."}}`. All codes are listed in [`grow8-backend/docs/error-codes.md`](grow8-backend/docs/error-codes.md).
 
