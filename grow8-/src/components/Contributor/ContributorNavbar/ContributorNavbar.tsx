@@ -343,6 +343,19 @@ function ContributorNavbarActions() {
     return () => controller.abort();
   }, []);
 
+  // The profile page saves the name; show the new one straight away.
+  useEffect(() => {
+    function handleNameChange() {
+      const name = localStorage.getItem("user_name");
+      if (name) {
+        setContributor((current) => ({ ...current, name }));
+      }
+    }
+
+    window.addEventListener("grow8:user-name-changed", handleNameChange);
+    return () => window.removeEventListener("grow8:user-name-changed", handleNameChange);
+  }, []);
+
   // Load notifications on mount and refresh them every 20 seconds.
   useEffect(() => {
     const controller = new AbortController();

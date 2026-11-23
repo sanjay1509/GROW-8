@@ -13,6 +13,7 @@ import {
   X,
   Eye as VisibilityIcon,
 } from "lucide-react";
+import { rememberUserName } from "../../services/organization";
 import "./CreatorSettings.css";
 
 const API_BASE_URL =
@@ -90,7 +91,7 @@ function parseCreator(data: ApiResponse): Creator {
         : data;
 
   return {
-    id: user.id as string | number | undefined,
+    id: ((user as Record<string, unknown>).user_id ?? (user as Record<string, unknown>).id) as string | number | undefined,
     name: String(
       user.full_name ??
         user.name ??
@@ -217,8 +218,8 @@ export default function CreatorSettings() {
     setProfileError("");
     setProfileSuccess("");
 
-    if (!name.trim() || !email.trim()) {
-      setProfileError("Name and email are required.");
+    if (!name.trim()) {
+      setProfileError("Your name can't be empty.");
       return;
     }
 
@@ -227,9 +228,9 @@ export default function CreatorSettings() {
     try {
       const data = await apiRequest("/auth/me", {
         method: "PATCH",
+        // Email can't be changed, so only the name is sent (ADR 0017).
         body: JSON.stringify({
           full_name: name.trim(),
-          email: email.trim(),
         }),
       });
 
@@ -245,6 +246,7 @@ export default function CreatorSettings() {
       setName(nextCreator.name);
       setEmail(nextCreator.email);
       setEditing(false);
+      rememberUserName(nextCreator.name);
 
       setProfileSuccess("Your profile has been updated.");
     } catch (error) {
@@ -543,12 +545,11 @@ export default function CreatorSettings() {
                           <input
                             id="cs-email"
                             type="email"
-                            value={editing ? email : creator.email}
-                            onChange={(event) =>
-                              setEmail(event.target.value)
-                            }
+                            value={creator.email}
                             placeholder="Your email address"
-                            disabled={!editing || savingProfile}
+                            readOnly
+                            disabled
+                            title="Email can't be changed"
                             required
                           />
                         </div>

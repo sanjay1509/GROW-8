@@ -254,3 +254,183 @@
   flex-basis: 100%;
   font-size: 12px;
 }
+
+/* Profile form */
+
+.cp-card-heading h3,
+.cp-skill-group h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cp-callout {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #f2d58c;
+  border-radius: 8px;
+  background: #fff8e6;
+  color: #7a5408;
+}
+
+.cp-form {
+  display: grid;
+  gap: 14px;
+}
+
+.cp-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cp-field {
+  display: grid;
+  gap: 5px;
+}
+
+.cp-field > span {
+  color: #3a465a;
+  font-weight: 600;
+}
+
+.cp-field input,
+.cp-field textarea,
+.cp-add-skill select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #172235;
+  font: inherit;
+}
+
+.cp-field textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.cp-field.has-error input,
+.cp-field.has-error textarea {
+  border-color: #d14343;
+  background: #fffafa;
+}
+
+.cp-field small {
+  justify-self: end;
+  color: #8a94a6;
+  font-size: 11px;
+}
+
+.cp-field small.is-over {
+  color: #a12b2b;
+  font-weight: 700;
+}
+
+.cp-field-error {
+  color: #a12b2b;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.cp-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Skills */
+
+.cp-skill-group {
+  display: grid;
+  gap: 10px;
+}
+
+.cp-skill-group + .cp-skill-group {
+  padding-top: 14px;
+  border-top: 1px solid #eef1f6;
+}
+
+.cp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cp-chip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px 5px 11px;
+  border: 1px solid #d9e1ee;
+  border-radius: 999px;
+  background: #f6f8fc;
+  color: #2a364b;
+  font-weight: 600;
+}
+
+.cp-chip.is-verified {
+  border-color: #b9e2c8;
+  background: #edf9f1;
+  color: #1c6b3c;
+}
+
+.cp-chip small {
+  color: #4f8a64;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.cp-chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+}
+
+.cp-chip button:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.cp-chip .cp-chip-add {
+  gap: 3px;
+  padding: 0 9px;
+  border: 1px solid #9fd1b0;
+  background: #fff;
+  font-size: 12px;
+}
+
+.cp-add-skill {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.cp-add-skill select {
+  width: auto;
+  min-width: 220px;
+  flex: 0 1 300px;
+}
+
+@media (max-width: 620px) {
+  .cp-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cp-add-skill select {
+    flex: 1 1 100%;
+  }
+}

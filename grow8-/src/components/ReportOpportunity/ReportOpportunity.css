@@ -1,0 +1,175 @@
+.ro-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 7px 11px;
+  border: 1px solid #f0c4c4;
+  border-radius: 8px;
+  background: #fff;
+  color: #b83232;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ro-open:hover {
+  background: #fff5f5;
+}
+
+.ro-reported {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: #f1f5fb;
+  color: #3d4a61;
+  font-size: 13px;
+}
+
+.ro-reported svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #1c7c45;
+}
+
+.ro-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #f0c4c4;
+  border-radius: 12px;
+  background: #fffafa;
+  font-size: 13px;
+  text-align: left;
+}
+
+.ro-form h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: #9b2727;
+  font-size: 15px;
+}
+
+.ro-note {
+  margin: 0;
+  color: #66728a;
+}
+
+.ro-form fieldset {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ro-form legend {
+  margin-bottom: 6px;
+  font-weight: 650;
+}
+
+.ro-form fieldset label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid #e7ebf2;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ro-form fieldset label.is-selected {
+  border-color: #d97b7b;
+  background: #fff3f3;
+}
+
+.ro-form fieldset input {
+  margin-top: 3px;
+}
+
+.ro-form fieldset span {
+  display: grid;
+  gap: 1px;
+}
+
+.ro-form fieldset small {
+  color: #6f7b90;
+}
+
+.ro-details {
+  display: grid;
+  gap: 4px;
+}
+
+.ro-details > span {
+  font-weight: 650;
+}
+
+.ro-details textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  font: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.ro-details small {
+  justify-self: end;
+  color: #8a94a6;
+  font-size: 11px;
+}
+
+.ro-details small.is-over {
+  color: #a12b2b;
+}
+
+.ro-error {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fdecec;
+  color: #a12b2b;
+}
+
+.ro-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ro-cancel,
+.ro-submit {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ro-cancel {
+  border: 1px solid #d6deeb;
+  background: #fff;
+  color: #3a465a;
+}
+
+.ro-submit {
+  border: 0;
+  background: #c33a3a;
+  color: #fff;
+}
+
+.ro-cancel:disabled,
+.ro-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

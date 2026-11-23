@@ -24,6 +24,8 @@ import {
 
 import { applyToOpportunity } from "../../services/applications";
 import { ApiError, API_BASE_URL } from "../../services/api";
+import ReportOpportunity from "../../components/ReportOpportunity/ReportOpportunity";
+import { getMyReports } from "../../services/reports";
 
 import "./BrowseOpportunities.css";
 
@@ -127,6 +129,10 @@ export default function BrowseOpportunities() {
   const [sortBy, setSortBy] = useState("deadline");
   const [showFilters, setShowFilters] = useState(true);
 
+  // Opportunities this contributor has already reported (one report each, ever).
+  const [reportedIds, setReportedIds] = useState<Set<number>>(new Set());
+  const [profileRequired, setProfileRequired] = useState(false);
+
   // Details modal
   const [selectedOpportunity, setSelectedOpportunity] =
     useState<BrowseOpportunity | null>(null);
@@ -203,6 +209,25 @@ export default function BrowseOpportunities() {
 
     return () => controller.abort();
   }, []);
+
+  // Contributors: remember which opportunities they already reported.
+  useEffect(() => {
+    if (userRole !== "contributor") return;
+    let active = true;
+    getMyReports(100)
+      .then((result) => {
+        if (!active) return;
+        setReportedIds(
+          new Set(result.items.map((report) => report.opportunity.opportunity_id))
+        );
+      })
+      .catch(() => {
+        // The report form still handles "already reported" if this fails.
+      });
+    return () => {
+      active = false;
+    };
+  }, [userRole]);
 
   // ==================================================
   // LOAD OPPORTUNITIES FROM FASTAPI BACKEND
@@ -302,7 +327,7 @@ export default function BrowseOpportunities() {
             "You have already applied for this opportunity.",
 
           CONTRIBUTOR_PROFILE_REQUIRED:
-            "Please complete your contributor profile before applying.",
+            "Save your profile first. Organizations see it when you apply.",
 
           AUTH_REQUIRED:
             "Please sign in to apply.",
@@ -319,6 +344,8 @@ export default function BrowseOpportunities() {
             err.message ||
             "Unable to submit your application."
         );
+
+        setProfileRequired(err.code === "CONTRIBUTOR_PROFILE_REQUIRED");
 
         if (err.code === "APPLICATION_DUPLICATE") {
           const applicationId = Number(
@@ -1042,6 +1069,19 @@ export default function BrowseOpportunities() {
                         >
                           {applicationError}
 
+                          {profileRequired && (
+                            <p>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  navigate("/contributor/profile#profile")
+                                }
+                              >
+                                Go to your profile
+                              </button>
+                            </p>
+                          )}
+
                           {duplicateApplicationId && (
                             <p>
                               <button
@@ -1088,6 +1128,24 @@ export default function BrowseOpportunities() {
                     </>
                   )}
                 </div>
+              )}
+
+            {/* Report (contributors only; creators and admins can't report) */}
+            {!authLoading &&
+              userRole === "contributor" &&
+              Number(selectedOpportunity.opportunity_id ?? selectedOpportunity.id) > 0 && (
+                <ReportOpportunity
+                  key={selectedOpportunity.opportunity_id ?? selectedOpportunity.id}
+                  opportunityId={Number(
+                    selectedOpportunity.opportunity_id ?? selectedOpportunity.id
+                  )}
+                  alreadyReported={reportedIds.has(
+                    Number(selectedOpportunity.opportunity_id ?? selectedOpportunity.id)
+                  )}
+                  onReported={(id) =>
+                    setReportedIds((current) => new Set(current).add(id))
+                  }
+                />
               )}
 
             <button

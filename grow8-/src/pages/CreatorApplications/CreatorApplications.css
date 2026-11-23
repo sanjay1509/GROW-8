@@ -322,3 +322,31 @@
     width: 100%;
   }
 }
+/* Work status on accepted applications */
+.capp-work {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.capp-work.is-awaiting_verification {
+  background: #fff8e6;
+  color: #8a5a06;
+}
+
+.capp-work.is-completed {
+  background: #e6f7ed;
+  color: #1c7c45;
+}
+
+.capp-work.is-work_rejected {
+  background: #fff0f0;
+  color: #b83232;
+}
+
+.capp-work a {
+  color: inherit;
+  font-weight: 700;
+}

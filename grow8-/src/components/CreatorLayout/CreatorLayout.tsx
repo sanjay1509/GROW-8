@@ -52,6 +52,15 @@ export default function CreatorLayout() {
     };
   }, [load]);
 
+  // An organization rename shows on every opportunity, so reload after one.
+  useEffect(() => {
+    function handleOrganizationChange() {
+      void load();
+    }
+    window.addEventListener("grow8:organization-changed", handleOrganizationChange);
+    return () => window.removeEventListener("grow8:organization-changed", handleOrganizationChange);
+  }, [load]);
+
   const workspace = useMemo(
     () => ({
       opportunities: apiOpportunities.map((item) => toDashboardOpportunity(item, apiApplications)),

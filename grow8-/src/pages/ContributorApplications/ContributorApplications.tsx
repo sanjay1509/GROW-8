@@ -19,6 +19,8 @@ import {
 } from "../../services/applications";
 
 import { ApiError } from "../../services/api";
+import type { WorkStatus } from "../../services/submissions";
+import WorkSection from "./WorkSection";
 import "./ContributorApplications.css";
 
 type ApplicationRow = {
@@ -42,6 +44,8 @@ type ApplicationRow = {
   organization?: {
     name?: string;
   } | null;
+  submission_id?: number | null;
+  work_status?: WorkStatus;
 };
 
 type TabValue =
@@ -381,7 +385,7 @@ export default function ContributorApplications() {
                   </div>
 
                   <div className="ca-card-actions">
-                    {canWithdraw && !notice && (
+                    {canWithdraw && !notice && !application.submission_id && (
                       <button
                         type="button"
                         className="ca-withdraw-button"
@@ -395,6 +399,16 @@ export default function ContributorApplications() {
                       </button>
                     )}
                   </div>
+
+                  {application.status === "accepted" && (
+                    <WorkSection
+                      applicationId={application.application_id}
+                      opportunityTitle={application.opportunity?.title || "Opportunity"}
+                      opportunityStatus={opportunityStatus}
+                      workStatus={application.work_status ?? "not_submitted"}
+                      onChanged={() => void loadApplications()}
+                    />
+                  )}
                 </article>
               );
             })}
