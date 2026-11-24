@@ -2,16 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Award, BadgeCheck, Briefcase, Clock3, RefreshCw } from "lucide-react";
 
-import { getMyApplications } from "../../services/applications";
-import type { Application } from "../../services/applications";
-import { formatHours, getApplicationSubmission } from "../../services/submissions";
-import type { Submission } from "../../services/submissions";
-import { getMyProfile } from "../../services/profile";
-import type { ProfileSkill } from "../../services/profile";
+import { getMyExperience } from "../../services/experience";
+import type { Experience } from "../../services/experience";
+import { formatHours } from "../../services/submissions";
 import { errorMessage } from "../../services/formErrors";
 import "./ContributorActivity.css";
-
-type CompletedWork = { application: Application; submission: Submission };
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
@@ -24,65 +19,38 @@ function formatDate(value: string | null | undefined): string {
 /**
  * /contributor/experience: the verified record that GROW8 exists for (SDG 8.6):
  * hours an organization approved, the work behind them, and the skills it proved.
+ * One call; the totals come from the v_contributor_verified_hours view.
  */
 export default function ContributorExperience() {
-  const [work, setWork] = useState<CompletedWork[]>([]);
-  const [skills, setSkills] = useState<ProfileSkill[]>([]);
+  const [experience, setExperience] = useState<Experience | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
 
   useEffect(() => {
     let active = true;
-    async function load() {
-      setLoading(true);
-      setError("");
-      try {
-        // The application list is the source of completed work. Profile skills
-        // are supplementary, so a profile endpoint failure must not hide work.
-        const applications = await getMyApplications({ status: "accepted", limit: 100 });
-        const profilePromise = getMyProfile().catch(() => null);
-        const completed = applications.items.filter((item) => item.work_status === "completed");
-        // A stale/missing submission for one application should not prevent the
-        // rest of the contributor's verified experience from loading.
-        const submissions = await Promise.all(
-          completed.map((application) => getApplicationSubmission(application.application_id))
-            .map((promise) => promise.catch(() => null))
-        );
-        const profile = await profilePromise;
-        if (!active) return;
-        setWork(
-          completed
-            .flatMap((application, index) => {
-              const submission = submissions[index];
-              return submission?.verification?.decision === "approved"
-                ? [{ application, submission }]
-                : [];
-            })
-            .sort((a, b) =>
-              (b.submission.verification?.verified_at ?? "").localeCompare(
-                a.submission.verification?.verified_at ?? ""
-              )
-            )
-        );
-        setSkills(profile?.skills.filter((skill) => skill.verified) ?? []);
-      } catch (err) {
+    setLoading(true);
+    setError("");
+    getMyExperience()
+      .then((result) => {
+        if (active) setExperience(result);
+      })
+      .catch((err) => {
         if (active) setError(errorMessage(err, "Your experience could not be loaded."));
-      } finally {
+      })
+      .finally(() => {
         if (active) setLoading(false);
-      }
-    }
-    void load();
+      });
     return () => {
       active = false;
     };
   }, [reload]);
 
-  const totalHours = work.reduce(
-    (sum, item) => sum + Number(item.submission.verification?.verified_hours ?? 0),
-    0
-  );
-  const organizations = new Set(work.map((item) => item.application.opportunity.organization.name));
+  const work = experience?.completed_work ?? [];
+  const skills = experience?.verified_skills ?? [];
+  const completed = experience?.completed_opportunities ?? 0;
+  const organizations = experience?.organizations ?? 0;
+  const ready = !loading && experience !== null;
 
   return (
     <div className="act-page">
@@ -106,29 +74,29 @@ export default function ContributorExperience() {
       <section className="act-stats" aria-label="Summary">
         <div>
           <Clock3 size={20} />
-          <strong>{loading ? "—" : formatHours(totalHours)}</strong>
+          <strong>{ready ? formatHours(experience.verified_hours) : "—"}</strong>
           <span>verified hours</span>
         </div>
         <div>
           <Briefcase size={20} />
-          <strong>{loading ? "—" : work.length}</strong>
-          <span>completed {work.length === 1 ? "opportunity" : "opportunities"}</span>
+          <strong>{ready ? completed : "—"}</strong>
+          <span>completed {completed === 1 ? "opportunity" : "opportunities"}</span>
         </div>
         <div>
           <Award size={20} />
-          <strong>{loading ? "—" : organizations.size}</strong>
-          <span>{organizations.size === 1 ? "organization" : "organizations"}</span>
+          <strong>{ready ? organizations : "—"}</strong>
+          <span>{organizations === 1 ? "organization" : "organizations"}</span>
         </div>
         <div>
           <BadgeCheck size={20} />
-          <strong>{loading ? "—" : skills.length}</strong>
+          <strong>{ready ? skills.length : "—"}</strong>
           <span>verified skills</span>
         </div>
       </section>
 
       <section className="act-card">
         <h2>Verified skills</h2>
-        {!loading && skills.length === 0 && (
+        {ready && skills.length === 0 && (
           <p className="act-muted">Skills become verified when an organization approves your work.</p>
         )}
         <ul className="act-chips">
@@ -144,7 +112,7 @@ export default function ContributorExperience() {
       <section className="act-card">
         <h2>Completed work</h2>
         {loading && <p className="act-muted">Loading...</p>}
-        {!loading && work.length === 0 && (
+        {ready && work.length === 0 && (
           <div className="act-empty">
             <p>No verified work yet. Once you're accepted, submit your work from My Applications.</p>
             <Link to="/contributor/applications" className="act-button">
@@ -153,19 +121,17 @@ export default function ContributorExperience() {
           </div>
         )}
         <ul className="act-list">
-          {work.map(({ application, submission }) => (
-            <li key={application.application_id}>
+          {work.map((item) => (
+            <li key={item.submission_id}>
               <div className="act-list-main">
-                <strong>{application.opportunity.title}</strong>
-                <span>{application.opportunity.organization.name}</span>
-                <p>{submission.description}</p>
-                {submission.verification?.comment && (
-                  <p className="act-quote">“{submission.verification.comment}”</p>
-                )}
+                <strong>{item.opportunity.title}</strong>
+                <span>{item.organization.name}</span>
+                <p>{item.description}</p>
+                {item.comment && <p className="act-quote">“{item.comment}”</p>}
               </div>
               <div className="act-list-side">
-                <strong>{formatHours(submission.verification?.verified_hours)} h</strong>
-                <span>verified {formatDate(submission.verification?.verified_at)}</span>
+                <strong>{formatHours(item.verified_hours)} h</strong>
+                <span>verified {formatDate(item.verified_at)}</span>
               </div>
             </li>
           ))}
