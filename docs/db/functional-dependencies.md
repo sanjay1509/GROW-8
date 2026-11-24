@@ -91,10 +91,10 @@ Method for each table: list every FD that holds *within* the table, find the can
 - **`source` removed (decision 7).** "Verified" meant "used in approved work", which follows from `application`, `opportunity_skill` and `work_verification`. Storing it would be a dependency on rows in other tables that could disagree with them, so it is derived in `v_contributor_skill` instead. Since ADR 0019 the view also returns skills earned through approved work that aren't listed, so `contributor_skill` holds only what the contributor chose to list.
 
 ### 3.9 application
-`application(application_id, opportunity_id, contributor_id, status, motivation, submitted_at, decided_at)`
+`application(application_id, opportunity_id, contributor_id, status, motivation, application_details, resume_file_name, resume_content_type, resume_size_bytes, resume_storage_key, submitted_at, decided_at)`
 
 - **PK** `application_id` · **CK** `(contributor_id, opportunity_id)` (`uq_application_contributor_opportunity`)
-- **FDs:** `application_id → opportunity_id, contributor_id, status, motivation, submitted_at, decided_at`; `(contributor_id, opportunity_id) → application_id`
+- **FDs:** `application_id → opportunity_id, contributor_id, status, motivation, application_details, resume_file_name, resume_content_type, resume_size_bytes, resume_storage_key, submitted_at, decided_at`; `(contributor_id, opportunity_id) → application_id`. The `resume_*` columns describe the copy of the resume kept with this application, so they depend on the application, not on the contributor (the profile resume in `contributor_resume` can change independently); no FD among non-key columns, so still BCNF. `application_details` is one JSON value treated as a single attribute.
 - **2NF:** no non-prime attribute depends on `contributor_id` or `opportunity_id` alone.
 - **Normal form:** **BCNF**. The second candidate key is what stops duplicate applications.
 - **Cross-table rules (I7, decision 4):** applying needs an open opportunity, a `submitted_at` on or before its deadline, and a free place under `applicant_limit`. These depend on `opportunity` and on the other applications, so no key or CHECK can express them; `trg_application_bi/bu` enforce them, locking the opportunity row so concurrent applications are serialized.

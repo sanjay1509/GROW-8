@@ -73,7 +73,7 @@ POS = {
     "notification": (933, 150, 272),
     "opportunity_skill": (933, 416, 212),
     "application": (933, 536, 250),
-    "contributor_skill": (933, 816, 232),
+    "contributor_skill": (933, 916, 232),
     "skill": (1336, 376, 200),
     "work_submission": (1336, 515, 250),
     "feedback": (1336, 747, 250),
