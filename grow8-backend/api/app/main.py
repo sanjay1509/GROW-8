@@ -33,6 +33,14 @@ API_PREFIX = "/api/v1"
 # Upload bodies are size-checked before FastAPI reads them (app/core/body_limit.py).
 UPLOAD_LIMITS = (
     UploadLimit(
+        method="POST",
+        path=re.compile(re.escape(f"{API_PREFIX}/opportunities/") + r"[0-9]+/applications"),
+        # Resume file plus multipart boundaries and application fields.
+        max_bytes=RESUME_MAX_BYTES + 64 * 1024,
+        code="RESUME_TOO_LARGE",
+        message="A resume can be at most 10 MB",
+    ),
+    UploadLimit(
         method="PUT",
         path=re.compile(re.escape(f"{API_PREFIX}{contributors.RESUME_PATH}")),
         # the file plus room for the multipart boundaries and part headers

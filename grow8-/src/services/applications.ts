@@ -121,17 +121,19 @@ function buildApplicationQuery(
 export async function applyToOpportunity(
   opportunityId: number | string,
   motivation?: string,
-  applicationDetails: Record<string, string> = {}
+  applicationDetails: Record<string, string> = {},
+  resume?: File | null
 ): Promise<Application> {
-  const trimmedMotivation = motivation?.trim();
-
-  const body = { motivation: trimmedMotivation || null, application_details: applicationDetails };
+  const body = new FormData();
+  if (motivation?.trim()) body.append("motivation", motivation.trim());
+  body.append("application_details", JSON.stringify(applicationDetails));
+  if (resume) body.append("resume", resume);
 
   return apiRequest<Application>(
     `/opportunities/${opportunityId}/applications`,
     {
       method: "POST",
-      body: JSON.stringify(body),
+      body,
     }
   );
 }

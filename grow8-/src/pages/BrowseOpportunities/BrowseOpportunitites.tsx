@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -28,7 +28,7 @@ import { applyToOpportunity, getMyApplications } from "../../services/applicatio
 import { ApiError, API_BASE_URL } from "../../services/api";
 import ReportOpportunity from "../../components/ReportOpportunity/ReportOpportunity";
 import { getMyReports } from "../../services/reports";
-import { RESUME_MAX_BYTES, uploadResume } from "../../services/resume";
+import { RESUME_MAX_BYTES } from "../../services/resume";
 
 import "./BrowseOpportunities.css";
 
@@ -99,6 +99,7 @@ const OPPORTUNITIES_PER_PAGE = 10;
 
 export default function BrowseOpportunities() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [opportunities, setOpportunities] = useState<
     BrowseOpportunity[]
@@ -225,6 +226,18 @@ export default function BrowseOpportunities() {
     return () => controller.abort();
   }, []);
 
+  useEffect(() => {
+    const requestedId = Number(searchParams.get("opportunity_id"));
+    if (!Number.isSafeInteger(requestedId) || requestedId < 1 || loading) return;
+    const match = opportunities.find(
+      (item) => Number(item.opportunity_id ?? item.id) === requestedId
+    );
+    if (match) {
+      setSelectedOpportunity(match);
+      setShowApplicationForm(false);
+    }
+  }, [loading, opportunities, searchParams]);
+
   // Contributors: remember which opportunities they already reported.
   useEffect(() => {
     if (userRole !== "contributor") return;
@@ -341,12 +354,12 @@ export default function BrowseOpportunities() {
         if (applicationResume.size > RESUME_MAX_BYTES) {
           throw new Error("Resume must be 10 MB or smaller.");
         }
-        await uploadResume(applicationResume);
       }
       await applyToOpportunity(
         opportunityId,
         motivation.trim() || undefined,
-        applicationDetails
+        applicationDetails,
+        applicationResume
       );
 
       setAppliedIds((previous) => {
@@ -622,6 +635,11 @@ export default function BrowseOpportunities() {
     setApplicationDetails({ name: "", email: "", phone: "", study: "", experience: "", achievements: "" });
     setApplicationResume(null);
     setShowApplicationForm(false);
+    if (searchParams.has("opportunity_id")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("opportunity_id");
+      setSearchParams(next, { replace: true });
+    }
   }
 
   // ==================================================

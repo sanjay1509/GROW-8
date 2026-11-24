@@ -8,12 +8,16 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Download,
+  Eye,
   RefreshCw,
   RotateCcw,
+  X,
 } from "lucide-react";
 
 import {
   getMyApplications,
+  downloadApplicationResume,
   withdrawApplication,
   type ApplicationStatus,
 } from "../../services/applications";
@@ -29,6 +33,8 @@ type ApplicationRow = {
   submitted_at?: string | null;
   decided_at?: string | null;
   motivation?: string | null;
+  application_details?: Record<string, string>;
+  applicant?: { has_resume?: boolean };
   opportunity?: {
     opportunity_id?: number;
     title?: string;
@@ -114,6 +120,8 @@ export default function ContributorApplications() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [withdrawingId, setWithdrawingId] = useState<number | null>(null);
+  const [viewingApplication, setViewingApplication] = useState<ApplicationRow | null>(null);
+  const [downloadingResumeId, setDownloadingResumeId] = useState<number | null>(null);
 
   const loadApplications = useCallback(async () => {
     setLoading(true);
@@ -219,6 +227,18 @@ export default function ContributorApplications() {
       }
     } finally {
       setWithdrawingId(null);
+    }
+  }
+
+  async function handleDownloadResume(application: ApplicationRow) {
+    setDownloadingResumeId(application.application_id);
+    setError("");
+    try {
+      await downloadApplicationResume(application.application_id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to download this resume.");
+    } finally {
+      setDownloadingResumeId(null);
     }
   }
 
@@ -386,6 +406,13 @@ export default function ContributorApplications() {
                   </div>
 
                   <div className="ca-card-actions">
+                    <button
+                      type="button"
+                      className="ca-details-button"
+                      onClick={() => setViewingApplication(application)}
+                    >
+                      <Eye size={15} /> View details
+                    </button>
                     {canWithdraw && !notice && !application.submission_id && (
                       <button
                         type="button"
@@ -447,6 +474,59 @@ export default function ContributorApplications() {
             </div>
           </div>
         </>
+      )}
+
+      {viewingApplication && (
+        <div className="ca-modal-backdrop" role="presentation" onClick={() => setViewingApplication(null)}>
+          <section
+            className="ca-details-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ca-details-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="ca-details-modal-header">
+              <div>
+                <span className="ca-eyebrow">APPLICATION DETAILS</span>
+                <h2 id="ca-details-title">{viewingApplication.opportunity?.title || "Opportunity"}</h2>
+              </div>
+              <button type="button" className="ca-details-close" aria-label="Close details" onClick={() => setViewingApplication(null)}>
+                <X size={20} />
+              </button>
+            </header>
+
+            <dl className="ca-details-list">
+              {Object.entries(viewingApplication.application_details || {}).map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase())}</dt>
+                  <dd>{value || "—"}</dd>
+                </div>
+              ))}
+              <div>
+                <dt>Motivation</dt>
+                <dd>{viewingApplication.motivation || "Not provided"}</dd>
+              </div>
+            </dl>
+
+            <div className="ca-details-resume">
+              <div>
+                <strong>Resume</strong>
+                <p>{viewingApplication.applicant?.has_resume ? "Resume attached to this application." : "No resume was attached to this application."}</p>
+              </div>
+              {viewingApplication.applicant?.has_resume && (
+                <button
+                  type="button"
+                  className="ca-details-button"
+                  onClick={() => void handleDownloadResume(viewingApplication)}
+                  disabled={downloadingResumeId === viewingApplication.application_id}
+                >
+                  <Download size={15} />
+                  {downloadingResumeId === viewingApplication.application_id ? "Downloading..." : "Download resume"}
+                </button>
+              )}
+            </div>
+          </section>
+        </div>
       )}
     </section>
   );

@@ -119,6 +119,21 @@ def upload(
     return resume
 
 
+def store_application_resume(
+    storage: FileStorage, upload_file: BinaryIO, file_name: str | None
+) -> tuple[str, str, str, int]:
+    """Store an application-only resume without changing the contributor profile."""
+    head = upload_file.read(len(PDF_SIGNATURE))
+    if not head:
+        raise UnprocessableError("The uploaded file is empty", code="EMPTY_FILE")
+    if head != PDF_SIGNATURE:
+        raise UnsupportedMediaTypeError("A resume must be a PDF file", code="UNSUPPORTED_FILE_TYPE")
+    key = new_key("applicationresumes")
+    size: list[int] = []
+    storage.save(key, _checked_chunks(head, upload_file, size))
+    return key, clean_file_name(file_name), CONTENT_TYPE, size[0]
+
+
 def get_mine(session: Session, contributor: UserAccount) -> ContributorResume:
     resume = resume_repository.get(session, contributor.user_id)
     if resume is None:
@@ -145,14 +160,24 @@ def open_mine(session: Session, storage: FileStorage, contributor: UserAccount) 
 def open_for_application(
     session: Session, storage: FileStorage, user: UserAccount, application_id: int
 ) -> ResumeFile:
-    """The applicant's current resume, for the creator who owns the opportunity (or the
-    applicant). To anyone else the application doesn't exist."""
+    """The resume saved with the application, for its creator or applicant only."""
     application = application_repository.get(session, application_id)
     if application is None or (
         application.contributor_id != user.user_id
         and application.opportunity.organization.owner_user_id != user.user_id
     ):
         raise NotFoundError("Application not found", code="APPLICATION_NOT_FOUND")
+    if application.resume_storage_key:
+        try:
+            stream = storage.open(application.resume_storage_key)
+        except StoredFileMissing:
+            raise _not_found() from None
+        return ResumeFile(
+            stream,
+            application.resume_file_name or "resume.pdf",
+            application.resume_content_type or CONTENT_TYPE,
+            application.resume_size_bytes or 0,
+        )
     resume = resume_repository.get(session, application.contributor_id)
     if resume is None:
         raise _not_found()
