@@ -146,6 +146,8 @@ export default function CreateOpportunity() {
   const [submitting, setSubmitting] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const [error, setError] = useState("");
+  // POST /opportunities answers 409 ORGANIZATION_REQUIRED until the creator sets one up.
+  const [organizationRequired, setOrganizationRequired] = useState(false);
   const [success, setSuccess] = useState("");
   // Set once the draft exists, so a retry after a failed publish reuses it.
   const [draftId, setDraftId] = useState<number | null>(null);
@@ -369,9 +371,16 @@ export default function CreateOpportunity() {
       const data: unknown = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(getErrorMessage(data));
+        const code = (data as { error?: { code?: string } } | null)?.error?.code;
+        setOrganizationRequired(code === "ORGANIZATION_REQUIRED");
+        throw new Error(
+          code === "ORGANIZATION_REQUIRED"
+            ? "Set up your organization before creating opportunities."
+            : getErrorMessage(data)
+        );
       }
 
+      setOrganizationRequired(false);
       const created = data as CreatedOpportunity;
 
       if (created.opportunity_id) {
@@ -465,6 +474,11 @@ export default function CreateOpportunity() {
           <div className="co-alert co-alert-error" role="alert">
             <strong>Unable to continue</strong>
             <p>{error}</p>
+            {organizationRequired && (
+              <p>
+                <Link to="/creator/profile#organization">Set up your organization</Link>
+              </p>
+            )}
           </div>
         )}
 

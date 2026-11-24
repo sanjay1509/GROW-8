@@ -1,0 +1,216 @@
+.sw-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.sw-dialog {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+  color: #1c2538;
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 13px;
+}
+
+.sw-dialog * {
+  box-sizing: border-box;
+}
+
+.sw-dialog header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid #eef1f6;
+}
+
+.sw-dialog h2 {
+  margin: 0 0 3px;
+  font-size: 17px;
+}
+
+.sw-dialog header p {
+  margin: 0;
+  color: #6b778c;
+}
+
+.sw-close {
+  display: inline-flex;
+  padding: 5px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: #536074;
+  cursor: pointer;
+}
+
+.sw-dialog form {
+  display: grid;
+  gap: 14px;
+  padding: 16px 20px 20px;
+}
+
+.sw-field {
+  display: grid;
+  gap: 5px;
+}
+
+.sw-field > span {
+  font-weight: 650;
+}
+
+.sw-field textarea,
+.sw-field input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.sw-field textarea {
+  resize: vertical;
+}
+
+.sw-hours input {
+  max-width: 160px;
+}
+
+.sw-field small {
+  justify-self: end;
+  color: #8a94a6;
+  font-size: 11px;
+}
+
+.sw-field small.is-over,
+.sw-field em {
+  color: #a12b2b;
+  font-style: normal;
+}
+
+.sw-field.has-error textarea,
+.sw-field.has-error input {
+  border-color: #d14343;
+}
+
+.sw-hint,
+.sw-note {
+  margin: 0;
+  color: #6b778c;
+  font-size: 12px;
+}
+
+.sw-files {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sw-files li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid #e4e9f3;
+  border-radius: 8px;
+  background: #f8faff;
+}
+
+.sw-files li span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sw-files li small {
+  color: #7c879a;
+}
+
+.sw-files li button {
+  display: inline-flex;
+  padding: 3px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.sw-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: fit-content;
+  padding: 8px 14px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #303d52;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sw-button.is-primary {
+  border-color: #155ce8;
+  background: #155ce8;
+  color: #fff;
+}
+
+.sw-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sw-progress {
+  position: relative;
+  height: 10px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #e7ecf4;
+}
+
+.sw-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #155ce8;
+  transition: width 0.15s ease;
+}
+
+.sw-progress em {
+  position: absolute;
+  right: 0;
+  top: -18px;
+  color: #536074;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.sw-error {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #fdecec;
+  color: #a12b2b;
+}
+
+.sw-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

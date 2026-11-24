@@ -16,6 +16,7 @@ class ApplicationCreate(BaseModel):
     motivation: str | None = Field(
         None, min_length=1, max_length=5_000, description="Why you are a good fit (optional)"
     )
+    application_details: dict[str, str] = Field(default_factory=dict)
 
 
 class Decision(StrEnum):
@@ -57,6 +58,7 @@ class ApplicationRead(BaseModel):
     application_id: int
     status: ApplicationStatus
     motivation: str | None
+    application_details: dict[str, str] = Field(default_factory=dict)
     submitted_at: UtcDateTime
     decided_at: UtcDateTime | None
     opportunity: ApplicationOpportunity
@@ -76,6 +78,7 @@ class ApplicationRead(BaseModel):
             application_id=application.application_id,
             status=application.status,
             motivation=application.motivation,
+            application_details=application.application_details or {},
             submitted_at=application.submitted_at,
             decided_at=application.decided_at,
             opportunity=ApplicationOpportunity.model_validate(application.opportunity),

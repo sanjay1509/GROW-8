@@ -7,7 +7,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "./SignUpLogin.css";
 
 const API_BASE_URL =
@@ -30,9 +30,14 @@ type LoginResponse = {
 
 export default function SignUpLogin() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const [mode, setMode] = useState<"signup" | "login">("signup");
-  const [role, setRole] = useState<UserRole>("contributor");
+  const [mode, setMode] = useState<"signup" | "login">(
+    searchParams.get("mode") === "login" ? "login" : "signup"
+  );
+  const [role, setRole] = useState<UserRole>(
+    searchParams.get("role") === "creator" ? "creator" : "contributor"
+  );
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -135,8 +140,12 @@ export default function SignUpLogin() {
           navigate("/creator/dashboard");
         } else if (currentRole === "admin") {
           navigate("/admin");
+        } else if (currentRole === "contributor") {
+          navigate("/contributor-dashboard");
         } else {
-          navigate("/");
+          // The login screen requires an explicit contributor or creator role;
+          // fall back to the selected role if the API omits it.
+          navigate(role === "creator" ? "/creator/dashboard" : "/contributor-dashboard");
         }
       }, 500);
     } catch (err) {

@@ -42,6 +42,8 @@ type Opportunity = {
   compensation_amount?: number | null;
 };
 
+type TakedownReport = { reason: string; details: string | null; admin_reason: string | null };
+
 function formatDate(value?: string | null) {
   if (!value) return "Not available";
 
@@ -96,6 +98,7 @@ export default function MyOpportunities() {
 
   const [selectedOpportunity, setSelectedOpportunity] =
     useState<Opportunity | null>(null);
+  const [takedownReports, setTakedownReports] = useState<TakedownReport[]>([]);
 
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [changingId, setChangingId] = useState<number | null>(null);
@@ -161,6 +164,13 @@ export default function MyOpportunities() {
   // Close the details popup with Escape.
   useEffect(() => {
     if (!selectedOpportunity) return;
+    setTakedownReports([]);
+    if (selectedOpportunity.status.toLowerCase() === "cancelled") {
+      const token = localStorage.getItem("access_token");
+      void fetch(`${API_BASE_URL}/opportunities/${selectedOpportunity.opportunity_id}/takedown-report`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }).then((response) => response.ok ? response.json() : []).then((reports) => setTakedownReports(reports));
+    }
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -572,6 +582,19 @@ export default function MyOpportunities() {
                     "No description provided."}
                 </p>
               </div>
+
+              {takedownReports.length > 0 && (
+                <div className="mo-modal-section">
+                  <h3>Report reviewed by GROW8</h3>
+                  {takedownReports.map((report, index) => (
+                    <div key={index} className="mo-modal-report">
+                      <strong>{report.reason.replaceAll("_", " ")}</strong>
+                      {report.details && <p>{report.details}</p>}
+                      {report.admin_reason && <p><b>Admin decision:</b> {report.admin_reason}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="mo-modal-info-grid">
                 <div className="mo-modal-info">

@@ -233,6 +233,7 @@ CREATE TABLE application (
     contributor_id INT UNSIGNED NOT NULL,
     status         ENUM('pending', 'accepted', 'rejected', 'withdrawn') NOT NULL DEFAULT 'pending',
     motivation     TEXT     NULL,
+    application_details JSON NULL,
     submitted_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     decided_at     DATETIME NULL,
     PRIMARY KEY (application_id),
@@ -548,12 +549,17 @@ DROP PROCEDURE IF EXISTS grow8_require_application_identity $$
 CREATE PROCEDURE grow8_require_application_identity(
     IN p_old_opportunity_id INT UNSIGNED, IN p_new_opportunity_id INT UNSIGNED,
     IN p_old_contributor_id INT UNSIGNED, IN p_new_contributor_id INT UNSIGNED,
-    IN p_old_submitted_at DATETIME, IN p_new_submitted_at DATETIME)
+    IN p_old_submitted_at DATETIME, IN p_new_submitted_at DATETIME,
+    IN p_old_status VARCHAR(20), IN p_new_status VARCHAR(20))
 BEGIN
     IF p_old_opportunity_id IS NOT NULL AND (
         p_old_opportunity_id <> p_new_opportunity_id
         OR p_old_contributor_id <> p_new_contributor_id
         OR p_old_submitted_at <> p_new_submitted_at
+    ) AND NOT (
+        p_old_opportunity_id = p_new_opportunity_id
+        AND p_old_contributor_id = p_new_contributor_id
+        AND p_old_status = 'withdrawn' AND p_new_status = 'pending'
     ) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'application_immutable: contributor, opportunity and submitted_at cannot change';
@@ -691,7 +697,8 @@ CREATE TRIGGER trg_creator_organization_bu BEFORE UPDATE ON creator_organization
 CREATE TRIGGER trg_application_bi BEFORE INSERT ON application FOR EACH ROW
 BEGIN
     CALL grow8_require_application_identity(
-        NULL, NEW.opportunity_id, NULL, NEW.contributor_id, NULL, NEW.submitted_at);
+        NULL, NEW.opportunity_id, NULL, NEW.contributor_id, NULL, NEW.submitted_at,
+        NULL, NEW.status);
     IF NEW.status IN ('pending', 'accepted') THEN
         CALL grow8_require_application_capacity(
             NULL, NEW.opportunity_id, NEW.submitted_at, TRUE);
@@ -701,7 +708,7 @@ CREATE TRIGGER trg_application_bu BEFORE UPDATE ON application FOR EACH ROW
 BEGIN
     CALL grow8_require_application_identity(
         OLD.opportunity_id, NEW.opportunity_id, OLD.contributor_id, NEW.contributor_id,
-        OLD.submitted_at, NEW.submitted_at);
+        OLD.submitted_at, NEW.submitted_at, OLD.status, NEW.status);
     CALL grow8_require_application_status_change_allowed(
         OLD.application_id, OLD.status, NEW.status);
     -- re-activating a rejected or withdrawn application needs a free place again

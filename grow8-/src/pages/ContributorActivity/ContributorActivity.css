@@ -1,0 +1,343 @@
+/* Shared by My Experience, Feedback and My Reports. */
+
+.act-page {
+  display: grid;
+  gap: 16px;
+  max-width: 920px;
+  color: #172235;
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.act-page * {
+  box-sizing: border-box;
+}
+
+.act-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.act-eyebrow {
+  display: inline-block;
+  margin-bottom: 5px;
+  color: #1458e7;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+
+.act-header h1 {
+  margin: 0 0 4px;
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.6px;
+}
+
+.act-header p,
+.act-muted {
+  margin: 0;
+  max-width: 640px;
+  color: #687387;
+}
+
+.act-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 7px 13px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #303d52;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.act-button:disabled {
+  opacity: 0.6;
+}
+
+.act-spin {
+  animation: act-spin 1s linear infinite;
+}
+
+@keyframes act-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.act-error {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #fdecec;
+  color: #a12b2b;
+}
+
+.act-notice {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #eaf7ee;
+  color: #246b3b;
+}
+
+/* My Skills keeps the profile page's chip and control styling. */
+.act-skill-group { display: grid; gap: 10px; }
+.act-skill-group + .act-skill-group { padding-top: 14px; border-top: 1px solid #eef1f6; }
+.act-skill-group h2 { margin: 0; font-size: 13px; font-weight: 700; }
+.act-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.act-chips li {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px 5px 11px;
+  border: 1px solid #d9e1ee;
+  border-radius: 999px;
+  background: #f6f8fc;
+  color: #2a364b;
+  font-weight: 600;
+}
+.act-chips li:has(small) { border-color: #b9e2c8; background: #edf9f1; color: #1c6b3c; }
+.act-chips small { color: #4f8a64; font-size: 11px; font-weight: 500; }
+.act-chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid #d6deeb;
+  border-radius: 999px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.act-chips button:disabled { opacity: .5; cursor: not-allowed; }
+.act-skill-add { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.act-skill-add select {
+  width: auto;
+  min-width: 220px;
+  flex: 0 1 300px;
+  padding: 8px 10px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #172235;
+  font: inherit;
+}
+
+.act-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.act-stats > div {
+  display: grid;
+  gap: 2px;
+  padding: 16px;
+  border: 1px solid #e7ebf2;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.act-stats svg {
+  color: #155ce8;
+}
+
+.act-stats strong {
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+}
+
+.act-stats span {
+  color: #687387;
+}
+
+.act-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+  border: 1px solid #e7ebf2;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.act-card h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.act-card-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.act-card-title span {
+  color: #6b778c;
+}
+
+.act-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.act-empty {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  color: #5f6b80;
+}
+
+.act-empty p {
+  margin: 0;
+}
+
+.act-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.act-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid #b9e2c8;
+  border-radius: 999px;
+  background: #edf9f1;
+  color: #1c6b3c;
+  font-weight: 600;
+}
+
+.act-chips small {
+  color: #4f8a64;
+  font-weight: 500;
+}
+
+.act-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.act-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 14px;
+  border: 1px solid #e7ebf2;
+  border-radius: 9px;
+}
+
+.act-list-main {
+  display: grid;
+  flex: 1;
+  min-width: 220px;
+  gap: 2px;
+}
+
+.act-list-main span {
+  color: #6b778c;
+}
+
+.act-list-main p {
+  margin: 6px 0 0;
+  color: #39445a;
+  overflow-wrap: anywhere;
+}
+
+.act-list-side {
+  display: grid;
+  justify-items: end;
+  align-content: start;
+}
+
+.act-list-side strong {
+  color: #1c7c45;
+  font-size: 18px;
+}
+
+.act-list-side span {
+  color: #7c879a;
+  font-size: 12px;
+}
+
+.act-quote,
+.act-review {
+  margin: 0;
+  color: #4c586d;
+  overflow-wrap: anywhere;
+}
+
+.act-quote {
+  font-style: italic;
+}
+
+.act-review {
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #f4f6fa;
+}
+
+.act-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.act-pill.is-completed,
+.act-pill.is-upheld {
+  background: #e6f7ed;
+  color: #23834b;
+}
+
+.act-pill.is-work_rejected {
+  background: #fff0f0;
+  color: #b83232;
+}
+
+.act-pill.is-pending {
+  background: #fff3d9;
+  color: #94630b;
+}
+
+.act-pill.is-dismissed {
+  background: #eef2f7;
+  color: #58657b;
+}
+
+@media (max-width: 760px) {
+  .act-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

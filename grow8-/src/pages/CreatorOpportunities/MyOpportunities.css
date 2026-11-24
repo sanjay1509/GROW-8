@@ -453,6 +453,16 @@
   overflow-wrap: anywhere;
 }
 
+.mo-modal-report {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid #f0c4c4;
+  border-radius: 9px;
+  background: #fff4f4;
+}
+.mo-modal-report strong { text-transform: capitalize; }
+.mo-modal-report p { margin: 5px 0 0; }
+
 .mo-modal-info-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

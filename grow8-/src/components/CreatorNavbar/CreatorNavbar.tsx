@@ -225,6 +225,19 @@ function CreatorNavbarActions() {
     }
   }
 
+  // The profile and settings pages save the name; show the new one straight away.
+  useEffect(() => {
+    function handleNameChange() {
+      const name = localStorage.getItem("user_name");
+      if (name) {
+        setCreator((current) => ({ ...current, name }));
+      }
+    }
+
+    window.addEventListener("grow8:user-name-changed", handleNameChange);
+    return () => window.removeEventListener("grow8:user-name-changed", handleNameChange);
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -332,7 +345,11 @@ function CreatorNavbarActions() {
     closePopover();
 
     if (notification.opportunity_id) {
-      navigate(`/creator/opportunities`);
+      if (notification.notification_type === "application_submitted") {
+        navigate(`/creator/applications?opportunity=${notification.opportunity_id}`);
+      } else {
+        navigate(`/creator/opportunities`);
+      }
     }
   }
 

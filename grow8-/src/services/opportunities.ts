@@ -85,9 +85,12 @@ function mapOpportunity(item: ApiOpportunity): Opportunity {
 // FETCH PUBLIC OPPORTUNITIES
 // ==================================================
 
-export async function fetchOpportunities(): Promise<Opportunity[]> {
+export async function fetchOpportunities(
+  options: { signal?: AbortSignal } = {}
+): Promise<Opportunity[]> {
   const response = await fetch(
-    `${API_BASE_URL}/opportunities?limit=100&offset=0&sort=deadline`
+    `${API_BASE_URL}/opportunities?limit=100&offset=0&sort=deadline`,
+    { signal: options.signal }
   );
 
   if (!response.ok) {
