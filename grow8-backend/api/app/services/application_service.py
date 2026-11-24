@@ -26,7 +26,12 @@ from sqlalchemy.orm import Session
 from app.core.exceptions import ConflictError, ForbiddenError, NotFoundError
 from app.core.time import utcnow
 from app.events.publisher import EventPublisher
-from app.repositories import application_repository, opportunity_repository, resume_repository, user_repository
+from app.repositories import (
+    application_repository,
+    opportunity_repository,
+    resume_repository,
+    user_repository,
+)
 from app.repositories.db_errors import duplicate_key, trigger_rule
 from app.schemas.application import (
     ApplicationCreate,
@@ -36,8 +41,7 @@ from app.schemas.application import (
     ReceivedApplicationParams,
 )
 from app.schemas.common import Page
-from app.services import application_rules
-from app.services import resume_service
+from app.services import application_rules, resume_service
 from app.storage.base import FileStorage, new_key
 
 _MESSAGES = {
@@ -135,8 +139,9 @@ def apply(
 
     existing = application_repository.find(session, contributor.user_id, opportunity_id)
     if existing is not None:
-        if existing.status == ApplicationStatus.WITHDRAWN and not application_repository.has_submission(
-            session, existing.application_id
+        if (
+            existing.status == ApplicationStatus.WITHDRAWN
+            and not application_repository.has_submission(session, existing.application_id)
         ):
             # Reuse the unique application row, preserving its id and any related
             # history while allowing a contributor to apply again after withdrawal.
@@ -155,7 +160,9 @@ def apply(
             existing.application_details = data.application_details
             existing.submitted_at = now
             existing.decided_at = None
-            _snapshot_resume(session, storage, contributor.user_id, existing, resume_upload, resume_file_name)
+            _snapshot_resume(
+                session, storage, contributor.user_id, existing, resume_upload, resume_file_name
+            )
             _commit(session)
             publisher.publish(
                 ApplicationSubmittedPayload(
@@ -195,7 +202,9 @@ def apply(
         application_details=data.application_details,
         submitted_at=now,
     )
-    _snapshot_resume(session, storage, contributor.user_id, application, resume_upload, resume_file_name)
+    _snapshot_resume(
+        session, storage, contributor.user_id, application, resume_upload, resume_file_name
+    )
     try:
         application_repository.add(session, application)
     except DBAPIError as exc:
