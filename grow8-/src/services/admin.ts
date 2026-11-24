@@ -14,6 +14,7 @@ export interface Page<T> {
 
 export interface AdminReport extends OpportunityReport {
   reporter: { user_id: number; full_name: string };
+  creator: { user_id: number; full_name: string };
   open_reports_on_opportunity: number;
 }
 

@@ -57,6 +57,7 @@ export interface Application {
   application_id: number;
   status: ApplicationStatus;
   motivation?: string | null;
+  application_details?: Record<string, string>;
   submitted_at: string;
   decided_at: string | null;
   opportunity: ApplicationOpportunity;
@@ -119,13 +120,12 @@ function buildApplicationQuery(
 
 export async function applyToOpportunity(
   opportunityId: number | string,
-  motivation?: string
+  motivation?: string,
+  applicationDetails: Record<string, string> = {}
 ): Promise<Application> {
   const trimmedMotivation = motivation?.trim();
 
-  const body = trimmedMotivation
-    ? { motivation: trimmedMotivation }
-    : {};
+  const body = { motivation: trimmedMotivation || null, application_details: applicationDetails };
 
   return apiRequest<Application>(
     `/opportunities/${opportunityId}/applications`,

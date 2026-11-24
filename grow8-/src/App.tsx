@@ -2,6 +2,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import HomePage from "./pages/HomePage/HomePage";
+import AboutPage from "./pages/AboutPage/AboutPage";
+import ContactPage from "./pages/AboutPage/ContactPage";
 import BrowseOpportunities from "./pages/BrowseOpportunities/BrowseOpportunitites";
 import SignUpLogin from "./pages/Auth/SignUpLogin";
 
@@ -33,6 +35,7 @@ import ContributorSettings from "./pages/ContributorSettings/ContributorSettings
 import ContributorExperience from "./pages/ContributorActivity/ContributorExperience";
 import ContributorFeedback from "./pages/ContributorActivity/ContributorFeedback";
 import ContributorReports from "./pages/ContributorActivity/ContributorReports";
+import ContributorSkills from "./pages/ContributorActivity/ContributorSkills";
 
 import "./App.css";
 
@@ -41,6 +44,8 @@ export default function App() {
     <Routes>
       {/* Public pages */}
       <Route path="/" element={<HomePage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/login" element={<SignUpLogin />} />
       <Route path="/opportunities" element={<BrowseOpportunities />} />
 
@@ -73,7 +78,7 @@ export default function App() {
 
           <Route
             path="/contributor/skills"
-            element={<Navigate to="/contributor/profile#skills" replace />}
+            element={<ContributorSkills />}
           />
 
           <Route
@@ -109,10 +114,6 @@ export default function App() {
 
         <Route path="applications" element={<CreatorApplications />} />
         <Route path="submissions" element={<CreatorSubmissions />} />
-
-
-        {/* Creator pages not implemented yet */}
-        <Route path="submissions" element={null} />
         <Route path="settings" element={<CreatorSettings/>} />
 
         <Route

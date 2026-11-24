@@ -345,7 +345,11 @@ function CreatorNavbarActions() {
     closePopover();
 
     if (notification.opportunity_id) {
-      navigate(`/creator/opportunities`);
+      if (notification.notification_type === "application_submitted") {
+        navigate(`/creator/applications?opportunity=${notification.opportunity_id}`);
+      } else {
+        navigate(`/creator/opportunities`);
+      }
     }
   }
 

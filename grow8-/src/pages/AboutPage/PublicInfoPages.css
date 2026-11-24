@@ -1,0 +1,38 @@
+.grow8-info-page {
+  width: min(1440px, calc(100% - 32px));
+  min-height: calc(100vh - 24px);
+  margin: 12px auto;
+  overflow: hidden;
+  border: 1px solid #dce6f5;
+  border-radius: 18px;
+  background: #fff;
+  color: #172033;
+  font-family: "Inter", Arial, sans-serif;
+  box-shadow: 0 8px 30px rgb(28 44 75 / 4%);
+}
+.grow8-info-content, .grow8-contact-content { width: min(1100px, calc(100% - 48px)); margin: 0 auto; }
+.grow8-info-content { padding: 20px 0 55px; }
+.grow8-info-content .grow8-about { padding-top: 35px; }
+.grow8-info-cta { padding: 27px; border: 1px solid #e5edfa; border-radius: 14px; background: #f7f9ff; text-align: center; }
+.grow8-info-cta h2 { margin: 0 0 7px; }
+.grow8-info-cta p { color: #627187; }
+.grow8-info-cta > div { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.grow8-info-cta a, .grow8-contact-form button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px; border: 0; border-radius: 8px; background: #1557e9; color: white; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.grow8-info-cta a:first-child { border: 1px solid #d6deeb; background: white; color: #263248; }
+.grow8-contact-content { padding: 55px 0 70px; }
+.grow8-contact-heading { max-width: 680px; margin: 0 auto 30px; text-align: center; }
+.grow8-contact-heading > span { color: #1557d7; font-size: 11px; font-weight: 800; letter-spacing: 2px; }
+.grow8-contact-heading h1 { margin: 9px 0; color: #0b1428; font-size: 36px; }
+.grow8-contact-heading p { color: #627187; line-height: 1.7; }
+.grow8-contact-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(240px, .8fr); gap: 20px; }
+.grow8-contact-form, .grow8-contact-help { display: grid; align-content: start; gap: 15px; padding: 24px; border: 1px solid #e5eaf2; border-radius: 14px; background: white; }
+.grow8-contact-form label { display: grid; gap: 6px; color: #344054; font-size: 13px; font-weight: 650; }
+.grow8-contact-form input, .grow8-contact-form textarea, .grow8-contact-form select { width: 100%; padding: 10px 11px; border: 1px solid #d6deeb; border-radius: 8px; color: #172235; font: inherit; }
+.grow8-contact-form textarea { resize: vertical; }
+.grow8-contact-form button { justify-self: start; }
+.grow8-contact-success { margin: 0; color: #246b3b; }
+.grow8-contact-help h2 { margin: 0 0 3px; font-size: 17px; }
+.grow8-contact-help a { display: flex; gap: 11px; padding: 13px; border: 1px solid #e5eaf2; border-radius: 9px; color: #1557d7; text-decoration: none; }
+.grow8-contact-help a span { display: grid; gap: 4px; color: #263248; }
+.grow8-contact-help small { color: #687387; line-height: 1.5; }
+@media (max-width: 700px) { .grow8-contact-grid { grid-template-columns: 1fr; } .grow8-contact-content, .grow8-info-content { width: calc(100% - 28px); } .grow8-contact-heading h1 { font-size: 30px; } }

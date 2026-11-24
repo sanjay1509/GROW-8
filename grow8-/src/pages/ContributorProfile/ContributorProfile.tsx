@@ -2,16 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import type { ChangeEvent, FormEvent } from "react";
 import {
-  BadgeCheck,
   Download,
   FileText,
   Mail,
-  Plus,
   Save,
   Trash2,
   Upload,
   UserRound,
-  X,
 } from "lucide-react";
 
 import {
@@ -25,13 +22,10 @@ import {
 } from "../../services/resume";
 import type { Resume } from "../../services/resume";
 import {
-  MAX_LISTED_SKILLS,
   getMyProfile,
-  getSkills,
-  setMySkills,
   updateMyProfile,
 } from "../../services/profile";
-import type { ContributorProfile as Profile, Skill } from "../../services/profile";
+import type { ContributorProfile as Profile } from "../../services/profile";
 import { changedFields, errorMessage, fieldErrorsFrom } from "../../services/formErrors";
 import type { FieldErrors } from "../../services/formErrors";
 import "./ContributorProfile.css";
@@ -95,11 +89,6 @@ export default function ContributorProfile() {
   const [savingProfile, setSavingProfile] = useState(false);
 
   // ---------- skills ----------
-  const [allSkills, setAllSkills] = useState<Skill[]>([]);
-  const [skillToAdd, setSkillToAdd] = useState("");
-  const [savingSkills, setSavingSkills] = useState(false);
-  const [skillsError, setSkillsError] = useState("");
-  const [skillsNotice, setSkillsNotice] = useState("");
 
   // ---------- resume ----------
   const [resume, setResume] = useState<Resume | null>(null);
@@ -116,10 +105,22 @@ export default function ContributorProfile() {
   // /contributor/profile#skills (the sidebar's "My Skills") scrolls to that section.
   const { hash } = useLocation();
   useEffect(() => {
-    if (!profileLoading && hash) {
-      document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [hash, profileLoading]);
+    if (!hash) return;
+    const sectionId = hash.slice(1);
+    let attempts = 0;
+    let timer = 0;
+    const scrollToSection = () => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (attempts++ < 20) {
+        timer = window.setTimeout(scrollToSection, 50);
+      }
+    };
+    // Wait for route rendering and layout before scrolling to a hash target.
+    timer = window.setTimeout(scrollToSection, 0);
+    return () => window.clearTimeout(timer);
+  }, [hash]);
 
   useEffect(() => {
     let active = true;
@@ -134,14 +135,6 @@ export default function ContributorProfile() {
       })
       .finally(() => {
         if (active) setProfileLoading(false);
-      });
-
-    getSkills()
-      .then((skills) => {
-        if (active) setAllSkills(skills);
-      })
-      .catch(() => {
-        if (active) setSkillsError("The list of skills could not be loaded.");
       });
 
     getMyResume()
@@ -224,54 +217,6 @@ export default function ContributorProfile() {
     } finally {
       setSavingProfile(false);
     }
-  }
-
-  // ---------- skills ----------
-
-  const listedSkills = profile?.skills.filter((skill) => skill.listed) ?? [];
-  const earnedOnly = profile?.skills.filter((skill) => !skill.listed && skill.verified) ?? [];
-  const listedCodes = listedSkills.map((skill) => skill.code);
-  const addable = allSkills.filter((skill) => !listedCodes.includes(skill.code));
-
-  async function saveSkills(codes: string[], notice: string) {
-    setSkillsError("");
-    setSkillsNotice("");
-    if (codes.length > MAX_LISTED_SKILLS) {
-      setSkillsError(`You can list up to ${MAX_LISTED_SKILLS} skills.`);
-      return;
-    }
-    setSavingSkills(true);
-    try {
-      const saved = await setMySkills(codes);
-      setProfile(saved);
-      setSkillsNotice(notice);
-    } catch (err) {
-      const unknown = (err as { details?: { unknown_skills?: string[] } }).details?.unknown_skills;
-      setSkillsError(
-        unknown?.length
-          ? `These skills don't exist any more: ${unknown.join(", ")}.`
-          : errorMessage(err, "Your skills could not be saved.")
-      );
-    } finally {
-      setSavingSkills(false);
-    }
-  }
-
-  function addSkill(code: string) {
-    if (!code) return;
-    const name = allSkills.find((skill) => skill.code === code)?.name ?? code;
-    void saveSkills([...listedCodes, code], `${name} was added to your skills.`);
-    setSkillToAdd("");
-  }
-
-  function removeSkill(code: string) {
-    const skill = listedSkills.find((item) => item.code === code);
-    void saveSkills(
-      listedCodes.filter((item) => item !== code),
-      skill?.verified
-        ? `${skill.name} was removed from your list. It stays as a verified skill.`
-        : `${skill?.name ?? "The skill"} was removed.`
-    );
   }
 
   // ---------- resume ----------
@@ -459,118 +404,6 @@ export default function ContributorProfile() {
         {profileError && (
           <p className="cp-error" role="alert">
             {profileError}
-          </p>
-        )}
-      </section>
-
-      {/* ---------- Skills ---------- */}
-      <section className="cp-card" id="skills" aria-labelledby="cp-skills-title">
-        <div className="cp-card-heading">
-          <h2 id="cp-skills-title">Skills</h2>
-          <p>
-            New opportunities that need a skill you list are sent to you. Skills become verified
-            when an organization approves your work.
-          </p>
-        </div>
-
-        {profile && (
-          <>
-            <div className="cp-skill-group">
-              <h3>Your skills</h3>
-              {listedSkills.length === 0 ? (
-                <p className="cp-muted">You haven't listed any skills yet.</p>
-              ) : (
-                <ul className="cp-chips">
-                  {listedSkills.map((skill) => (
-                    <li key={skill.code} className={`cp-chip ${skill.verified ? "is-verified" : ""}`}>
-                      {skill.verified && <BadgeCheck size={14} aria-hidden="true" />}
-                      <span>{skill.name}</span>
-                      {skill.verified && (
-                        <small title={`Verified ${formatDate(skill.verified_at)}`}>
-                          Verified {formatDate(skill.verified_at)}
-                        </small>
-                      )}
-                      <button
-                        type="button"
-                        aria-label={`Remove ${skill.name}`}
-                        onClick={() => removeSkill(skill.code)}
-                        disabled={savingSkills}
-                      >
-                        <X size={13} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <div className="cp-add-skill">
-                <select
-                  value={skillToAdd}
-                  onChange={(event) => setSkillToAdd(event.target.value)}
-                  disabled={savingSkills || addable.length === 0}
-                  aria-label="Choose a skill to add"
-                >
-                  <option value="">
-                    {addable.length === 0 ? "No more skills to add" : "Choose a skill..."}
-                  </option>
-                  {addable.map((skill) => (
-                    <option key={skill.code} value={skill.code}>
-                      {skill.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  className="cp-button"
-                  onClick={() => addSkill(skillToAdd)}
-                  disabled={!skillToAdd || savingSkills}
-                >
-                  <Plus size={15} /> Add
-                </button>
-                <span className="cp-muted">
-                  {listedSkills.length} / {MAX_LISTED_SKILLS}
-                </span>
-              </div>
-            </div>
-
-            {earnedOnly.length > 0 && (
-              <div className="cp-skill-group">
-                <h3>Verified through work</h3>
-                <p className="cp-muted">
-                  You earned these through approved work. Add one to your skills to hear about
-                  opportunities that need it.
-                </p>
-                <ul className="cp-chips">
-                  {earnedOnly.map((skill) => (
-                    <li key={skill.code} className="cp-chip is-verified is-earned">
-                      <BadgeCheck size={14} aria-hidden="true" />
-                      <span>{skill.name}</span>
-                      <small>Verified {formatDate(skill.verified_at)}</small>
-                      <button
-                        type="button"
-                        className="cp-chip-add"
-                        onClick={() => addSkill(skill.code)}
-                        disabled={savingSkills}
-                      >
-                        <Plus size={13} /> Add to your skills
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </>
-        )}
-
-        {savingSkills && <p className="cp-muted">Saving...</p>}
-        {skillsNotice && (
-          <p className="cp-notice" role="status">
-            {skillsNotice}
-          </p>
-        )}
-        {skillsError && (
-          <p className="cp-error" role="alert">
-            {skillsError}
           </p>
         )}
       </section>

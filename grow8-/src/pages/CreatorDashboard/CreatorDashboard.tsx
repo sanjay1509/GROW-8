@@ -17,17 +17,17 @@ import { useCreatorWorkspace } from "../../context/CreatorWorkspaceContext";
 export default function CreatorDashboard() {
   const { opportunities, applications, creatorName, loading, error, refresh } =
     useCreatorWorkspace();
+  const { apiApplications } = useCreatorWorkspace();
 
   // In progress: contributors accepted for an opportunity that is still running.
-  const inProgress = applications.filter(
+  const inProgress = apiApplications.filter(
     (application) =>
-      application.status === "Selected" &&
-      opportunities.find((opportunity) => opportunity.id === application.opportunityId)
+      application.status === "accepted" &&
+      application.work_status !== "completed" &&
+      opportunities.find((opportunity) => opportunity.id === application.opportunity.opportunity_id)
         ?.status === "Open"
   ).length;
-  const completed = opportunities.filter(
-    (opportunity) => opportunity.status === "Completed"
-  ).length;
+  const completed = apiApplications.filter((application) => application.work_status === "completed").length;
 
   const stats = [
     {

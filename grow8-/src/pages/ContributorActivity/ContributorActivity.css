@@ -83,6 +83,61 @@
   color: #a12b2b;
 }
 
+.act-notice {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #eaf7ee;
+  color: #246b3b;
+}
+
+/* My Skills keeps the profile page's chip and control styling. */
+.act-skill-group { display: grid; gap: 10px; }
+.act-skill-group + .act-skill-group { padding-top: 14px; border-top: 1px solid #eef1f6; }
+.act-skill-group h2 { margin: 0; font-size: 13px; font-weight: 700; }
+.act-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.act-chips li {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px 5px 11px;
+  border: 1px solid #d9e1ee;
+  border-radius: 999px;
+  background: #f6f8fc;
+  color: #2a364b;
+  font-weight: 600;
+}
+.act-chips li:has(small) { border-color: #b9e2c8; background: #edf9f1; color: #1c6b3c; }
+.act-chips small { color: #4f8a64; font-size: 11px; font-weight: 500; }
+.act-chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid #d6deeb;
+  border-radius: 999px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.act-chips button:disabled { opacity: .5; cursor: not-allowed; }
+.act-skill-add { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.act-skill-add select {
+  width: auto;
+  min-width: 220px;
+  flex: 0 1 300px;
+  padding: 8px 10px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #172235;
+  font: inherit;
+}
+
 .act-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

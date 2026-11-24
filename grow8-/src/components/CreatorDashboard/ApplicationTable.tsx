@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function ApplicationTable({ applications, label }: Props) {
-  const { opportunities } = useCreatorWorkspace();
+  const { opportunities, apiApplications, approvedSubmissions } = useCreatorWorkspace();
 
   return (
     <div className="creator-table-wrap">
@@ -19,16 +19,25 @@ export default function ApplicationTable({ applications, label }: Props) {
             <th scope="col">Applicant</th>
             <th scope="col">Opportunity</th>
             <th scope="col">Status</th>
+            <th scope="col">Work</th>
+            <th scope="col">Verified hours</th>
             <th scope="col">Applied Date</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
           {applications.map((application) => (
+            (() => {
+              const apiApplication = apiApplications.find((item) => item.application_id === application.id);
+              const submission = approvedSubmissions.find((item) => item.application_id === application.id);
+              const workStatus = submission ? "Completed" : apiApplication?.work_status === "awaiting_verification" ? "Under review" : apiApplication?.work_status === "work_rejected" ? "Rejected" : "—";
+              return (
             <tr key={application.id}>
               <td>{application.name}</td>
               <td>{opportunities.find((opportunity) => opportunity.id === application.opportunityId)?.title}</td>
-              <td><Status>{application.status}</Status></td>
+              <td><Status>{submission ? "Completed" : application.status}</Status></td>
+              <td>{workStatus}</td>
+              <td>{submission?.verification?.verified_hours != null ? `${Number(submission.verification.verified_hours)} h` : "—"}</td>
               <td className="creator-date">{application.appliedDate}</td>
               <td>
                 <Link
@@ -40,6 +49,8 @@ export default function ApplicationTable({ applications, label }: Props) {
                 </Link>
               </td>
             </tr>
+              );
+            })()
           ))}
         </tbody>
       </table>
