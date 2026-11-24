@@ -90,9 +90,9 @@ Lifecycle: **pending** → accepted / rejected (creator, once) · pending or acc
 
 | Method | Path | Who | Notes |
 | --- | --- | --- | --- |
-| POST | `/opportunities/{id}/applications` | contributor | Body `{motivation?}` (1–5000 chars) → 201. Only while the opportunity is `open`, before its deadline, and while pending + accepted applications are below `applicant_limit`. One application per opportunity, ever. Emits `APPLICATION_SUBMITTED`. |
+| POST | `/opportunities/{id}/applications` | contributor | `multipart/form-data`: `motivation` (optional, 1–5000 chars), `application_details` (optional JSON object as text, e.g. phone and study; not valid JSON → 422 `VALIDATION_ERROR`) and `resume` (optional PDF, at most 10 MB; 415 `UNSUPPORTED_FILE_TYPE`, 413 `RESUME_TOO_LARGE`) → 201. Without a `resume`, a copy of the profile resume (if any) is kept with the application. Only while the opportunity is `open`, before its deadline, and while pending + accepted applications are below `applicant_limit`. One application per opportunity: applying again while it's active → 409 `APPLICATION_DUPLICATE`; after withdrawing (and before any work was submitted) the same application is reused and goes back to `pending`. Emits `APPLICATION_SUBMITTED`. |
 | GET | `/opportunities/{id}/applications` | owning creator | Applications to your opportunity, newest first. `status` (repeatable), `limit`, `offset`. |
-| GET | `/applications/mine` | contributor | Your applications, newest first. Same parameters. |
+| GET | `/applications/mine` | contributor | Your applications, newest first. Same parameters plus `opportunity_id`. |
 | GET | `/applications/received` | creator | Applications to all your opportunities, newest first. Same parameters plus `opportunity_id` (one of yours; another's matches nothing). |
 | GET | `/applications/{id}` | the applicant or the owning creator | Anyone else → 404. |
 | POST | `/applications/{id}/decision` | owning creator | Body `{decision: "accepted" \| "rejected"}`. Pending only (409 `APPLICATION_NOT_PENDING`). Allowed after the deadline and after closing, not after cancelling (409 `OPPORTUNITY_CANCELLED`). Emits `APPLICATION_DECIDED`. |
@@ -203,7 +203,7 @@ A contributor can keep one optional PDF resume (at most 10 MB). Creators can dow
 | GET | `/contributors/me/resume` | contributor | Your resume's metadata, or 404 `RESUME_NOT_FOUND`. |
 | GET | `/contributors/me/resume/file` | contributor | Downloads the PDF. |
 | DELETE | `/contributors/me/resume` | contributor | → 204. Creators lose access too. |
-| GET | `/applications/{id}/resume` | owning creator (or the applicant) | Downloads the applicant's **current** resume. Works for any application status. Anyone else → 404 `APPLICATION_NOT_FOUND`; no resume → 404 `RESUME_NOT_FOUND`. |
+| GET | `/applications/{id}/resume` | owning creator (or the applicant) | Downloads the resume kept with the application (sent with it, or copied from the profile when applying); falls back to the applicant's current profile resume for older applications. Works for any application status. Anyone else → 404 `APPLICATION_NOT_FOUND`; no resume → 404 `RESUME_NOT_FOUND`. |
 
 Metadata:
 
