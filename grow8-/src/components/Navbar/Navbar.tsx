@@ -182,11 +182,11 @@ export default function Navbar() {
       <div className="grow8-nav-actions">
         {!user ? (
           <>
-            <Link to="/login" className="grow8-nav-button grow8-login">
+            <Link to="/login?mode=login" className="grow8-nav-button grow8-login">
               Login
             </Link>
 
-            <Link to="/login" className="grow8-nav-button grow8-signup">
+            <Link to="/login?mode=signup" className="grow8-nav-button grow8-signup">
               Sign Up
             </Link>
           </>

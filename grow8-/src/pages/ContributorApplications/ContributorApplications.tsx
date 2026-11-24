@@ -55,7 +55,7 @@ type TabValue =
   | "rejected"
   | "withdrawn";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 const tabs: { label: string; value: TabValue }[] = [
   { label: "All", value: "all" },
@@ -326,6 +326,7 @@ export default function ContributorApplications() {
                 application.opportunity?.status?.toLowerCase();
 
               const notice = opportunityNotice(opportunityStatus);
+              const displayStatus = opportunityStatus === "cancelled" ? "closed" : application.status;
 
               const canWithdraw =
                 application.status === "pending" ||
@@ -354,9 +355,9 @@ export default function ContributorApplications() {
                         </div>
 
                         <span
-                          className={`ca-status ca-status-${application.status}`}
+                          className={`ca-status ca-status-${displayStatus}`}
                         >
-                          {statusLabel(application.status)}
+                          {statusLabel(displayStatus)}
                         </span>
                       </div>
 

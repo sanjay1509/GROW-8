@@ -9,13 +9,14 @@ import {
 } from "lucide-react";
 
 import OpportunityCard from "../OpportunityCard/OpportunityCard";
+import type { CardOpportunity } from "../OpportunityCard/OpportunityCard";
 import "./FeaturedOpportunities.css";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
 
 // Randomly select up to three unique opportunities.
-function getRandomOpportunities(opportunities, count = 3) {
+function getRandomOpportunities<T>(opportunities: T[], count = 3): T[] {
   const shuffled = [...opportunities];
 
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -27,7 +28,9 @@ function getRandomOpportunities(opportunities, count = 3) {
 }
 
 // Convert the backend response into the format used by OpportunityCard.
-function normalizeOpportunity(opportunity) {
+// The API returns objects whose fields vary a little between versions, so read them loosely.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeOpportunity(opportunity: any): CardOpportunity {
   const category =
     typeof opportunity.category === "object"
       ? opportunity.category?.name || opportunity.category?.code
@@ -88,7 +91,7 @@ function normalizeOpportunity(opportunity) {
 }
 
 export default function FeaturedOpportunities() {
-  const [featuredItems, setFeaturedItems] = useState([]);
+  const [featuredItems, setFeaturedItems] = useState<CardOpportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -130,7 +133,8 @@ export default function FeaturedOpportunities() {
         // Exclude records without a usable ID or title.
         const validOpportunities = opportunities
           .filter(
-            (item) =>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (item: any) =>
               item &&
               (item.opportunity_id != null || item.id != null) &&
               typeof item.title === "string" &&
@@ -141,7 +145,7 @@ export default function FeaturedOpportunities() {
         // Randomize the results whenever this component loads.
         setFeaturedItems(getRandomOpportunities(validOpportunities, 3));
       } catch (err) {
-        if (err.name !== "AbortError") {
+        if ((err as Error).name !== "AbortError") {
           console.error("Error loading featured opportunities:", err);
           setError("Unable to load opportunities right now.");
           setFeaturedItems([]);

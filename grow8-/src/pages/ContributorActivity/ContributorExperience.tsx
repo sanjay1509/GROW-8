@@ -38,25 +38,34 @@ export default function ContributorExperience() {
       setLoading(true);
       setError("");
       try {
-        const [applications, profile] = await Promise.all([
-          getMyApplications({ status: "accepted", limit: 100 }),
-          getMyProfile(),
-        ]);
+        // The application list is the source of completed work. Profile skills
+        // are supplementary, so a profile endpoint failure must not hide work.
+        const applications = await getMyApplications({ status: "accepted", limit: 100 });
+        const profilePromise = getMyProfile().catch(() => null);
         const completed = applications.items.filter((item) => item.work_status === "completed");
+        // A stale/missing submission for one application should not prevent the
+        // rest of the contributor's verified experience from loading.
         const submissions = await Promise.all(
           completed.map((application) => getApplicationSubmission(application.application_id))
+            .map((promise) => promise.catch(() => null))
         );
+        const profile = await profilePromise;
         if (!active) return;
         setWork(
           completed
-            .map((application, index) => ({ application, submission: submissions[index] }))
+            .flatMap((application, index) => {
+              const submission = submissions[index];
+              return submission?.verification?.decision === "approved"
+                ? [{ application, submission }]
+                : [];
+            })
             .sort((a, b) =>
               (b.submission.verification?.verified_at ?? "").localeCompare(
                 a.submission.verification?.verified_at ?? ""
               )
             )
         );
-        setSkills(profile.skills.filter((skill) => skill.verified));
+        setSkills(profile?.skills.filter((skill) => skill.verified) ?? []);
       } catch (err) {
         if (active) setError(errorMessage(err, "Your experience could not be loaded."));
       } finally {

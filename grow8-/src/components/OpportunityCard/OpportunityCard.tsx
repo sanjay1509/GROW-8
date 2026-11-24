@@ -1,9 +1,23 @@
 
 import React from "react";
 import { MapPin, Monitor, Clock3 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import "./OpportunityCard.css";
 
-export default function OpportunityCard({ opportunity }) {
+/** What the home page's featured cards show (built by FeaturedOpportunities). */
+export interface CardOpportunity {
+  id: number | string;
+  title: string;
+  organization: string;
+  location: string;
+  mode: string;
+  category: string;
+  hours: string;
+  icon: LucideIcon;
+  color?: string;
+}
+
+export default function OpportunityCard({ opportunity }: { opportunity: CardOpportunity }) {
   const {
     title,
     organization,

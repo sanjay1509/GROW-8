@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 
 import Navbar from "../../components/Navbar/Navbar";
+import ContributorNavbar from "../../components/Contributor/ContributorNavbar/ContributorNavbar";
+import ContributorSidebar from "../../components/Contributor/ContributorSidebar/ContributorSidebar";
 import BackToTop from "../../components/BackToTop/BackToTop";
 
 import {
@@ -22,10 +24,11 @@ import {
   type Opportunity,
 } from "../../services/opportunities";
 
-import { applyToOpportunity } from "../../services/applications";
+import { applyToOpportunity, getMyApplications } from "../../services/applications";
 import { ApiError, API_BASE_URL } from "../../services/api";
 import ReportOpportunity from "../../components/ReportOpportunity/ReportOpportunity";
 import { getMyReports } from "../../services/reports";
+import { RESUME_MAX_BYTES, uploadResume } from "../../services/resume";
 
 import "./BrowseOpportunities.css";
 
@@ -88,6 +91,7 @@ const getHoursLabel = (hours?: number | null) => {
   if (hours == null) return "Flexible hours";
   return `${hours} expected hours`;
 };
+const OPPORTUNITIES_PER_PAGE = 10;
 
 // ==================================================
 // BROWSE OPPORTUNITIES COMPONENT
@@ -111,6 +115,16 @@ export default function BrowseOpportunities() {
   // Application state
   const [applyingId, setApplyingId] = useState<number | null>(null);
   const [motivation, setMotivation] = useState("");
+  const [applicationDetails, setApplicationDetails] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    study: "",
+    experience: "",
+    achievements: "",
+  });
+  const [applicationResume, setApplicationResume] = useState<File | null>(null);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [applicationMessage, setApplicationMessage] = useState("");
   const [applicationError, setApplicationError] = useState("");
   const [duplicateApplicationId, setDuplicateApplicationId] =
@@ -128,6 +142,7 @@ export default function BrowseOpportunities() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("deadline");
   const [showFilters, setShowFilters] = useState(true);
+  const [page, setPage] = useState(1);
 
   // Opportunities this contributor has already reported (one report each, ever).
   const [reportedIds, setReportedIds] = useState<Set<number>>(new Set());
@@ -229,6 +244,24 @@ export default function BrowseOpportunities() {
     };
   }, [userRole]);
 
+  useEffect(() => {
+    if (userRole !== "contributor") return;
+    let active = true;
+    getMyApplications({ limit: 100 })
+      .then((page) => {
+        if (!active) return;
+        setAppliedIds(new Set(
+          page.items
+            .filter((application) => application.status !== "withdrawn")
+            .map((application) => application.opportunity.opportunity_id)
+        ));
+      })
+      .catch(() => {
+        // Applying still handles duplicate responses if this background check fails.
+      });
+    return () => { active = false; };
+  }, [userRole]);
+
   // ==================================================
   // LOAD OPPORTUNITIES FROM FASTAPI BACKEND
   // ==================================================
@@ -277,6 +310,15 @@ export default function BrowseOpportunities() {
   // ==================================================
 
   async function handleApply(opportunity: BrowseOpportunity) {
+    const missingDetails = Object.values(applicationDetails).some((value) => !value.trim());
+    if (missingDetails) {
+      setApplicationError("Please complete your name, email, phone, study, experience, and achievements.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(applicationDetails.email.trim())) {
+      setApplicationError("Enter a valid email address.");
+      return;
+    }
     if (!isAuthenticated) {
       navigate("/login");
       return;
@@ -295,9 +337,16 @@ export default function BrowseOpportunities() {
     setDuplicateApplicationId(null);
 
     try {
+      if (applicationResume) {
+        if (applicationResume.size > RESUME_MAX_BYTES) {
+          throw new Error("Resume must be 10 MB or smaller.");
+        }
+        await uploadResume(applicationResume);
+      }
       await applyToOpportunity(
         opportunityId,
-        motivation.trim() || undefined
+        motivation.trim() || undefined,
+        applicationDetails
       );
 
       setAppliedIds((previous) => {
@@ -311,6 +360,8 @@ export default function BrowseOpportunities() {
       );
 
       setMotivation("");
+      setApplicationDetails({ name: "", email: "", phone: "", study: "", experience: "", achievements: "" });
+      setApplicationResume(null);
     } catch (err) {
       if (err instanceof ApiError) {
         const messages: Record<string, string> = {
@@ -524,6 +575,20 @@ export default function BrowseOpportunities() {
     sortBy,
   ]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, selectedCategories, selectedModes, selectedHours, selectedSkills, sortBy]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredOpportunities.length / OPPORTUNITIES_PER_PAGE));
+  const pageOpportunities = filteredOpportunities.slice(
+    (page - 1) * OPPORTUNITIES_PER_PAGE,
+    page * OPPORTUNITIES_PER_PAGE
+  );
+  const signedOutPreview = !authLoading && !isAuthenticated;
+  const visibleOpportunities = signedOutPreview
+    ? filteredOpportunities.slice(0, 4)
+    : pageOpportunities;
+
   // ==================================================
   // CLEAR FILTERS
   // ==================================================
@@ -554,6 +619,9 @@ export default function BrowseOpportunities() {
     setApplicationMessage("");
     setDuplicateApplicationId(null);
     setMotivation("");
+    setApplicationDetails({ name: "", email: "", phone: "", study: "", experience: "", achievements: "" });
+    setApplicationResume(null);
+    setShowApplicationForm(false);
   }
 
   // ==================================================
@@ -561,8 +629,12 @@ export default function BrowseOpportunities() {
   // ==================================================
 
   return (
-    <main className="browse-page">
-      <Navbar />
+    <div className={`browse-page${userRole === "contributor" ? " browse-page--contributor" : ""}`}>
+      {userRole === "contributor" ? <ContributorNavbar /> : <Navbar />}
+
+      <div className={userRole === "contributor" ? "browse-contributor-body" : undefined}>
+      {userRole === "contributor" && <ContributorSidebar />}
+      <main className="browse-main">
 
       {/* Heading banner */}
       <section className="browse-heading">
@@ -748,9 +820,7 @@ export default function BrowseOpportunities() {
 
           <div className="browse-results-count">
             <span>
-              Showing{" "}
-              <strong>{filteredOpportunities.length}</strong>{" "}
-              opportunities
+              Showing <strong>{filteredOpportunities.length ? (page - 1) * OPPORTUNITIES_PER_PAGE + 1 : 0}–{Math.min(page * OPPORTUNITIES_PER_PAGE, filteredOpportunities.length)}</strong> of <strong>{filteredOpportunities.length}</strong> opportunities
             </span>
 
             {hasActiveFilters && (
@@ -807,8 +877,8 @@ export default function BrowseOpportunities() {
 
           {/* Opportunity cards */}
           {!loading && !error && filteredOpportunities.length > 0 && (
-            <div className="browse-opportunity-list">
-              {filteredOpportunities.map((opportunity) => {
+            <div className={`browse-opportunity-list${signedOutPreview && filteredOpportunities.length > 4 ? " browse-opportunity-list--teaser" : ""}`}>
+              {visibleOpportunities.map((opportunity) => {
                 const OpportunityIcon = getIcon(opportunity);
                 const daysRemaining = getDaysRemaining(
                   opportunity.deadline
@@ -897,6 +967,9 @@ export default function BrowseOpportunities() {
                         setApplicationMessage("");
                         setDuplicateApplicationId(null);
                         setMotivation("");
+                        setApplicationDetails({ name: "", email: "", phone: "", study: "", experience: "", achievements: "" });
+                        setApplicationResume(null);
+                        setShowApplicationForm(false);
                       }}
                     >
                       View Details
@@ -905,6 +978,21 @@ export default function BrowseOpportunities() {
                 );
               })}
             </div>
+          )}
+          {signedOutPreview && filteredOpportunities.length > 4 && (
+            <div className="browse-login-more">
+              <p>Log in to explore more opportunities.</p>
+              <button type="button" onClick={() => navigate("/login?mode=login")}>
+                Log in to view more opportunities
+              </button>
+            </div>
+          )}
+          {!loading && !error && filteredOpportunities.length > OPPORTUNITIES_PER_PAGE && (
+            <nav className="browse-pagination" aria-label="Opportunity pages">
+              <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1}>Previous</button>
+              <span>Page {page} of {pageCount}</span>
+              <button type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page === pageCount}>Next</button>
+            </nav>
           )}
         </section>
       </div>
@@ -1040,6 +1128,29 @@ export default function BrowseOpportunities() {
                     </>
                   ) : (
                     <>
+                      {!showApplicationForm ? (
+                        <button
+                          type="button"
+                          className="browse-apply-button"
+                          onClick={() => setShowApplicationForm(true)}
+                        >
+                          Apply Now
+                        </button>
+                      ) : (
+                      <div className="browse-application-form">
+                      <p>Tell the organization a little about yourself.</p>
+                      <label htmlFor="application-name">Full name</label>
+                      <input id="application-name" value={applicationDetails.name} onChange={(event) => setApplicationDetails({ ...applicationDetails, name: event.target.value })} required />
+                      <label htmlFor="application-email">Email</label>
+                      <input id="application-email" type="email" value={applicationDetails.email} onChange={(event) => setApplicationDetails({ ...applicationDetails, email: event.target.value })} required />
+                      <label htmlFor="application-phone">Phone number</label>
+                      <input id="application-phone" type="tel" value={applicationDetails.phone} onChange={(event) => setApplicationDetails({ ...applicationDetails, phone: event.target.value })} required />
+                      <label htmlFor="application-study">Study / education</label>
+                      <input id="application-study" value={applicationDetails.study} onChange={(event) => setApplicationDetails({ ...applicationDetails, study: event.target.value })} required />
+                      <label htmlFor="application-experience">Relevant experience</label>
+                      <textarea id="application-experience" rows={3} value={applicationDetails.experience} onChange={(event) => setApplicationDetails({ ...applicationDetails, experience: event.target.value })} required />
+                      <label htmlFor="application-achievements">Achievements</label>
+                      <textarea id="application-achievements" rows={3} value={applicationDetails.achievements} onChange={(event) => setApplicationDetails({ ...applicationDetails, achievements: event.target.value })} required />
                       <label htmlFor="application-motivation">
                         Motivation (Optional)
                       </label>
@@ -1061,6 +1172,15 @@ export default function BrowseOpportunities() {
                       <div className="browse-character-count">
                         {motivation.length}/5000 characters
                       </div>
+
+                      <label htmlFor="application-resume">Resume (Optional PDF, up to 10 MB)</label>
+                      <input
+                        id="application-resume"
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        onChange={(event) => setApplicationResume(event.target.files?.[0] ?? null)}
+                      />
+                      {applicationResume && <p>{applicationResume.name}</p>}
 
                       {applicationError && (
                         <div
@@ -1125,6 +1245,11 @@ export default function BrowseOpportunities() {
                           ? "Submitting..."
                           : "Apply Now"}
                       </button>
+                      <button type="button" className="browse-apply-button browse-apply-secondary" onClick={() => setShowApplicationForm(false)} disabled={applyingId !== null}>
+                        Back
+                      </button>
+                      </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -1160,6 +1285,8 @@ export default function BrowseOpportunities() {
       )}
 
       <BackToTop />
-    </main>
+      </main>
+      </div>
+    </div>
   );
 }

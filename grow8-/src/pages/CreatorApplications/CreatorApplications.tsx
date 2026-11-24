@@ -284,6 +284,14 @@ export default function CreatorApplications() {
                   <div className="capp-details">
                     <h3>Why they applied</h3>
                     <p>{application.motivation || "No message was included."}</p>
+                    {application.application_details && (
+                      <div className="capp-applicant-details">
+                        <h3>Application details</h3>
+                        {Object.entries(application.application_details).map(([label, value]) => (
+                          <p key={label}><strong>{label === "name" ? "Name" : label === "email" ? "Email" : label === "phone" ? "Phone" : label === "study" ? "Study" : label === "experience" ? "Experience" : "Achievements"}:</strong> {value || "—"}</p>
+                        ))}
+                      </div>
+                    )}
                     {application.decided_at && (
                       <p className="capp-label">Decided {formatDate(application.decided_at)}</p>
                     )}

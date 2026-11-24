@@ -264,7 +264,7 @@ export default function AdminReports() {
                 <div>
                   <h2>{group.title}</h2>
                   <p className="adm-muted">
-                    Opportunity #{group.opportunityId} · currently {group.status}
+                    Opportunity #{group.opportunityId} · published by {group.reports[0]?.creator.full_name ?? "Unknown creator"} · currently {group.status}
                   </p>
                 </div>
                 {group.open > 0 && (

@@ -1,5 +1,7 @@
 
 import React from "react";
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import "./RoleCard.css";
 
 export default function RoleCard({
@@ -7,6 +9,11 @@ export default function RoleCard({
   title,
   description,
   color = "blue",
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: ReactNode;
+  color?: string;
 }) {
   return (
     <article className={`grow8-role-card ${color}`}>

@@ -91,6 +91,7 @@ class AdminReportRead(ReportRead):
     opportunity are still open."""
 
     reporter: Person
+    creator: Person
     open_reports_on_opportunity: int
 
     @classmethod
@@ -98,6 +99,7 @@ class AdminReportRead(ReportRead):
         return cls(
             **cls._fields(report),
             reporter=Person.model_validate(report.reporter),
+            creator=Person.model_validate(report.opportunity.organization.owner),
             open_reports_on_opportunity=open_reports,
         )
 

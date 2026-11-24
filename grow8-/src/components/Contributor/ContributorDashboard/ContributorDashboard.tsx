@@ -12,6 +12,8 @@ import { Link } from "react-router-dom";
 import FeaturedOpportunities from "../../FeaturedOpportunities/FeaturedOpportunities";
 import { getMyApplications } from "../../../services/applications";
 import type { Application, ApplicationStatus } from "../../../services/applications";
+import { getApplicationSubmission } from "../../../services/submissions";
+import type { Submission } from "../../../services/submissions";
 import "./ContributorDashboard.css";
 
 const STATUS_LABELS: Record<ApplicationStatus, string> = {
@@ -33,6 +35,7 @@ export default function ContributorDashboard() {
   // null until loaded; stays null if the API can't be reached, so the placeholders show.
   const [applications, setApplications] = useState<Application[] | null>(null);
   const [total, setTotal] = useState<number | null>(null);
+  const [verifiedSubmissions, setVerifiedSubmissions] = useState<Submission[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -42,6 +45,14 @@ export default function ContributorDashboard() {
         if (active) {
           setApplications(page.items);
           setTotal(page.total);
+          const completed = page.items.filter((application) => application.work_status === "completed");
+          void Promise.all(completed.map((application) =>
+            getApplicationSubmission(application.application_id).catch(() => null)
+          )).then((rows) => {
+            if (active) setVerifiedSubmissions(rows.filter((row): row is Submission =>
+              row !== null && row.verification?.decision === "approved"
+            ));
+          });
         }
       })
       .catch(() => {
@@ -53,10 +64,16 @@ export default function ContributorDashboard() {
   }, []);
 
   const count = (status: ApplicationStatus) =>
-    applications ? String(applications.filter((a) => a.status === status).length) : "—";
+    applications ? String(applications.filter((application) =>
+      application.status === status &&
+      (status !== "accepted" || application.opportunity.status !== "cancelled") &&
+      (status !== "accepted" || application.work_status !== "completed")
+    ).length) : "—";
 
-  // Completed work and verified hours need the work-verification endpoints, which the
-  // backend doesn't have yet, so they stay as placeholders.
+  const completedCount = applications?.filter((application) => application.work_status === "completed").length;
+  const verifiedHours = verifiedSubmissions.reduce(
+    (sum, submission) => sum + Number(submission.verification?.verified_hours ?? 0), 0
+  );
   const stats = [
     {
       label: "Applied",
@@ -72,13 +89,13 @@ export default function ContributorDashboard() {
     },
     {
       label: "Completed",
-      value: "—",
+      value: completedCount === undefined ? "—" : String(completedCount),
       icon: CheckCircle2,
       color: "green",
     },
     {
       label: "Verified Hours",
-      value: "—",
+      value: String(verifiedHours),
       icon: Timer,
       color: "cyan",
     },
@@ -166,7 +183,7 @@ export default function ContributorDashboard() {
                 <tr key={application.application_id}>
                   <td>{application.opportunity.title}</td>
                   <td>{application.opportunity.organization.name}</td>
-                  <td>{STATUS_LABELS[application.status]}</td>
+                  <td>{application.opportunity.status === "cancelled" ? "Closed" : application.work_status === "completed" ? "Completed" : application.work_status === "awaiting_verification" ? "Work submitted" : STATUS_LABELS[application.status]}</td>
                   <td>{formatDate(application.submitted_at)}</td>
                 </tr>
               ))}

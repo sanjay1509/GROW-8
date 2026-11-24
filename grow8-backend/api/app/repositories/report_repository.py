@@ -6,16 +6,20 @@ from collections.abc import Sequence
 
 from grow8_common.models import (
     Application,
+    Opportunity,
     OpportunityReport,
     ReportDecision,
     ReportReview,
     WorkSubmission,
 )
+from grow8_common.models.users import CreatorOrganization
 from sqlalchemy import ColumnElement, Select, exists, func, or_, select
 from sqlalchemy.orm import Session, aliased, joinedload
 
 _EAGER = (
-    joinedload(OpportunityReport.opportunity),
+    joinedload(OpportunityReport.opportunity)
+    .joinedload(Opportunity.organization)
+    .joinedload(CreatorOrganization.owner),
     joinedload(OpportunityReport.reporter),
     joinedload(OpportunityReport.review),
 )
