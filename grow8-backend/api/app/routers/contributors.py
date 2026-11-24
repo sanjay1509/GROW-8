@@ -7,8 +7,9 @@ from app.dependencies.auth import CurrentContributor, CurrentUser, DbSession
 from app.dependencies.storage import Storage
 from app.routers._files import stream_download
 from app.schemas.contributor_profile import ContributorProfileRead, ProfileUpdate, SkillsReplace
+from app.schemas.experience import ExperienceRead
 from app.schemas.resume import ResumeRead
-from app.services import contributor_profile_service, resume_service
+from app.services import contributor_profile_service, experience_service, resume_service
 from app.services.resume_service import ResumeFile
 
 router = APIRouter(tags=["resumes"])
@@ -34,6 +35,13 @@ def update_my_profile(
 ) -> ContributorProfileRead:
     """Change your name, headline, bio, institution or city; only the fields sent change."""
     return contributor_profile_service.update_mine(session, contributor, body)
+
+
+@router.get("/contributors/me/experience", response_model=ExperienceRead, tags=["profile"])
+def get_my_experience(session: DbSession, contributor: CurrentContributor) -> ExperienceRead:
+    """Your verified record: approved hours and opportunities (from
+    v_contributor_verified_hours), the work behind them, and your verified skills."""
+    return experience_service.get_mine(session, contributor)
 
 
 @router.put("/contributors/me/skills", response_model=ContributorProfileRead, tags=["profile"])
