@@ -138,6 +138,7 @@ A contributor reads and edits their own profile and the skills they list. Creato
 | --- | --- | --- | --- |
 | GET | `/contributors/me/profile` | contributor | Your profile (below). |
 | PATCH | `/contributors/me/profile` | contributor | Any of `full_name` (1–150), `headline` (≤ 150), `bio` (≤ 5000), `institution` (≤ 150), `city` (≤ 100). Only the fields sent change. Whitespace is trimmed; for the optional fields `null` or `""` clears the value. `full_name` can't be cleared, and `email` can't be changed: both are 422 `VALIDATION_ERROR`, as is any unknown field. Returns the profile. |
+| GET | `/contributors/me/experience` | contributor | Your verified record: `verified_hours` and `completed_opportunities` (read from the `v_contributor_verified_hours` view), `organizations` (how many different ones approved your work), `verified_skills` (from `v_contributor_skill`) and `completed_work` (each approved submission: opportunity, organization, description, `verified_hours`, `comment`, `verified_at`; newest first). Rejected work doesn't count. All zero and empty until work is approved. |
 | PUT | `/contributors/me/skills` | contributor | Body `{skill_codes: [...]}` (codes from `GET /skills`). **Replaces** your listed skills; duplicates are collapsed and `[]` removes them all. More than 25 different skills → 422 `VALIDATION_ERROR`; unknown codes → 422 `UNKNOWN_SKILL` with `details.unknown_skills`. Returns the profile. |
 
 Creators and admins get 403 `ROLE_FORBIDDEN`. A profile:
