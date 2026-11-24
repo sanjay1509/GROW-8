@@ -3,10 +3,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, Form, Path, Query, UploadFile, status
 
+from app.core.exceptions import UnprocessableError
 from app.dependencies.auth import CurrentContributor, CurrentCreator, CurrentUser, DbSession
 from app.dependencies.request import RequestId
 from app.dependencies.storage import Storage
-from app.core.exceptions import UnprocessableError
 from app.events.publisher import Publisher
 from app.schemas.application import (
     ApplicationCreate,
@@ -38,7 +38,9 @@ def apply_to_opportunity(
     storage: Storage,
     motivation: Annotated[str | None, Form()] = None,
     application_details: Annotated[str, Form()] = "{}",
-    resume: Annotated[UploadFile | None, File(description="Optional PDF resume, at most 10 MB")] = None,
+    resume: Annotated[
+        UploadFile | None, File(description="Optional PDF resume, at most 10 MB")
+    ] = None,
 ) -> ApplicationRead:
     """Apply to an open opportunity before its deadline while places are left."""
     try:
@@ -126,6 +128,4 @@ def withdraw_application(
 ) -> ApplicationRead:
     """Withdraw your pending or accepted application (not once work is submitted).
     The creator who owns the opportunity is notified."""
-    return application_service.withdraw(
-        session, contributor, application_id, publisher, request_id
-    )
+    return application_service.withdraw(session, contributor, application_id, publisher, request_id)

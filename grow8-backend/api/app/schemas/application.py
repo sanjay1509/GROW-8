@@ -89,7 +89,9 @@ class ApplicationRead(BaseModel):
                 institution=profile.institution,
                 city=profile.city,
                 skills=[SkillRead.model_validate(s) for s in profile.skills],
-                has_resume=(application.resume_storage_key is not None or profile.resume is not None),
+                has_resume=(
+                    application.resume_storage_key is not None or profile.resume is not None
+                ),
             ),
             submission_id=submission.submission_id if submission else None,
             work_status=work_status(
