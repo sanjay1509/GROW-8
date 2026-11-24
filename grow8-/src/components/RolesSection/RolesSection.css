@@ -31,6 +31,69 @@
   height: 100%;
 }
 
+.grow8-role-modal-backdrop {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(13 25 45 / 48%);
+}
+
+.grow8-role-modal {
+  position: relative;
+  width: min(100%, 400px);
+  padding: 30px;
+  border: 1px solid #e5eaf2;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(10 25 50 / 24%);
+  color: #172235;
+  text-align: center;
+}
+
+.grow8-role-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 9px;
+  background: #f2f5fa;
+  color: #536177;
+}
+
+.grow8-role-modal-icon {
+  display: inline-grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 14px;
+  background: #edf3ff;
+  color: #1458e7;
+}
+
+.grow8-role-modal-icon.creator { background: #eef8f0; color: #21864b; }
+.grow8-role-modal h2 { margin: 16px 0 6px; font-size: 20px; }
+.grow8-role-modal p { margin: 0 0 22px; color: #687387; }
+
+.grow8-role-modal-login {
+  width: 100%;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #1458e7;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+}
+
+.grow8-role-modal-login:hover { background: #0e49c4; }
+
 @media (max-width: 650px) {
   .grow8-roles-section {
     grid-template-columns: 1fr;

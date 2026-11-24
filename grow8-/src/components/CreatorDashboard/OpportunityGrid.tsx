@@ -5,7 +5,7 @@ import type { Opportunity } from "../../data/creatorDashboardData";
 import Status from "./Status";
 
 export default function OpportunityGrid({ opportunities }: { opportunities: Opportunity[] }) {
-  const { applications } = useCreatorWorkspace();
+  const { applications, apiApplications, approvedSubmissions } = useCreatorWorkspace();
 
   return (
     <div className="creator-opportunity-grid">
@@ -28,6 +28,12 @@ export default function OpportunityGrid({ opportunities }: { opportunities: Oppo
               <span className="creator-opportunity-title">{opportunity.title}</span>
               <span className="creator-opportunity-applications">
                 {applications.filter((application) => application.opportunityId === opportunity.id).length} Applications
+              </span>
+              <span className="creator-opportunity-applications">
+                {approvedSubmissions.filter((submission) => submission.opportunity.opportunity_id === opportunity.id && submission.status === "awaiting").length} Work awaiting review
+              </span>
+              <span className="creator-opportunity-applications">
+                {approvedSubmissions.filter((submission) => submission.opportunity.opportunity_id === opportunity.id && submission.status === "approved").length} Completed
               </span>
               <Status>{opportunity.status}</Status>
             </span>

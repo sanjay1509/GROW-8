@@ -28,7 +28,7 @@ export default function HeroSection() {
           </p>
 
           <div className="grow8-hero-actions">
-            <Link to="/signup" className="grow8-hero-primary">
+            <Link to="/login?mode=signup" className="grow8-hero-primary">
               Get Started
             </Link>
 

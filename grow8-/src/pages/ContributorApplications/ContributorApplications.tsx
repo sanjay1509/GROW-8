@@ -19,6 +19,8 @@ import {
 } from "../../services/applications";
 
 import { ApiError } from "../../services/api";
+import type { WorkStatus } from "../../services/submissions";
+import WorkSection from "./WorkSection";
 import "./ContributorApplications.css";
 
 type ApplicationRow = {
@@ -42,6 +44,8 @@ type ApplicationRow = {
   organization?: {
     name?: string;
   } | null;
+  submission_id?: number | null;
+  work_status?: WorkStatus;
 };
 
 type TabValue =
@@ -51,7 +55,7 @@ type TabValue =
   | "rejected"
   | "withdrawn";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 const tabs: { label: string; value: TabValue }[] = [
   { label: "All", value: "all" },
@@ -322,6 +326,7 @@ export default function ContributorApplications() {
                 application.opportunity?.status?.toLowerCase();
 
               const notice = opportunityNotice(opportunityStatus);
+              const displayStatus = opportunityStatus === "cancelled" ? "closed" : application.status;
 
               const canWithdraw =
                 application.status === "pending" ||
@@ -350,9 +355,9 @@ export default function ContributorApplications() {
                         </div>
 
                         <span
-                          className={`ca-status ca-status-${application.status}`}
+                          className={`ca-status ca-status-${displayStatus}`}
                         >
-                          {statusLabel(application.status)}
+                          {statusLabel(displayStatus)}
                         </span>
                       </div>
 
@@ -381,7 +386,7 @@ export default function ContributorApplications() {
                   </div>
 
                   <div className="ca-card-actions">
-                    {canWithdraw && !notice && (
+                    {canWithdraw && !notice && !application.submission_id && (
                       <button
                         type="button"
                         className="ca-withdraw-button"
@@ -395,6 +400,16 @@ export default function ContributorApplications() {
                       </button>
                     )}
                   </div>
+
+                  {application.status === "accepted" && (
+                    <WorkSection
+                      applicationId={application.application_id}
+                      opportunityTitle={application.opportunity?.title || "Opportunity"}
+                      opportunityStatus={opportunityStatus}
+                      workStatus={application.work_status ?? "not_submitted"}
+                      onChanged={() => void loadApplications()}
+                    />
+                  )}
                 </article>
               );
             })}

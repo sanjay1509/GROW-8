@@ -129,6 +129,40 @@ def apply(
 
     existing = application_repository.find(session, contributor.user_id, opportunity_id)
     if existing is not None:
+        if existing.status == ApplicationStatus.WITHDRAWN and not application_repository.has_submission(
+            session, existing.application_id
+        ):
+            # Reuse the unique application row, preserving its id and any related
+            # history while allowing a contributor to apply again after withdrawal.
+            now = _now()
+            refusal = application_rules.apply_refusal(
+                opportunity.status,
+                opportunity.application_deadline,
+                opportunity.applicant_limit,
+                application_repository.count_active(session, opportunity_id),
+                now,
+            )
+            if refusal:
+                raise ConflictError(_MESSAGES[refusal], code=refusal)
+            existing.status = ApplicationStatus.PENDING
+            existing.motivation = data.motivation
+            existing.application_details = data.application_details
+            existing.submitted_at = now
+            existing.decided_at = None
+            _commit(session)
+            publisher.publish(
+                ApplicationSubmittedPayload(
+                    application_id=existing.application_id,
+                    opportunity_id=opportunity.opportunity_id,
+                    organization_id=opportunity.organization_id,
+                    opportunity_title=opportunity.title,
+                    contributor_id=contributor.user_id,
+                    contributor_name=contributor.full_name,
+                ),
+                EventType.APPLICATION_SUBMITTED,
+                correlation_id,
+            )
+            return ApplicationRead.from_model(existing)
         raise ConflictError(
             "You have already applied to this opportunity",
             code="APPLICATION_DUPLICATE",
@@ -151,6 +185,7 @@ def apply(
         contributor=profile,
         status=ApplicationStatus.PENDING,
         motivation=data.motivation,
+        application_details=data.application_details,
         submitted_at=now,
     )
     try:

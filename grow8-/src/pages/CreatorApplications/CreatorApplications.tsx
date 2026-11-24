@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Building2,
   Check,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import CreatorPageHeading from "../../components/CreatorDashboard/CreatorPageHeading";
+import { RatingBadge } from "../../components/Rating/Rating";
 import { useCreatorWorkspace } from "../../context/CreatorWorkspaceContext";
 import {
   decideApplication,
@@ -27,6 +28,13 @@ import { formatDate, friendlyError } from "../../services/creatorWorkspace";
 import "./CreatorApplications.css";
 
 type Filter = "all" | ApiApplicationStatus;
+
+const WORK_LABELS: Record<string, string> = {
+  not_submitted: "Work not submitted yet",
+  awaiting_verification: "Work submitted, waiting for your review",
+  completed: "Work approved",
+  work_rejected: "Work rejected",
+};
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "pending", label: "To review" },
@@ -235,6 +243,7 @@ export default function CreatorApplications() {
 
                   <div className="capp-who">
                     <strong>{applicant.full_name}</strong>
+                    <RatingBadge userId={applicant.user_id} />
                     <span>{applicant.headline || "Contributor"}</span>
                     <span className="capp-meta">
                       {applicant.institution && (
@@ -275,10 +284,32 @@ export default function CreatorApplications() {
                   <div className="capp-details">
                     <h3>Why they applied</h3>
                     <p>{application.motivation || "No message was included."}</p>
+                    {application.application_details && (
+                      <div className="capp-applicant-details">
+                        <h3>Application details</h3>
+                        {Object.entries(application.application_details).map(([label, value]) => (
+                          <p key={label}><strong>{label === "name" ? "Name" : label === "email" ? "Email" : label === "phone" ? "Phone" : label === "study" ? "Study" : label === "experience" ? "Experience" : "Achievements"}:</strong> {value || "—"}</p>
+                        ))}
+                      </div>
+                    )}
                     {application.decided_at && (
                       <p className="capp-label">Decided {formatDate(application.decided_at)}</p>
                     )}
                   </div>
+                )}
+
+                {application.status === "accepted" && application.work_status !== "not_submitted" && (
+                  <p className={`capp-work is-${application.work_status}`}>
+                    {WORK_LABELS[application.work_status]}
+                    {application.work_status === "awaiting_verification" && (
+                      <>
+                        {" · "}
+                        <Link to={`/creator/submissions?opportunity=${opportunity.opportunity_id}`}>
+                          Review it
+                        </Link>
+                      </>
+                    )}
+                  </p>
                 )}
 
                 {cancelled && (

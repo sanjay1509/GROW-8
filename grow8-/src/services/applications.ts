@@ -5,6 +5,7 @@ import {
   authHeaders,
   handleUnauthorized,
 } from "./api";
+import type { WorkStatus } from "./submissions";
 
 // --------------------------------------------------
 // Types
@@ -56,10 +57,15 @@ export interface Application {
   application_id: number;
   status: ApplicationStatus;
   motivation?: string | null;
+  application_details?: Record<string, string>;
   submitted_at: string;
   decided_at: string | null;
   opportunity: ApplicationOpportunity;
   applicant: ApplicationApplicant;
+  /** The submitted work's id, or null until the applicant submits work. */
+  submission_id: number | null;
+  /** not_submitted, awaiting_verification, completed or work_rejected (derived). */
+  work_status: WorkStatus;
 }
 
 export interface ApplicationListResponse {
@@ -114,13 +120,12 @@ function buildApplicationQuery(
 
 export async function applyToOpportunity(
   opportunityId: number | string,
-  motivation?: string
+  motivation?: string,
+  applicationDetails: Record<string, string> = {}
 ): Promise<Application> {
   const trimmedMotivation = motivation?.trim();
 
-  const body = trimmedMotivation
-    ? { motivation: trimmedMotivation }
-    : {};
+  const body = { motivation: trimmedMotivation || null, application_details: applicationDetails };
 
   return apiRequest<Application>(
     `/opportunities/${opportunityId}/applications`,

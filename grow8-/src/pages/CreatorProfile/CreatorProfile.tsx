@@ -11,6 +11,8 @@ import {
   X,
   ShieldCheck,
 } from "lucide-react";
+import { rememberUserName } from "../../services/organization";
+import OrganizationForm from "../../components/OrganizationForm/OrganizationForm";
 import "./CreatorProfile.css";
 
 const API_BASE_URL =
@@ -80,7 +82,7 @@ function parseCreator(data: ApiResponse): Creator {
         : data;
 
   return {
-    id: user.id as string | number | undefined,
+    id: ((user as Record<string, unknown>).user_id ?? (user as Record<string, unknown>).id) as string | number | undefined,
     name: String(
       user.full_name ?? user.name ?? user.display_name ?? user.username ?? "",
     ),
@@ -171,8 +173,8 @@ export default function CreatorProfile() {
     setProfileError("");
     setProfileSuccess("");
 
-    if (!name.trim() || !email.trim()) {
-      setProfileError("Name and email are required.");
+    if (!name.trim()) {
+      setProfileError("Your name can't be empty.");
       return;
     }
 
@@ -182,9 +184,9 @@ export default function CreatorProfile() {
       // Requires a backend endpoint that updates the authenticated user's profile.
       const data = await apiRequest("/auth/me", {
         method: "PATCH",
+        // Email can't be changed, so only the name is sent (ADR 0017).
         body: JSON.stringify({
           full_name: name.trim(),
-          email: email.trim(),
         }),
       });
 
@@ -203,6 +205,7 @@ export default function CreatorProfile() {
       setName(nextCreator.name);
       setEmail(nextCreator.email);
       setEditing(false);
+      rememberUserName(nextCreator.name);
       setProfileSuccess("Your profile has been updated.");
     } catch (error) {
       setProfileError(
@@ -302,7 +305,7 @@ export default function CreatorProfile() {
         <div>
           <span className="creator-profile-eyebrow">ACCOUNT SETTINGS</span>
           <h1>My Profile</h1>
-          <p>Manage your personal information and account security.</p>
+          <p>Your name, your organization and your account security.</p>
         </div>
         <div className="creator-profile-heading-icon">
           <UserRound size={26} />
@@ -358,7 +361,7 @@ export default function CreatorProfile() {
               </div>
               <div>
                 <h2>Personal information</h2>
-                <p>Your name and email address.</p>
+                <p>Your name. Your email can't be changed.</p>
               </div>
             </div>
 
@@ -386,11 +389,12 @@ export default function CreatorProfile() {
                     <Mail size={17} />
                     <input
                       type="email"
-                      value={editing ? email : creator.email}
-                      onChange={(event) => setEmail(event.target.value)}
+                      value={creator.email}
                       placeholder="you@example.com"
                       autoComplete="email"
-                      disabled={!editing || savingProfile}
+                      readOnly
+                      disabled
+                      title="Email can't be changed"
                       required
                     />
                   </div>
@@ -424,6 +428,8 @@ export default function CreatorProfile() {
               )}
             </form>
           </section>
+
+          <OrganizationForm />
 
           <section className="creator-profile-card creator-profile-security-card">
             <div className="creator-profile-card-heading">

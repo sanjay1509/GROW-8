@@ -6,6 +6,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    JSON,
     Index,
     Numeric,
     String,
@@ -49,6 +50,7 @@ class Application(Base):
         enum_column(ApplicationStatus), server_default=ApplicationStatus.PENDING.value
     )
     motivation: Mapped[str | None] = mapped_column(Text)
+    application_details: Mapped[dict | None] = mapped_column(JSON)
     submitted_at: Mapped[datetime] = created_at_column()
     decided_at: Mapped[datetime | None] = mapped_column(DateTime)
 

@@ -14,6 +14,42 @@
   box-shadow: 0 8px 30px rgb(28 44 75 / 4%);
 }
 
+.browse-page--contributor {
+  width: min(1440px, calc(100% - 32px));
+  min-height: calc(100dvh - 32px);
+  margin: 16px auto;
+  border-color: #e4eaf2;
+  border-radius: 14px;
+  background: #f7f9fc;
+}
+
+.browse-contributor-body {
+  display: grid;
+  grid-template-columns: 202px minmax(0, 1fr);
+  align-items: stretch;
+  min-height: calc(100dvh - 105px);
+}
+
+.browse-contributor-body > .browse-main {
+  min-width: 0;
+  overflow: hidden;
+  background: #f7f9fc;
+}
+
+.browse-contributor-body .browse-heading,
+.browse-contributor-body .browse-layout {
+  max-width: none;
+}
+
+@media (max-width: 1000px) {
+  .browse-contributor-body { grid-template-columns: 182px minmax(0, 1fr); }
+}
+
+@media (max-width: 760px) {
+  .browse-page--contributor { width: calc(100% - 16px); margin: 8px auto; }
+  .browse-contributor-body { grid-template-columns: minmax(0, 1fr); }
+}
+
 .browse-page *,
 .browse-page *::before,
 .browse-page *::after {
@@ -395,6 +431,110 @@
 .browse-opportunity-list {
   display: grid;
   gap: 12px;
+}
+
+.browse-opportunity-list--teaser {
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.browse-opportunity-list--teaser::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 74px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0%), #fff 85%);
+  content: "";
+  pointer-events: none;
+}
+
+.browse-login-more {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -38px;
+  padding: 12px 0 8px;
+  color: #687387;
+  font-size: 12px;
+}
+
+.browse-login-more p { margin: 0; }
+.browse-login-more button {
+  padding: 9px 15px;
+  border: 0;
+  border-radius: 8px;
+  background: #1458e7;
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.browse-application-form {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.browse-application-form > p {
+  margin: 0;
+  color: #687387;
+  font-size: 12px;
+}
+
+.browse-application-form input[type="file"] {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #344054;
+  font: inherit;
+}
+
+.browse-application-form input:not([type="file"]),
+.browse-application-form textarea {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #172235;
+  font: inherit;
+}
+
+.browse-apply-secondary {
+  background: #fff;
+  color: #344054;
+  border: 1px solid #d6deeb;
+}
+
+.browse-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 20px;
+  color: #687387;
+  font-size: 12px;
+}
+
+.browse-pagination button {
+  padding: 8px 13px;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #263248;
+  font: inherit;
+  cursor: pointer;
+}
+
+.browse-pagination button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
 }
 
 .browse-opportunity-card {
