@@ -2,7 +2,7 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Generated Nov 22, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`) by `docs/diagrams/generate_er_diagram.py`: 21 relations, 142 attributes, 31 foreign keys. The same schema is drawn as an ER diagram in `docs/diagrams/GROW8-ER-Diagram.pdf` (page 1) and as this notation on page 2.
+> Generated Nov 23, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`) by `docs/diagrams/generate_er_diagram.py`: 21 relations, 147 attributes, 31 foreign keys. The same schema is drawn as an ER diagram in `docs/diagrams/GROW8-ER-Diagram.pdf` (page 1) and as this notation on page 2.
 
 Notation: primary-key attributes are <ins>underlined</ins>, foreign-key attributes are *in italics*, and each foreign key is listed under its relation as `columns → relation(key)`. Types, nullability and meanings are in `data-dictionary.md`; functional dependencies and the BCNF check are in `functional-dependencies.md`.
 
@@ -62,7 +62,7 @@ Notation: primary-key attributes are <ins>underlined</ins>, foreign-key attribut
 
 ## Applications and work
 
-**application**(<ins>application_id</ins>, *opportunity_id*, *contributor_id*, status, motivation, submitted_at, decided_at)
+**application**(<ins>application_id</ins>, *opportunity_id*, *contributor_id*, status, motivation, application_details, resume_file_name, resume_content_type, resume_size_bytes, resume_storage_key, submitted_at, decided_at)
 
 - FK `contributor_id` → `contributor_profile(user_id)`
 - FK `opportunity_id` → `opportunity(opportunity_id)`

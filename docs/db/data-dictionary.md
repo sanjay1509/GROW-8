@@ -2,7 +2,7 @@
 
 **ENSF 608 · Group 2** · Normalization & relationship validation — Vineeth Donthamsetty
 
-> Generated Oct 27, 2026 and updated Nov 22, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`): 21 tables, 142 columns, 5 views, 21 triggers, 10 procedures. Types, nullability, defaults and keys are read from MySQL's `information_schema`, so they match the DDL exactly; descriptions are written by hand. Rules referenced as R1–R27 and I1–I9 are explained in `relationship-validation.md`; keys and normal forms are in `functional-dependencies.md`.
+> Generated Oct 27, 2026 and updated Nov 23, 2026 from the loaded schema (`grow8-backend/db/init/001_schema.sql`): 21 tables, 147 columns, 5 views, 21 triggers, 10 procedures. Types, nullability, defaults and keys are read from MySQL's `information_schema`, so they match the DDL exactly; descriptions are written by hand. Rules referenced as R1–R27 and I1–I9 are explained in `relationship-validation.md`; keys and normal forms are in `functional-dependencies.md`.
 
 ## How to read this
 
@@ -208,9 +208,14 @@ A contributor applying for an opportunity. One application per contributor per o
 | `application_id` | `int unsigned` | NO |  | PK | Surrogate key. |
 | `opportunity_id` | `int unsigned` | NO |  | FK → opportunity.opportunity_id, UQ* | The opportunity applied for. |
 | `contributor_id` | `int unsigned` | NO |  | FK → contributor_profile.user_id, UQ* | The applying contributor. |
-| `status` | `enum('pending','accepted','rejected','withdrawn')` | NO | `pending` |  | `pending`, `accepted`, `rejected` or `withdrawn`. `pending` and `accepted` take a place under the applicant limit. Cannot leave `accepted` once work is submitted, and a rejected or withdrawn application comes back only if a place is free (`trg_application_bu`). |
+| `status` | `enum('pending','accepted','rejected','withdrawn')` | NO | `pending` |  | `pending`, `accepted`, `rejected` or `withdrawn`. `pending` and `accepted` take a place under the applicant limit. Cannot leave `accepted` once work is submitted, and a rejected or withdrawn application comes back only if a place is free (`trg_application_bu`). Applying again after withdrawing reuses this row: `withdrawn` → `pending`. |
 | `motivation` | `text` | YES |  |  | The contributor's note to the creator. |
-| `submitted_at` | `datetime` | NO | now |  | When the application was sent. Must be on or before the deadline and not in the future; cannot change later (`trg_application_bi`, `trg_application_bu`). |
+| `application_details` | `json` | YES |  |  | Extra answers from the apply form (for example phone, study, experience) as a JSON object. |
+| `resume_file_name` | `varchar(255)` | YES |  |  | Name of the resume kept with this application. The API sets the four `resume_*` columns together (all filled or all empty). |
+| `resume_content_type` | `varchar(100)` | YES |  |  | Its media type (`application/pdf`). |
+| `resume_size_bytes` | `bigint unsigned` | YES |  |  | Its size in bytes (at most 10 MB, checked by the API). |
+| `resume_storage_key` | `varchar(512)` | YES |  |  | Where the file is stored. A copy, so the creator sees the resume as it was when the contributor applied, even if the profile resume changes or is deleted later. |
+| `submitted_at` | `datetime` | NO | now |  | When the application was sent. Must be on or before the deadline and not in the future. Cannot change later, except that it is reset when a withdrawn application is sent again (`trg_application_bi`, `trg_application_bu`). |
 | `decided_at` | `datetime` | YES |  |  | When the creator accepted or rejected it; required for those two statuses (`chk_application_decided`). |
 
 - **Unique:** `uq_application_contributor_opportunity` (contributor_id, opportunity_id)

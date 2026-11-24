@@ -7,6 +7,7 @@ Seed facts relied on (db/init/002_seed.sql; "now" is frozen at 2026-10-16 12:00 
 - contributors: alex (5), jordan (6), sam (7); no applications are seeded
 """
 
+import json
 import threading
 from datetime import datetime
 from typing import Any
@@ -22,8 +23,18 @@ OPPS = "/api/v1/opportunities"
 APPS = "/api/v1/applications"
 
 
-def _apply(client: TestClient, headers: dict[str, str], opportunity_id: int, **body: Any) -> Any:
-    return client.post(f"{OPPS}/{opportunity_id}/applications", json=body, headers=headers)
+def _apply(
+    client: TestClient,
+    headers: dict[str, str],
+    opportunity_id: int,
+    files: dict[str, Any] | None = None,
+    **fields: str,
+) -> Any:
+    """Apply as the browser does: a multipart form (motivation, application_details as
+    JSON text, optional resume PDF)."""
+    return client.post(
+        f"{OPPS}/{opportunity_id}/applications", data=fields, files=files, headers=headers
+    )
 
 
 def _applied(client: TestClient, headers: dict[str, str], opportunity_id: int) -> int:
@@ -45,7 +56,7 @@ def test_contributor_applies_and_the_creator_is_told(
 ) -> None:
     response = client.post(
         f"{OPPS}/1/applications",
-        json={"motivation": "  I type fast and love bread.  "},
+        data={"motivation": "  I type fast and love bread.  "},
         headers={**contributor, "X-Request-ID": "apply-1"},
     )
 
@@ -74,11 +85,41 @@ def test_contributor_applies_and_the_creator_is_told(
     }
 
 
-def test_motivation_is_optional_and_unknown_fields_are_rejected(
+def test_motivation_is_optional_and_bad_details_are_rejected(
     client: TestClient, contributor: dict[str, str]
 ) -> None:
     assert _apply(client, contributor, 1).json()["motivation"] is None
-    assert _error(_apply(client, contributor, 8, resume="cv.pdf"), 422) == "VALIDATION_ERROR"
+    assert (
+        _error(_apply(client, contributor, 8, application_details="not json"), 422)
+        == "VALIDATION_ERROR"
+    )
+
+
+def test_application_details_are_kept(client: TestClient, contributor: dict[str, str]) -> None:
+    response = _apply(
+        client, contributor, 1, application_details=json.dumps({"phone": "403-555-0101"})
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["application_details"] == {"phone": "403-555-0101"}
+
+
+def test_a_resume_can_be_sent_with_the_application(
+    client: TestClient, contributor: dict[str, str]
+) -> None:
+    pdf = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+    response = _apply(client, contributor, 1, files={"resume": ("cv.pdf", pdf, "application/pdf")})
+
+    assert response.status_code == 201, response.text
+    assert response.json()["applicant"]["has_resume"] is True
+
+
+def test_an_application_resume_must_be_a_pdf(
+    client: TestClient, contributor: dict[str, str]
+) -> None:
+    response = _apply(client, contributor, 1, files={"resume": ("cv.txt", b"hello", "text/plain")})
+
+    assert _error(response, 415) == "UNSUPPORTED_FILE_TYPE"
 
 
 def test_applying_twice_is_409_and_points_to_the_first_application(
@@ -93,13 +134,20 @@ def test_applying_twice_is_409_and_points_to_the_first_application(
     assert len(publisher.events) == 1
 
 
-def test_withdrawn_contributor_cannot_apply_again(
+def test_withdrawn_contributor_can_apply_again_on_the_same_application(
     client: TestClient, contributor: dict[str, str]
 ) -> None:
     application_id = _applied(client, contributor, 1)
     client.post(f"{APPS}/{application_id}/withdraw", headers=contributor)
 
-    assert _error(_apply(client, contributor, 1), 409) == "APPLICATION_DUPLICATE"
+    response = _apply(client, contributor, 1, motivation="Second try")
+
+    assert response.status_code == 201, response.text
+    body = response.json()
+    # The row is reused (one application per contributor and opportunity).
+    assert body["application_id"] == application_id
+    assert body["status"] == "pending"
+    assert body["motivation"] == "Second try"
 
 
 def test_applicant_limit_counts_pending_and_accepted(
