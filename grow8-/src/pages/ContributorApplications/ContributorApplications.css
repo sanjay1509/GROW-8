@@ -583,3 +583,132 @@
 .ca-submit-work-button:hover {
   background: #0f4bc4;
 }
+
+.ca-details-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid #d7deed;
+  border-radius: 9px;
+  background: #fff;
+  color: #354b9b;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.ca-details-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.ca-modal-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(18 27 48 / 55%);
+}
+
+.ca-details-modal {
+  width: min(640px, 100%);
+  max-height: min(82vh, 760px);
+  overflow-y: auto;
+  padding: 25px;
+  border: 1px solid #e5eaf2;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgb(17 28 58 / 22%);
+}
+
+.ca-details-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.ca-details-modal-header h2 {
+  margin: 7px 0 0;
+  color: #202941;
+  font-size: 22px;
+}
+
+.ca-details-close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e1e6ef;
+  border-radius: 9px;
+  background: #fff;
+  color: #526078;
+  cursor: pointer;
+}
+
+.ca-details-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid #e9edf4;
+}
+
+.ca-details-list > div {
+  padding: 13px 0;
+  border-bottom: 1px solid #e9edf4;
+}
+
+.ca-details-list dt {
+  margin-bottom: 5px;
+  color: #69768e;
+  font-size: 12px;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.ca-details-list dd {
+  margin: 0;
+  color: #27334d;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ca-details-resume {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #dce4ff;
+  border-radius: 11px;
+  background: #f5f7ff;
+}
+
+.ca-details-resume strong {
+  color: #27334d;
+}
+
+.ca-details-resume p {
+  margin: 4px 0 0;
+  color: #69768e;
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  .ca-details-modal {
+    padding: 19px;
+  }
+
+  .ca-details-resume {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -1,9 +1,12 @@
+import json
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Query, status
+from fastapi import APIRouter, File, Form, Path, Query, UploadFile, status
 
 from app.dependencies.auth import CurrentContributor, CurrentCreator, CurrentUser, DbSession
 from app.dependencies.request import RequestId
+from app.dependencies.storage import Storage
+from app.core.exceptions import UnprocessableError
 from app.events.publisher import Publisher
 from app.schemas.application import (
     ApplicationCreate,
@@ -28,15 +31,31 @@ ApplicationId = Annotated[int, Path(ge=1)]
 )
 def apply_to_opportunity(
     opportunity_id: OpportunityId,
-    body: ApplicationCreate,
     session: DbSession,
     contributor: CurrentContributor,
     publisher: Publisher,
     request_id: RequestId,
+    storage: Storage,
+    motivation: Annotated[str | None, Form()] = None,
+    application_details: Annotated[str, Form()] = "{}",
+    resume: Annotated[UploadFile | None, File(description="Optional PDF resume, at most 10 MB")] = None,
 ) -> ApplicationRead:
     """Apply to an open opportunity before its deadline while places are left."""
+    try:
+        details = json.loads(application_details)
+    except json.JSONDecodeError as exc:
+        raise UnprocessableError("Application details must be valid JSON") from exc
+    body = ApplicationCreate(motivation=motivation, application_details=details)
     return application_service.apply(
-        session, contributor, opportunity_id, body, publisher, request_id
+        session,
+        contributor,
+        opportunity_id,
+        body,
+        publisher,
+        request_id,
+        storage,
+        resume.file if resume else None,
+        resume.filename if resume else None,
     )
 
 

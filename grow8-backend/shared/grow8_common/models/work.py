@@ -51,6 +51,10 @@ class Application(Base):
     )
     motivation: Mapped[str | None] = mapped_column(Text)
     application_details: Mapped[dict | None] = mapped_column(JSON)
+    resume_file_name: Mapped[str | None] = mapped_column(String(255))
+    resume_content_type: Mapped[str | None] = mapped_column(String(100))
+    resume_size_bytes: Mapped[int | None] = mapped_column(BIGINT(unsigned=True))
+    resume_storage_key: Mapped[str | None] = mapped_column(String(512))
     submitted_at: Mapped[datetime] = created_at_column()
     decided_at: Mapped[datetime | None] = mapped_column(DateTime)
 
