@@ -91,5 +91,5 @@ def delete_my_resume(
 def download_applicant_resume(
     application_id: ApplicationId, session: DbSession, storage: Storage, user: CurrentUser
 ) -> StreamingResponse:
-    """The applicant's current resume, for the creator who owns the opportunity."""
+    """The resume submitted with the application, for its creator or applicant."""
     return _stream(resume_service.open_for_application(session, storage, user, application_id))

@@ -119,9 +119,12 @@ def list_for_contributor(
     statuses: Sequence[ApplicationStatus],
     limit: int,
     offset: int,
+    opportunity_id: int | None = None,
 ) -> tuple[Sequence[Application], int]:
     """One page of a contributor's applications, newest first, plus the total."""
     conds = [Application.contributor_id == contributor_id]
+    if opportunity_id is not None:
+        conds.append(Application.opportunity_id == opportunity_id)
     if statuses:
         conds.append(Application.status.in_(statuses))
     return _page(session, conds, limit, offset)

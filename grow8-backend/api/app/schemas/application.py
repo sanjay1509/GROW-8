@@ -89,7 +89,7 @@ class ApplicationRead(BaseModel):
                 institution=profile.institution,
                 city=profile.city,
                 skills=[SkillRead.model_validate(s) for s in profile.skills],
-                has_resume=profile.resume is not None,
+                has_resume=(application.resume_storage_key is not None or profile.resume is not None),
             ),
             submission_id=submission.submission_id if submission else None,
             work_status=work_status(
@@ -107,11 +107,12 @@ class ApplicationListParams(BaseModel):
     status: list[ApplicationStatus] = Field(
         default_factory=list, description="Status filter (repeatable); default all"
     )
+    opportunity_id: int | None = Field(
+        None, ge=1, description="Only applications for this opportunity"
+    )
     limit: int = Field(20, ge=1, le=100)
     offset: int = Field(0, ge=0)
 
 
 class ReceivedApplicationParams(ApplicationListParams):
-    opportunity_id: int | None = Field(
-        None, ge=1, description="Only this one of your opportunities (default: all of them)"
-    )
+    pass

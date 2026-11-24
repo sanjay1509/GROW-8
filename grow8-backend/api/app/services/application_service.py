@@ -5,6 +5,7 @@ triggers, so a race the checks can't see still ends in the same 409, never a 500
 """
 
 from datetime import datetime
+from typing import BinaryIO
 
 from grow8_common.events import (
     ApplicationDecidedPayload,
@@ -25,7 +26,7 @@ from sqlalchemy.orm import Session
 from app.core.exceptions import ConflictError, ForbiddenError, NotFoundError
 from app.core.time import utcnow
 from app.events.publisher import EventPublisher
-from app.repositories import application_repository, opportunity_repository, user_repository
+from app.repositories import application_repository, opportunity_repository, resume_repository, user_repository
 from app.repositories.db_errors import duplicate_key, trigger_rule
 from app.schemas.application import (
     ApplicationCreate,
@@ -36,6 +37,8 @@ from app.schemas.application import (
 )
 from app.schemas.common import Page
 from app.services import application_rules
+from app.services import resume_service
+from app.storage.base import FileStorage, new_key
 
 _MESSAGES = {
     "OPPORTUNITY_NOT_OPEN": "This opportunity is not open for applications",
@@ -113,6 +116,9 @@ def apply(
     data: ApplicationCreate,
     publisher: EventPublisher,
     correlation_id: str | None,
+    storage: FileStorage | None = None,
+    resume_upload: BinaryIO | None = None,
+    resume_file_name: str | None = None,
 ) -> ApplicationRead:
     """Apply to an open opportunity. The opportunity row stays locked until commit,
     so two people can't both take its last place."""
@@ -149,6 +155,7 @@ def apply(
             existing.application_details = data.application_details
             existing.submitted_at = now
             existing.decided_at = None
+            _snapshot_resume(session, storage, contributor.user_id, existing, resume_upload, resume_file_name)
             _commit(session)
             publisher.publish(
                 ApplicationSubmittedPayload(
@@ -188,6 +195,7 @@ def apply(
         application_details=data.application_details,
         submitted_at=now,
     )
+    _snapshot_resume(session, storage, contributor.user_id, application, resume_upload, resume_file_name)
     try:
         application_repository.add(session, application)
     except DBAPIError as exc:
@@ -213,11 +221,55 @@ def apply(
     return ApplicationRead.from_model(application)
 
 
+def _snapshot_resume(
+    session: Session,
+    storage: FileStorage | None,
+    contributor_id: int,
+    application: Application,
+    resume_upload: BinaryIO | None = None,
+    resume_file_name: str | None = None,
+) -> None:
+    """Save the supplied application resume, or snapshot the current profile resume."""
+    if storage is None:
+        return
+    if resume_upload is not None:
+        key, name, content_type, size = resume_service.store_application_resume(
+            storage, resume_upload, resume_file_name
+        )
+        application.resume_storage_key = key
+        application.resume_file_name = name
+        application.resume_content_type = content_type
+        application.resume_size_bytes = size
+        return
+    resume = resume_repository.get(session, contributor_id)
+    if resume is None:
+        application.resume_file_name = None
+        application.resume_content_type = None
+        application.resume_size_bytes = None
+        application.resume_storage_key = None
+        return
+    source = storage.open(resume.storage_key)
+    key = new_key("applicationresumes")
+    try:
+        storage.save(key, iter(lambda: source.read(64 * 1024), b""))
+    finally:
+        source.close()
+    application.resume_file_name = resume.file_name
+    application.resume_content_type = resume.content_type
+    application.resume_size_bytes = resume.size_bytes
+    application.resume_storage_key = key
+
+
 def list_mine(
     session: Session, contributor: UserAccount, params: ApplicationListParams
 ) -> Page[ApplicationRead]:
     items, total = application_repository.list_for_contributor(
-        session, contributor.user_id, params.status, params.limit, params.offset
+        session,
+        contributor.user_id,
+        params.status,
+        params.limit,
+        params.offset,
+        params.opportunity_id,
     )
     return _page(list(items), total, params)
 

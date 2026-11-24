@@ -537,11 +537,20 @@ function ContributorNavbarActions() {
     void markAsRead(notification);
     setPopover(null);
 
+    if (notification.notification_type === "application_decided") {
+      const applicationPath = "/contributor/applications";
+      navigate(
+        notification.opportunity_id !== null
+          ? `${applicationPath}?opportunity_id=${notification.opportunity_id}`
+          : applicationPath
+      );
+      return;
+    }
+
     if (notification.opportunity_id !== null) {
-      // Change this path if your application uses a different detail route.
-      navigate(`/contributor/opportunities/${notification.opportunity_id}`);
+      navigate(`/opportunities?opportunity_id=${notification.opportunity_id}`);
     } else {
-      navigate("/contributor/opportunities");
+      navigate("/opportunities");
     }
   }
 
