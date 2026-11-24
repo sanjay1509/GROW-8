@@ -24,6 +24,13 @@ export interface ApiOpportunity {
   published_at?: string | null;
   compensation_type?: string;
   compensation_amount?: number | null;
+  organization?: {
+    organization_id: number;
+    name: string;
+    organization_type?: string;
+    city?: string | null;
+  } | null;
+  skills?: { code: string; name: string }[];
 }
 
 // ==================================================
@@ -45,6 +52,10 @@ export interface Opportunity {
   publishedAt?: string | null;
   compensationType?: string;
   compensationAmount?: number | null;
+  /** The organization's name, as cards and details show it. */
+  organization?: string;
+  /** Names of the skills the opportunity needs. */
+  skills?: string[];
 }
 
 // ==================================================
@@ -78,6 +89,8 @@ function mapOpportunity(item: ApiOpportunity): Opportunity {
     publishedAt: item.published_at ?? null,
     compensationType: item.compensation_type,
     compensationAmount: item.compensation_amount ?? null,
+    organization: item.organization?.name ?? undefined,
+    skills: Array.isArray(item.skills) ? item.skills.map((skill) => skill.name) : [],
   };
 }
 
