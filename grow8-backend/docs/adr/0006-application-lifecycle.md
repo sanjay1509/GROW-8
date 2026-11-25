@@ -1,6 +1,6 @@
 # ADR 0006: Application lifecycle, capacity and errors
 
-- **Status:** accepted
+- **Status:** accepted; decision 1 amended by [ADR 0021](0021-reapply-after-withdrawal.md) (a withdrawn application can be re-opened)
 - **Date:** 2026-11-15
 
 ## Context
@@ -18,9 +18,9 @@ Applications connect a contributor to an opportunity, and everything later in th
    ```
 
    - The **owning creator** decides each application **once**, while it is `pending`. Deciding is allowed after the deadline and after the opportunity closes: the window applies to applying, not to choosing. *Not after it is cancelled: [ADR 0011](0011-close-and-cancel-opportunities.md).*
-   - The **applicant** may withdraw while the application is `pending` or `accepted`, **until work is submitted** for it. After that, R9 keeps it `accepted` (verified hours, skills and feedback rely on it), so withdrawing returns 409 `WORK_ALREADY_SUBMITTED`. `rejected` and `withdrawn` are final: 409 `APPLICATION_NOT_ACTIVE`.
+   - The **applicant** may withdraw while the application is `pending` or `accepted`, **until work is submitted** for it. After that, R9 keeps it `accepted` (verified hours, skills and feedback rely on it), so withdrawing returns 409 `WORK_ALREADY_SUBMITTED`. `rejected` and `withdrawn` are final: 409 `APPLICATION_NOT_ACTIVE`. *Amended by [ADR 0021](0021-reapply-after-withdrawal.md): the contributor can re-open a withdrawn application by applying again.*
    - **No auto-reject.** When the last place is filled, the remaining pending applications stay pending; the creator decides each one.
-   - **No re-applying.** The unique key means a contributor who withdrew (or was rejected) cannot apply to the same opportunity again. Re-opening an application is future work.
+   - **No re-applying.** The unique key means a contributor who withdrew (or was rejected) cannot apply to the same opportunity again. Re-opening an application is future work. *Superseded by [ADR 0021](0021-reapply-after-withdrawal.md): applying again re-opens a withdrawn application (not a rejected one).*
 2. **Capacity counts pending + accepted.** Rejecting or withdrawing frees a place. Accepting doesn't change the count, so it never fails on capacity.
 3. **Checked twice, reported once.** The service locks the opportunity row (`SELECT … FOR UPDATE`), counts active applications with a locking read, and refuses with a clear error before writing. The triggers check the same rules again, so a race the service can't see ends in the same error, never a 500: `app/repositories/db_errors.py` recognises trigger errors (MySQL 1644, message prefixed with the rule name) and the duplicate key, and the service maps them to the codes below.
 4. **409 for every business-rule refusal**: `OPPORTUNITY_NOT_OPEN`, `APPLICATION_DEADLINE_PASSED`, `APPLICANT_LIMIT_REACHED`, `APPLICATION_DUPLICATE`, `APPLICATION_NOT_PENDING`, `APPLICATION_NOT_ACTIVE`, `WORK_ALREADY_SUBMITTED`, `CONTRIBUTOR_PROFILE_REQUIRED`. The request is valid; the current state doesn't allow it. 422 stays for malformed input.

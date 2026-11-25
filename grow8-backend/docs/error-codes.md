@@ -126,9 +126,11 @@ A `rating` that isn't a whole number from 1 to 5, a comment over 2000 characters
 
 | Status | Code | Endpoint(s) | When |
 | --- | --- | --- | --- |
-| 403 | `ROLE_FORBIDDEN` | `POST /opportunities/{id}/reports`, `GET /reports/mine`; `GET /admin/reports`, `POST /admin/reports/{id}/review` | Only contributors report; only admins use the admin routes. |
+| 403 | `ROLE_FORBIDDEN` | `POST /opportunities/{id}/reports`, `GET /reports/mine`; `GET /opportunities/{id}/takedown`; `GET /admin/reports`, `POST /admin/reports/{id}/review` | Only contributors report; only creators see a takedown; only admins use the admin routes. |
 | 404 | `OPPORTUNITY_NOT_FOUND` | `POST /opportunities/{id}/reports` | Missing, or a draft. |
 | 404 | `REPORT_NOT_FOUND` | `POST /admin/reports/{id}/review` | No such report. |
+| 404 | `OPPORTUNITY_NOT_FOUND` | `GET /opportunities/{id}/takedown` | Missing, or not one of your opportunities. |
+| 404 | `TAKEDOWN_NOT_FOUND` | `GET /opportunities/{id}/takedown` | Your opportunity wasn't taken down (no upheld report). |
 | 409 | `OPPORTUNITY_ALREADY_REPORTED` | `POST /opportunities/{id}/reports` | You already reported this opportunity (once, ever). |
 | 409 | `OPPORTUNITY_CANCELLED` | `POST /opportunities/{id}/reports`; upholding on `POST /admin/reports/{id}/review` | The opportunity is cancelled (by its creator or a takedown). An admin can still dismiss reports on it. |
 | 409 | `REPORT_ALREADY_REVIEWED` | `POST /admin/reports/{id}/review` | It was already upheld or dismissed. A takedown upholds every pending report on the opportunity, so those get this too. |

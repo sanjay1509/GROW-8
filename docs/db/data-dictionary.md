@@ -210,7 +210,7 @@ A contributor applying for an opportunity. One application per contributor per o
 | `contributor_id` | `int unsigned` | NO |  | FK → contributor_profile.user_id, UQ* | The applying contributor. |
 | `status` | `enum('pending','accepted','rejected','withdrawn')` | NO | `pending` |  | `pending`, `accepted`, `rejected` or `withdrawn`. `pending` and `accepted` take a place under the applicant limit. Cannot leave `accepted` once work is submitted, and a rejected or withdrawn application comes back only if a place is free (`trg_application_bu`). Applying again after withdrawing reuses this row: `withdrawn` → `pending`. |
 | `motivation` | `text` | YES |  |  | The contributor's note to the creator. |
-| `application_details` | `json` | YES |  |  | Extra answers from the apply form (for example phone, study, experience) as a JSON object. |
+| `application_details` | `json` | YES |  |  | Extra answers from the apply form (for example phone, study, experience) as a JSON object of strings. The API allows at most 20 entries, keys of 1–50 characters and values of at most 2000. |
 | `resume_file_name` | `varchar(255)` | YES |  |  | Name of the resume kept with this application. The API sets the four `resume_*` columns together (all filled or all empty). |
 | `resume_content_type` | `varchar(100)` | YES |  |  | Its media type (`application/pdf`). |
 | `resume_size_bytes` | `bigint unsigned` | YES |  |  | Its size in bytes (at most 10 MB, checked by the API). |
