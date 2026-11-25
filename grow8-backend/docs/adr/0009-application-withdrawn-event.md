@@ -26,4 +26,4 @@ ADR 0006 published events for applying and deciding, but not for withdrawing: th
 - `notification.notification_type` gains `application_withdrawn`. This is a schema change. Either run `make reset-db` (wipes local data), or keep your data with the equivalent `ALTER TABLE notification MODIFY notification_type ENUM('opportunity_created', 'opportunity_published', 'application_submitted', 'application_decided', 'application_withdrawn') NOT NULL;`. The ENSF 608 data dictionary lists the new value.
 - New binding: `grow8.creator_service` ← `application.withdrawn`, declared when the service starts. Restart creator_service after pulling.
 - `POST /applications/{id}/withdraw` now takes the publisher, like apply and decide. The response is unchanged.
-- The event catalog in CLAUDE.md and the README gains a row.
+- The event catalog in `docs/events.md` and the README gains a row.
