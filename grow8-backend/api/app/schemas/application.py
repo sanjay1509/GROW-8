@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Self
+from typing import Annotated, Self
 
 from grow8_common.models import Application, ApplicationStatus, OpportunityStatus
 from pydantic import BaseModel, ConfigDict, Field
@@ -9,6 +9,10 @@ from app.schemas.opportunity import OrganizationSummary
 from app.schemas.reference import SkillRead
 from app.services.verification_rules import WorkStatus, work_status
 
+MAX_DETAILS = 20
+DetailKey = Annotated[str, Field(min_length=1, max_length=50)]
+DetailValue = Annotated[str, Field(max_length=2_000)]
+
 
 class ApplicationCreate(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
@@ -16,7 +20,12 @@ class ApplicationCreate(BaseModel):
     motivation: str | None = Field(
         None, min_length=1, max_length=5_000, description="Why you are a good fit (optional)"
     )
-    application_details: dict[str, str] = Field(default_factory=dict)
+    application_details: dict[DetailKey, DetailValue] = Field(
+        default_factory=dict,
+        max_length=MAX_DETAILS,
+        description=f"Extra answers from the apply form: at most {MAX_DETAILS} entries, "
+        "keys of 1-50 characters, values of at most 2000",
+    )
 
 
 class Decision(StrEnum):

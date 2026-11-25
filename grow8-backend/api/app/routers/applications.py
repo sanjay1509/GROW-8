@@ -2,8 +2,9 @@ import json
 from typing import Annotated
 
 from fastapi import APIRouter, File, Form, Path, Query, UploadFile, status
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 
-from app.core.exceptions import UnprocessableError
 from app.dependencies.auth import CurrentContributor, CurrentCreator, CurrentUser, DbSession
 from app.dependencies.request import RequestId
 from app.dependencies.storage import Storage
@@ -19,6 +20,30 @@ from app.schemas.common import Page
 from app.services import application_service
 
 router = APIRouter(tags=["applications"])
+
+
+def _invalid(errors: list[dict]) -> RequestValidationError:
+    """Form fields are validated here, not by FastAPI, so report problems the way
+    FastAPI does: 422 VALIDATION_ERROR with one {loc, message, type} per problem."""
+    return RequestValidationError([{**e, "loc": ("body", *e["loc"])} for e in errors])
+
+
+def _application_body(motivation: str | None, application_details: str) -> ApplicationCreate:
+    """Build the apply body from the multipart form fields. An empty motivation field means
+    no motivation, as in any HTML form; application_details is a JSON object of strings."""
+    try:
+        details = json.loads(application_details)
+    except json.JSONDecodeError:
+        raise _invalid(
+            [{"loc": ("application_details",), "msg": "must be valid JSON", "type": "json_invalid"}]
+        ) from None
+    try:
+        return ApplicationCreate(
+            motivation=(motivation or "").strip() or None, application_details=details
+        )
+    except ValidationError as exc:
+        raise _invalid(exc.errors(include_url=False, include_context=False)) from None
+
 
 OpportunityId = Annotated[int, Path(ge=1)]
 ApplicationId = Annotated[int, Path(ge=1)]
@@ -43,11 +68,7 @@ def apply_to_opportunity(
     ] = None,
 ) -> ApplicationRead:
     """Apply to an open opportunity before its deadline while places are left."""
-    try:
-        details = json.loads(application_details)
-    except json.JSONDecodeError as exc:
-        raise UnprocessableError("Application details must be valid JSON") from exc
-    body = ApplicationCreate(motivation=motivation, application_details=details)
+    body = _application_body(motivation, application_details)
     return application_service.apply(
         session,
         contributor,

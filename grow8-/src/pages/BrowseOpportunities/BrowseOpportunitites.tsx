@@ -1166,9 +1166,9 @@ export default function BrowseOpportunities() {
                       <label htmlFor="application-study">Study / education</label>
                       <input id="application-study" value={applicationDetails.study} onChange={(event) => setApplicationDetails({ ...applicationDetails, study: event.target.value })} required />
                       <label htmlFor="application-experience">Relevant experience</label>
-                      <textarea id="application-experience" rows={3} value={applicationDetails.experience} onChange={(event) => setApplicationDetails({ ...applicationDetails, experience: event.target.value })} required />
+                      <textarea id="application-experience" rows={3} maxLength={2000} value={applicationDetails.experience} onChange={(event) => setApplicationDetails({ ...applicationDetails, experience: event.target.value })} required />
                       <label htmlFor="application-achievements">Achievements</label>
-                      <textarea id="application-achievements" rows={3} value={applicationDetails.achievements} onChange={(event) => setApplicationDetails({ ...applicationDetails, achievements: event.target.value })} required />
+                      <textarea id="application-achievements" rows={3} maxLength={2000} value={applicationDetails.achievements} onChange={(event) => setApplicationDetails({ ...applicationDetails, achievements: event.target.value })} required />
                       <label htmlFor="application-motivation">
                         Motivation (Optional)
                       </label>
