@@ -14,6 +14,8 @@ import {
   ClipboardCheck,
   X,
 } from "lucide-react";
+import { getSkills } from "../../services/profile";
+import type { Skill } from "../../services/profile";
 import "./CreatorOpportunity.css";
 
 const API_BASE_URL =
@@ -142,6 +144,10 @@ export default function CreateOpportunity() {
 
   const [form, setForm] = useState<OpportunityForm>(initialForm);
   const [categories, setCategories] = useState<Category[]>([]);
+  // Skills the opportunity needs: contributors who list one are notified when it's
+  // published, and approved work verifies them (ADR 0019).
+  const [skillOptions, setSkillOptions] = useState<Skill[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showReview, setShowReview] = useState(false);
@@ -151,6 +157,30 @@ export default function CreateOpportunity() {
   const [success, setSuccess] = useState("");
   // Set once the draft exists, so a retry after a failed publish reuses it.
   const [draftId, setDraftId] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getSkills()
+      .then((skills) => {
+        if (active) setSkillOptions(skills);
+      })
+      .catch(() => {
+        // The form still works without skills; the picker just stays empty.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function toggleSkill(code: string) {
+    setSelectedSkills((current) =>
+      current.includes(code)
+        ? current.filter((item) => item !== code)
+        : current.length >= 20
+          ? current
+          : [...current, code]
+    );
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -327,6 +357,7 @@ export default function CreateOpportunity() {
         category: form.category_id,
         description: form.description.trim(),
         requirements: form.requirements.trim() || null,
+        skills: selectedSkills,
         location: form.location.trim() || null,
         work_mode: form.work_mode,
         start_date: form.start_date || null,
@@ -580,6 +611,32 @@ export default function CreateOpportunity() {
                 placeholder="List useful skills, experience, or qualifications..."
                 rows={4}
               />
+            </div>
+
+            <div className="co-field">
+              <span className="co-skills-label" id="co-skills-label">
+                Skills needed
+              </span>
+              <p className="co-skills-hint">
+                Contributors who list one of these skills are notified when you publish, and
+                approved work verifies the skill for them. Up to 20.
+              </p>
+              <div className="co-skill-chips" role="group" aria-labelledby="co-skills-label">
+                {skillOptions.map((skill) => {
+                  const selected = selectedSkills.includes(skill.code);
+                  return (
+                    <button
+                      key={skill.code}
+                      type="button"
+                      className={`co-skill-chip${selected ? " is-selected" : ""}`}
+                      aria-pressed={selected}
+                      onClick={() => toggleSkill(skill.code)}
+                    >
+                      {skill.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </section>
 
@@ -892,6 +949,17 @@ export default function CreateOpportunity() {
                 <div className="co-review-field">
                   <span>Requirements and Skills</span>
                   <p>{form.requirements || "Not provided"}</p>
+                </div>
+                <div className="co-review-field">
+                  <span>Skills needed</span>
+                  <p>
+                    {selectedSkills.length
+                      ? skillOptions
+                          .filter((skill) => selectedSkills.includes(skill.code))
+                          .map((skill) => skill.name)
+                          .join(", ")
+                      : "None selected: no contributors will be notified by skill"}
+                  </p>
                 </div>
               </section>
 
