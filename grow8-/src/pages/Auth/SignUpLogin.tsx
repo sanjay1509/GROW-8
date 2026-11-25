@@ -20,6 +20,7 @@ type LoginResponse = {
   role?: string;
   user?: {
     role?: string;
+    full_name?: string;
   };
   error?: {
     message?: string;
@@ -132,6 +133,10 @@ export default function SignUpLogin() {
 
       // Store the token only after role checks pass.
       localStorage.setItem("access_token", token);
+      // Navbars and the admin header show the name straight away.
+      if (data.user?.full_name) {
+        localStorage.setItem("user_name", data.user.full_name);
+      }
 
       setSuccess("Login successful! Redirecting...");
 
