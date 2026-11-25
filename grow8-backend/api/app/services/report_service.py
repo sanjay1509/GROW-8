@@ -40,6 +40,7 @@ from app.schemas.report import (
     ReportCreate,
     ReportRead,
     ReportReviewCreate,
+    TakedownRead,
 )
 from app.services import report_rules
 
@@ -159,6 +160,32 @@ def list_mine(
         total=total,
         limit=params.limit,
         offset=params.offset,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Creators
+# ---------------------------------------------------------------------------
+
+
+def takedown_for_creator(
+    session: Session, creator: UserAccount, opportunity_id: int
+) -> TakedownRead:
+    """Why the creator's own opportunity was taken down: when, the admin's reason (the
+    same for every report it upheld) and the report categories. Reporters stay anonymous,
+    so their own words and their number are never included (ADR 0016 decision 2)."""
+    opportunity = opportunity_repository.get(session, opportunity_id)
+    if opportunity is None or opportunity.organization.owner_user_id != creator.user_id:
+        raise _opportunity_not_found()
+    upheld = report_repository.upheld_on(session, opportunity_id)
+    if not upheld:
+        raise NotFoundError("This opportunity was not taken down", code="TAKEDOWN_NOT_FOUND")
+    _, taken_down_at, admin_reason = upheld[0]
+    return TakedownRead(
+        opportunity_id=opportunity_id,
+        taken_down_at=taken_down_at,
+        admin_reason=admin_reason or "",
+        reasons=sorted({reason for reason, _, _ in upheld}),
     )
 
 

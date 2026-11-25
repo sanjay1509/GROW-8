@@ -3,12 +3,14 @@ done with opportunity_repository: every review locks the opportunity first, then
 report (see ADR 0016 decision 5)."""
 
 from collections.abc import Sequence
+from datetime import datetime
 
 from grow8_common.models import (
     Application,
     Opportunity,
     OpportunityReport,
     ReportDecision,
+    ReportReason,
     ReportReview,
     WorkSubmission,
 )
@@ -212,3 +214,19 @@ def list_for_reporter(
         .offset(offset)
     )
     return session.scalars(stmt).unique().all(), total
+
+
+def upheld_on(
+    session: Session, opportunity_id: int
+) -> list[tuple[ReportReason, datetime, str | None]]:
+    """(reason, reviewed_at, admin reason) for every upheld report on the opportunity."""
+    stmt = (
+        select(OpportunityReport.reason, ReportReview.reviewed_at, ReportReview.reason)
+        .join(ReportReview, ReportReview.report_id == OpportunityReport.report_id)
+        .where(
+            OpportunityReport.opportunity_id == opportunity_id,
+            ReportReview.decision == ReportDecision.UPHELD,
+        )
+        .order_by(ReportReview.reviewed_at, OpportunityReport.report_id)
+    )
+    return [(r[0], r[1], r[2]) for r in session.execute(stmt).all()]

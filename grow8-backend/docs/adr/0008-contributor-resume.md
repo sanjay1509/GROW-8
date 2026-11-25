@@ -1,6 +1,6 @@
 # ADR 0008: One optional PDF resume per contributor, visible through applications
 
-- **Status:** accepted
+- **Status:** accepted; decision 5 amended by [ADR 0020](0020-application-resume-copies.md) (each application keeps its own copy)
 - **Date:** 2026-11-15
 
 ## Context
