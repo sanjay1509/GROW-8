@@ -499,3 +499,37 @@
     justify-content: center;
   }
 }
+
+/* Skills picker */
+.co-skills-label {
+  font-weight: 600;
+}
+
+.co-skills-hint {
+  margin: 2px 0 8px;
+  color: #6b778c;
+  font-size: 13px;
+}
+
+.co-skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.co-skill-chip {
+  padding: 6px 12px;
+  border: 1px solid #d6deeb;
+  border-radius: 999px;
+  background: #fff;
+  color: #34425a;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.co-skill-chip.is-selected {
+  border-color: #2557d6;
+  background: #2557d6;
+  color: #fff;
+}
