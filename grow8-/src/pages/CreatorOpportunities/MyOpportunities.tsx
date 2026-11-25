@@ -42,7 +42,8 @@ type Opportunity = {
   compensation_amount?: number | null;
 };
 
-type TakedownReport = { reason: string; details: string | null; admin_reason: string | null };
+// GET /opportunities/{id}/takedown: never says who reported or what they wrote (ADR 0016).
+type Takedown = { taken_down_at: string; admin_reason: string; reasons: string[] };
 
 function formatDate(value?: string | null) {
   if (!value) return "Not available";
@@ -98,7 +99,7 @@ export default function MyOpportunities() {
 
   const [selectedOpportunity, setSelectedOpportunity] =
     useState<Opportunity | null>(null);
-  const [takedownReports, setTakedownReports] = useState<TakedownReport[]>([]);
+  const [takedown, setTakedown] = useState<Takedown | null>(null);
 
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [changingId, setChangingId] = useState<number | null>(null);
@@ -164,12 +165,13 @@ export default function MyOpportunities() {
   // Close the details popup with Escape.
   useEffect(() => {
     if (!selectedOpportunity) return;
-    setTakedownReports([]);
+    setTakedown(null);
     if (selectedOpportunity.status.toLowerCase() === "cancelled") {
       const token = localStorage.getItem("access_token");
-      void fetch(`${API_BASE_URL}/opportunities/${selectedOpportunity.opportunity_id}/takedown-report`, {
+      // 404 when the creator cancelled it themselves: nothing to show.
+      void fetch(`${API_BASE_URL}/opportunities/${selectedOpportunity.opportunity_id}/takedown`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }).then((response) => response.ok ? response.json() : []).then((reports) => setTakedownReports(reports));
+      }).then((response) => response.ok ? response.json() : null).then((result) => setTakedown(result));
     }
 
     function handleEscape(event: KeyboardEvent) {
@@ -583,16 +585,16 @@ export default function MyOpportunities() {
                 </p>
               </div>
 
-              {takedownReports.length > 0 && (
+              {takedown && (
                 <div className="mo-modal-section">
-                  <h3>Report reviewed by GROW8</h3>
-                  {takedownReports.map((report, index) => (
-                    <div key={index} className="mo-modal-report">
-                      <strong>{report.reason.replaceAll("_", " ")}</strong>
-                      {report.details && <p>{report.details}</p>}
-                      {report.admin_reason && <p><b>Admin decision:</b> {report.admin_reason}</p>}
-                    </div>
-                  ))}
+                  <h3>Taken down by GROW8</h3>
+                  <div className="mo-modal-report">
+                    <strong>
+                      Reported as: {takedown.reasons.map((reason) => reason.replaceAll("_", " ")).join(", ")}
+                    </strong>
+                    <p><b>Admin decision:</b> {takedown.admin_reason}</p>
+                    <p>{new Date(takedown.taken_down_at).toLocaleDateString()}</p>
+                  </div>
                 </div>
               )}
 

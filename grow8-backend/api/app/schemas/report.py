@@ -104,6 +104,17 @@ class AdminReportRead(ReportRead):
         )
 
 
+class TakedownRead(BaseModel):
+    """What the owning creator learns about a takedown (ADR 0016 decision 2, #47): when, the
+    admin's reason and the report categories. Never the reporters, their own words, or how
+    many reported."""
+
+    opportunity_id: int
+    taken_down_at: UtcDateTime
+    admin_reason: str
+    reasons: list[ReportReason]  # distinct categories, alphabetical
+
+
 class MyReportParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

@@ -1,9 +1,6 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Path, Query, Response, status
-from grow8_common.models import OpportunityReport, ReportReview
-from pydantic import BaseModel
-from sqlalchemy import select
 
 from app.dependencies.auth import CurrentCreator, DbSession, OptionalUser
 from app.dependencies.request import RequestId
@@ -22,12 +19,6 @@ router = APIRouter(
     prefix="/opportunities",
     tags=["opportunities"],
 )
-
-
-class CreatorTakedownReport(BaseModel):
-    reason: str
-    details: str | None
-    admin_reason: str | None
 
 
 OpportunityId = Annotated[int, Path(ge=1)]
@@ -54,43 +45,6 @@ def list_my_opportunities(
         creator,
         params,
     )
-
-
-@router.get("/{opportunity_id}/takedown-report", response_model=list[CreatorTakedownReport])
-def get_creator_takedown_report(
-    opportunity_id: OpportunityId,
-    session: DbSession,
-    creator: CurrentCreator,
-) -> list[CreatorTakedownReport]:
-    """Report reasons and admin decisions for an opportunity owned by this creator.
-    Never includes who reported."""
-    from grow8_common.models import Opportunity
-
-    from app.core.exceptions import NotFoundError
-    from app.repositories.user_repository import get_organization_of
-
-    organization = get_organization_of(session, creator.user_id)
-    opportunity = session.get(Opportunity, opportunity_id)
-    if (
-        organization is None
-        or opportunity is None
-        or opportunity.organization_id != organization.organization_id
-    ):
-        raise NotFoundError("Opportunity not found", code="OPPORTUNITY_NOT_FOUND")
-    rows = session.execute(
-        select(OpportunityReport, ReportReview)
-        .join(ReportReview, ReportReview.report_id == OpportunityReport.report_id)
-        .where(
-            OpportunityReport.opportunity_id == opportunity_id, ReportReview.decision == "upheld"
-        )
-        .order_by(OpportunityReport.report_id)
-    ).all()
-    return [
-        CreatorTakedownReport(
-            reason=report.reason.value, details=report.details, admin_reason=review.reason
-        )
-        for report, review in rows
-    ]
 
 
 @router.get("/{opportunity_id}", response_model=OpportunityRead)
