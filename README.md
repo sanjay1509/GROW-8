@@ -230,3 +230,12 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole st
 - [Events](grow8-backend/docs/events.md)
 - [Error codes](grow8-backend/docs/error-codes.md)
 - [Architecture decision records](grow8-backend/docs/adr/)
+
+## 10. Use of Generative AI Tools
+
+As required by the course policy on generative AI, the team discloses the tools it used and how:
+
+- **Claude (Anthropic)**: used to learn and break down hard concepts (for example normalization, triggers and event-driven messaging), to draft answers and documentation, and to help draft and debug parts of the code and tests.
+- **GitHub Copilot**: code completion and suggestions in the editor.
+
+All tool-assisted output was reviewed, tested, changed where needed and committed by the team member responsible for that part. Each member understands and can explain the work they submitted.
