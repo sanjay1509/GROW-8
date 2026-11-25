@@ -4,6 +4,8 @@ Every rule is checked here first for a clear error, and again by the database
 triggers, so a race the checks can't see still ends in the same 409, never a 500.
 """
 
+import logging
+from collections.abc import Callable
 from datetime import datetime
 from typing import BinaryIO
 
@@ -42,7 +44,9 @@ from app.schemas.application import (
 )
 from app.schemas.common import Page
 from app.services import application_rules, resume_service
-from app.storage.base import FileStorage, new_key
+from app.storage import FileStorage, StoredFileMissing, new_key
+
+logger = logging.getLogger(__name__)
 
 _MESSAGES = {
     "OPPORTUNITY_NOT_OPEN": "This opportunity is not open for applications",
@@ -160,10 +164,13 @@ def apply(
             existing.application_details = data.application_details
             existing.submitted_at = now
             existing.decided_at = None
-            _snapshot_resume(
+            replaced_key = existing.resume_storage_key
+            new_file = _snapshot_resume(
                 session, storage, contributor.user_id, existing, resume_upload, resume_file_name
             )
-            _commit(session)
+            _save_with_file(session, storage, new_file, lambda: None)
+            if storage is not None and replaced_key and replaced_key != new_file:
+                resume_service.delete_quietly(storage, replaced_key)
             publisher.publish(
                 ApplicationSubmittedPayload(
                     application_id=existing.application_id,
@@ -202,18 +209,10 @@ def apply(
         application_details=data.application_details,
         submitted_at=now,
     )
-    _snapshot_resume(
+    new_file = _snapshot_resume(
         session, storage, contributor.user_id, application, resume_upload, resume_file_name
     )
-    try:
-        application_repository.add(session, application)
-    except DBAPIError as exc:
-        session.rollback()
-        conflict = _conflict_from_db(exc)
-        if conflict is None:
-            raise
-        raise conflict from exc
-    _commit(session)
+    _save_with_file(session, storage, new_file, lambda: _add(session, application))
 
     publisher.publish(
         ApplicationSubmittedPayload(
@@ -230,6 +229,34 @@ def apply(
     return ApplicationRead.from_model(application)
 
 
+def _add(session: Session, application: Application) -> None:
+    try:
+        application_repository.add(session, application)
+    except DBAPIError as exc:
+        session.rollback()
+        conflict = _conflict_from_db(exc)
+        if conflict is None:
+            raise
+        raise conflict from exc
+
+
+def _save_with_file(
+    session: Session,
+    storage: FileStorage | None,
+    new_file: str | None,
+    write: Callable[[], None],
+) -> None:
+    """Write and commit the application. The resume copy was stored first (ADR 0007), so
+    if the database refuses the row, delete it again rather than leave an orphan (#48)."""
+    try:
+        write()
+        _commit(session)
+    except BaseException:
+        if storage is not None and new_file:
+            resume_service.delete_quietly(storage, new_file)
+        raise
+
+
 def _snapshot_resume(
     session: Session,
     storage: FileStorage | None,
@@ -237,10 +264,11 @@ def _snapshot_resume(
     application: Application,
     resume_upload: BinaryIO | None = None,
     resume_file_name: str | None = None,
-) -> None:
-    """Save the supplied application resume, or snapshot the current profile resume."""
+) -> str | None:
+    """Store the resume sent with the application, or a copy of the profile resume, and
+    point the application at it (ADR 0020). Returns the new file's key, if any."""
     if storage is None:
-        return
+        return None
     if resume_upload is not None:
         key, name, content_type, size = resume_service.store_application_resume(
             storage, resume_upload, resume_file_name
@@ -249,15 +277,21 @@ def _snapshot_resume(
         application.resume_file_name = name
         application.resume_content_type = content_type
         application.resume_size_bytes = size
-        return
+        return key
     resume = resume_repository.get(session, contributor_id)
-    if resume is None:
+    try:
+        source = storage.open(resume.storage_key) if resume else None
+    except StoredFileMissing:
+        logger.warning(
+            "profile resume file missing key=%s; applying without it", resume.storage_key
+        )
+        source = None
+    if resume is None or source is None:
         application.resume_file_name = None
         application.resume_content_type = None
         application.resume_size_bytes = None
         application.resume_storage_key = None
-        return
-    source = storage.open(resume.storage_key)
+        return None
     key = new_key("applicationresumes")
     try:
         storage.save(key, iter(lambda: source.read(64 * 1024), b""))
@@ -267,6 +301,7 @@ def _snapshot_resume(
     application.resume_content_type = resume.content_type
     application.resume_size_bytes = resume.size_bytes
     application.resume_storage_key = key
+    return key
 
 
 def list_mine(

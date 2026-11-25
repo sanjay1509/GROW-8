@@ -115,7 +115,7 @@ def upload(
         raise
 
     if replaced_key:
-        _delete_quietly(storage, replaced_key)
+        delete_quietly(storage, replaced_key)
     return resume
 
 
@@ -150,7 +150,7 @@ def delete_mine(session: Session, storage: FileStorage, contributor: UserAccount
     key = resume.storage_key
     resume_repository.delete(session, resume)
     session.commit()
-    _delete_quietly(storage, key)
+    delete_quietly(storage, key)
 
 
 def open_mine(session: Session, storage: FileStorage, contributor: UserAccount) -> ResumeFile:
@@ -197,7 +197,8 @@ def _open(storage: FileStorage, resume: ContributorResume) -> ResumeFile:
     return ResumeFile(stream, resume.file_name, resume.content_type, resume.size_bytes)
 
 
-def _delete_quietly(storage: FileStorage, key: str) -> None:
+def delete_quietly(storage: FileStorage, key: str) -> None:
+    """Delete a stored file that no row points to any more; log instead of failing."""
     try:
         storage.delete(key)
     except OSError:
