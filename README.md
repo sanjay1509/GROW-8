@@ -194,9 +194,11 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole st
 - Reports and takedown: contributors report misleading, unsafe, discriminatory or scam opportunities; admins dismiss reports or take the opportunity down, and the creator never learns who reported.
 - Event-driven notifications for publishing, applications, decisions, withdrawals, cancellations, work submissions, verification decisions and feedback review, with delayed retries and dead-letter queues.
 
-**In progress:** connecting the frontend to the applications, close and cancel endpoints.
+**Frontend:** contributor, creator and admin screens are connected to the backend for every feature above.
 
-**Planned:** the stretch goals below.
+**Known limitation:** self-service sign-up is not implemented; accounts come from the development seed data (see [docs.md](docs.md)).
+
+**Planned:** the future enhancements in section 7.
 
 **Getting started:** setup, dev accounts, everyday commands and an API walkthrough are in [docs.md](docs.md).
 
