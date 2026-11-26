@@ -220,11 +220,13 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole st
 
 ### Database (ENSF 608)
 
+- [**ENSF 608 final artifacts**](ENSF608-Final-Artifacts/README.md): the submission package (conceptual and logical models, 3NF normalization, SQL implementation and population, operations with stored procedures and evidence, testing, documentation, contributions)
 - [Data dictionary](docs/db/data-dictionary.md) (original [Google Sheet](https://docs.google.com/spreadsheets/d/10z_qGlHWLnbuE7DJr4je_tGaTtfz8Kyzln5PdvFpMBU/edit?usp=sharing "Google Sheet File"))
 - [Relational schema](docs/db/relational-schema.md)
 - [Functional dependencies and normalization](docs/db/functional-dependencies.md)
 - [Relationship validation](docs/db/relationship-validation.md)
 - [Database test report](docs/db/test-report.md)
+- [Conceptual ERD](docs/diagrams/ER-diagram.drawio.svg) and [Part 2: reports and takedown](docs/diagrams/ER-diagram-part2-reports.drawio.svg)
 
 ### Backend
 
