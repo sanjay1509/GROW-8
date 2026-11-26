@@ -1,0 +1,1 @@
+{"name":"grow8-qa-final","private":true,"type":"module","scripts":{"test":"playwright test","api":"playwright test --project=api","ui":"playwright test --project=ui","list":"playwright test --list","report":"playwright show-report reports/manual/html"},"devDependencies":{"@playwright/test":"1.56.1"}}
