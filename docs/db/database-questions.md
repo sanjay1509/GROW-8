@@ -5,7 +5,7 @@
 The ENSF 608 proposal lists eight questions the database must be able to answer. This document gives the SQL for each one and its result on the development data, so every answer can be checked by running it.
 
 - **SQL file:** `grow8-backend/db/queries/database_questions.sql`. Run it with `make queries` (from `grow8-backend/`, with the stack up), or paste one block at a time into MySQL Workbench (`localhost:3307`).
-- **Data:** `001_schema.sql` + `002_seed.sql` + `004_seed_workflow.sql`. The workflow seed adds 14 applications, 5 submissions, 4 verifications, 7 feedback entries, 5 admin reviews, 5 earned badges and 8 point transactions on top of the users and opportunities in 002.
+- **Data:** `001_schema.sql` + `002_seed.sql` + `004_seed_workflow.sql`. The workflow seed adds 14 applications, 5 submissions, 4 verifications, 7 feedback entries, 5 admin reviews, 5 earned badges, 8 point transactions, 2 opportunity reports and 9 notifications on top of the users and opportunities in 002 (the reports and notifications do not change any answer below).
 - **Parameters:** session variables at the top of the file. `@as_of = '2026-11-07 12:00:00'` (the application would use `NOW()`), `@category = 'community'`, `@period_from` / `@period_to` = October 2026.
 - **Tests:** `grow8-backend/api/tests/integration/test_db_workflow_seed.py` runs every query on the same data and checks the results below.
 

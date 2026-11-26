@@ -8,6 +8,8 @@
 --   application -> work_submission -> work_verification -> point_transaction
 --                                                       -> contributor_badge
 --   application -> feedback -> admin_review
+--   opportunity_report -> report_review
+--   notification (what the consumers would have written for these events)
 --
 -- Fixed IDs and fixed dates (UTC), like 002. Every row passes the integrity
 -- triggers in 001_schema.sql: applications are dated before each deadline and
@@ -16,6 +18,9 @@
 -- an earned badge.
 --
 -- Points rule used here: 10 points per verified hour, plus the badge's points.
+--
+-- contributor_resume stays empty: its rows point at uploaded files, which a seed
+-- cannot provide.
 --
 -- The API integration tests do not load this file; they start from 002 only.
 -- =============================================================================
@@ -134,3 +139,60 @@ INSERT INTO admin_review (review_id, feedback_id, admin_user_id, decision, reaso
 (3, 3, 1, 'approved', NULL,                                              '2026-08-15 15:00:00'),
 (4, 4, 1, 'rejected', 'Contains personal contact details.',             '2026-08-15 15:05:00'),
 (5, 7, 1, 'rejected', 'Selection decisions are at the creator''s discretion.', '2026-07-28 15:00:00');
+
+-- -----------------------------------------------------------------------------
+-- Opportunity reports and their review (ADR 0016). Report 1 was dismissed;
+-- report 2 is still pending (no report_review row). No report is upheld, so no
+-- opportunity is taken down and the open opportunities above stay open.
+-- -----------------------------------------------------------------------------
+
+INSERT INTO opportunity_report (report_id, opportunity_id, reporter_user_id, reason, details, created_at) VALUES
+(1, 9, 5, 'misleading_terms', 'Says it is paid in two milestones but not what each milestone covers.', '2026-10-21 18:00:00'),
+(2, 4, 6, 'misleading_terms', 'Lists 16 expected hours, but the weekend shifts described add up to more.', '2026-11-04 17:00:00');
+
+INSERT INTO report_review (review_id, report_id, admin_user_id, decision, reason, reviewed_at) VALUES
+(1, 1, 1, 'dismissed', 'The amount and the two-milestone schedule are stated in the listing.', '2026-10-22 15:00:00');
+
+-- -----------------------------------------------------------------------------
+-- Notifications for some of the events above, worded as the consumer services
+-- word them. One event can notify several users (event 7: the matching
+-- contributor and the creator). read_at NULL = unread.
+-- -----------------------------------------------------------------------------
+
+INSERT INTO notification (notification_id, user_id, event_id, notification_type, title, message, opportunity_id, read_at, created_at) VALUES
+(1, 6, '6f1c0b1e-0001-4a00-8000-000000000001', 'application_decided',
+    'You were accepted: Summer BBQ volunteer crew',
+    'The organization accepted your application. They will contact you about next steps.',
+    11, '2026-07-15 18:00:00', '2026-07-15 15:00:00'),
+(2, 6, '6f1c0b1e-0002-4a00-8000-000000000002', 'work_verified',
+    'Work verified: Summer BBQ volunteer crew',
+    'Your work on Summer BBQ volunteer crew was verified (6 h). It now counts toward your verified hours.',
+    11, '2026-08-12 20:00:00', '2026-08-12 16:00:00'),
+(3, 7, '6f1c0b1e-0003-4a00-8000-000000000003', 'work_rejected',
+    'Work not verified: Warehouse inventory count',
+    'The organization did not verify your work. Their comment: "No count sheets were uploaded, so the hours cannot be verified."',
+    10, NULL, '2026-10-19 15:30:00'),
+(4, 1, '6f1c0b1e-0004-4a00-8000-000000000004', 'feedback_submitted',
+    'Discrepancy reported: Warehouse inventory count',
+    'Sam Patel rated the other participant 1/5 and reports that something on this application went wrong. Please review it.',
+    10, NULL, '2026-10-20 15:00:00'),
+(5, 5, '6f1c0b1e-0005-4a00-8000-000000000005', 'report_dismissed',
+    'Report reviewed: Event registration website refresh',
+    'An admin reviewed your report and decided the opportunity can stay up. Their note: "The amount and the two-milestone schedule are stated in the listing."',
+    9, '2026-10-22 19:00:00', '2026-10-22 15:00:00'),
+(6, 2, '6f1c0b1e-0006-4a00-8000-000000000006', 'application_submitted',
+    'New application: Digitize paper recipe archive',
+    'Jordan Lee applied. Review the application to accept or reject it.',
+    1, NULL, '2026-11-02 18:00:00'),
+(7, 6, '6f1c0b1e-0007-4a00-8000-000000000007', 'opportunity_created',
+    'New opportunity: New Year''s Eve family event greeters',
+    'Apply by 2026-12-20 23:59 UTC. Your matching skills: customer-service, event-setup.',
+    13, NULL, '2026-10-15 17:00:00'),
+(8, 4, '6f1c0b1e-0007-4a00-8000-000000000007', 'opportunity_published',
+    'Your opportunity is live: New Year''s Eve family event greeters',
+    'Contributors can now find it and apply until 2026-12-20 23:59 UTC.',
+    13, '2026-10-15 17:30:00', '2026-10-15 17:00:00'),
+(9, 1, '6f1c0b1e-0008-4a00-8000-000000000008', 'opportunity_reported',
+    'Opportunity reported: Holiday market booth assistant',
+    'A contributor reported it as misleading terms. It has 1 open report.',
+    4, NULL, '2026-11-04 17:00:00');
