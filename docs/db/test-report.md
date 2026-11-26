@@ -6,26 +6,28 @@ This report covers the tests that check the database itself: the integrity rules
 
 ## Result
 
-**Run on Nov 22, 2026: 795 passed, 0 failed, 0 skipped.**
+**Run on Nov 26, 2026: 831 passed, 0 failed, 0 skipped.**
 
 | Suite | Tests | Result |
 |---|---|---|
-| API and database tests (`grow8-backend/api/tests`) | 700 | all passed |
+| API and database tests (`grow8-backend/api/tests`) | 736 | all passed |
 | Consumer service tests (`grow8-backend/services/*/tests`) | 95 | all passed |
 
-Environment: MySQL 8.0, RabbitMQ 3.12, Python 3. Each API test starts from a fresh copy of `002_seed.sql` in a separate `grow8_test` database, so tests never touch the dev data and don't depend on each other. Applications in the tests use fixed dates, so the results don't change as real dates pass the seeded deadlines.
+Environment: MySQL 8.0, RabbitMQ 3.12, Python 3.
+
+The ENSF 608 operations file (`ENSF608-Final-Artifacts/05-operations/grow8_operations.sql`) was also run against a database built from the submitted scripts: 117 statements, all 18 integrity checks refused as expected, no unexpected errors. Its output is in `Operations-Evidence.md` next to it. Each API test starts from a fresh copy of `002_seed.sql` in a separate `grow8_test` database, so tests never touch the dev data and don't depend on each other. Applications in the tests use fixed dates, so the results don't change as real dates pass the seeded deadlines.
 
 How to run: `make test` and `make test-services` from `grow8-backend/` with the stack up.
 
 ## Database tests by area
 
-76 of the 700 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
+77 of the 736 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
 
 | File | Tests | What it proves |
 |---|---|---|
 | `test_db_integrity.py` | 18 | Every cross-table rule (I1–I9 in `relationship-validation.md`) is refused by MySQL when broken and accepted when followed, plus the derived views, decision 7 (verified skills, listed or earned) and the `contributor_resume` constraints. |
 | `test_db_applications.py` | 8 | Decision 4: open status, deadline, applicant limit, freed places, immutable applications, and a two-connection race for the last place. |
-| `test_db_workflow_seed.py` | 11 | `004_seed_workflow.sql` loads with every trigger active, the views return its history, and each of the eight database questions returns the documented answer. |
+| `test_db_workflow_seed.py` | 12 | `004_seed_workflow.sql` loads with every trigger active, the views return its history, its reports and notifications are consistent (derived report status, unread counts), and each of the eight database questions returns the documented answer. |
 | `test_schema_mirror.py` | 22 | The ORM models match `001_schema.sql` exactly: same tables, columns, types, keys and constraints, for all 21 tables. |
 | `test_notification_schema.py` | 4 | One notification per user per event, and notifications survive their opportunity being deleted. |
 | `test_submission_repository.py` | 5 | Work submissions and their attachments are stored and read back, an attachment is found only through its own submission, and MySQL refuses work for an application that isn't accepted (I7) and a second submission for the same application (R9). |
@@ -78,6 +80,7 @@ Without the row lock, both transactions would count zero active applications and
 
 ## Changes made for this report
 
+- Nov 26 (final ENSF 608 package): `004_seed_workflow.sql` now also seeds two opportunity reports (one dismissed, one pending) and nine notifications, so every table except `contributor_resume` holds data. `test_db_workflow_seed.py` adds `test_seed_reports_and_notifications`.
 - Nov 22 (earned skills, ADR 0019): `v_contributor_skill` now returns every listed skill plus every skill earned through approved work, with `is_listed`. `test_db_integrity.py` rewrites the decision 7 test (approved work on an opportunity requiring unlisted skills now verifies them) and adds two: a listed skill that work proved stays verified when its listing is removed, and two approvals proving the same skill give one row with the first date. `test_db_workflow_seed.py` now expects the seed's earned skills (Alex's 7 and 9, Jordan's 10).
 - Nov 22 (creator organization, ADR 0018): no schema change. `test_organization.py` relies on `trg_creator_organization_bi` accepting a creator's first organization, and adds a two-connection race: two first saves by a creator without an organization. The second waits on the creator's account lock and edits the organization the first created, instead of failing on `uq_creator_organization_owner`.
 - Nov 22 (contributor profile, ADR 0017): no schema change, so the database tests are unchanged. `test_contributor_profile.py` reads `verified` from `v_contributor_skill` (a skill turns verified once approved work on an opportunity that required it exists, and comes back with its original date after being removed and re-added), and adds a two-connection race: two first saves for a contributor without a profile row. The second waits for the first's lock instead of failing on the primary key.

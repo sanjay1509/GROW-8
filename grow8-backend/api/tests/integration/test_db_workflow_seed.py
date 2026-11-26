@@ -85,6 +85,26 @@ def test_views_return_the_seeded_history(workflow_db: pymysql.Connection) -> Non
     ) == [(5, 7, 0), (5, 9, 0), (6, 7, 1), (6, 9, 1), (6, 10, 0)]  # earned, listed or not
 
 
+def test_seed_reports_and_notifications(workflow_db: pymysql.Connection) -> None:
+    # report status is derived from report_review: one dismissed, one still pending
+    assert _rows(
+        workflow_db,
+        "SELECT r.report_id, COALESCE(rr.decision, 'pending') FROM opportunity_report r "
+        "LEFT JOIN report_review rr ON rr.report_id = r.report_id ORDER BY r.report_id",
+    ) == [(1, "dismissed"), (2, "pending")]
+    # nothing was upheld, so both reported opportunities are still open
+    assert _rows(workflow_db, "SELECT status FROM opportunity WHERE opportunity_id IN (4, 9)") == [
+        ("open",),
+        ("open",),
+    ]
+    # (user, unread, total): event 7 notified both the contributor and the creator
+    assert _rows(
+        workflow_db,
+        "SELECT user_id, CAST(SUM(read_at IS NULL) AS SIGNED), COUNT(*) FROM notification "
+        "GROUP BY user_id ORDER BY user_id",
+    ) == [(1, 2, 2), (2, 1, 1), (4, 0, 1), (5, 0, 1), (6, 1, 3), (7, 1, 1)]
+
+
 def test_seeded_full_opportunity_refuses_another_applicant(
     workflow_db: pymysql.Connection,
 ) -> None:
