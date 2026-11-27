@@ -1,8 +1,4 @@
-node_modules/
-reports/
-.env
-*.log
-__pycache__/
+/ENSF_607_GROUP2_GROW8_FinalArtifacts/
 node_modules/
 reports/
 test-results/

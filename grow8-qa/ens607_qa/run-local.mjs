@@ -3,9 +3,9 @@ import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import net from 'node:net';
-const qa=path.dirname(fileURLToPath(import.meta.url)),root=path.dirname(qa),backend=path.join(root,'grow8-backend'),frontend=path.join(root,'grow8-');
+const qa=path.dirname(fileURLToPath(import.meta.url)),root=path.resolve(qa,'../..'),backend=path.join(root,'grow8-backend'),frontend=path.join(root,'grow8-');
 const layer=process.argv[2]||'all';
-if(!['all','ui','api'].includes(layer))throw Error('Usage: node grow8-qa/run-local.mjs [all|ui|api]');
+if(!['all','ui','api'].includes(layer))throw Error('Usage: node grow8-qa/ens607_qa/run-local.mjs [all|ui|api]');
 const windows=process.platform==='win32';
 const npm=windows?'npm.cmd':'npm';
 const id=`grow8qa${Date.now()}`;
@@ -18,7 +18,7 @@ function run(cmd,args,cwd,required=true){console.log(`> ${cmd} ${args.join(' ')}
 async function wait(url,seconds){const until=Date.now()+seconds*1000;while(Date.now()<until){try{const r=await fetch(url,{signal:AbortSignal.timeout(3000)});if(r.ok)return;}catch{}await new Promise(r=>setTimeout(r,2000));}throw Error(`Timed out waiting for ${url}`);}
 async function portFree(p){await new Promise((resolve,reject)=>{const s=net.createServer();s.once('error',()=>reject(Error(`Port ${p} is occupied. Stop the other process before running isolated QA.`)));s.listen(p,()=>s.close(resolve));});}
 try{
- if(!existsSync(path.join(backend,'.env.example'))||!existsSync(path.join(frontend,'package-lock.json')))throw Error('Extract grow8-qa into the GROW-8 repository root.');
+ if(!existsSync(path.join(backend,'.env.example'))||!existsSync(path.join(frontend,'package-lock.json')))throw Error('Keep ens607_qa under grow8-qa in the GROW-8 repository root.');
  run('docker',['info'],root);run('docker',['compose','version'],root);
  for(const p of [ports.api,ports.mysql,ports.rabbit,...(layer==='api'?[]:[ports.ui])])await portFree(p);
  // Use the exact package version and the frontend's existing lockfile. No application source edits.
