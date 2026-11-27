@@ -105,7 +105,7 @@ The database stores:
 - Ratings
 - Notifications
 
-The schema has 19 tables. Business rules (such as applicant limits and deadlines) are enforced by both the API and database triggers. See the [data dictionary](docs/db/data-dictionary.md) and [relational schema](docs/db/relational-schema.md).
+The schema has 21 tables. Business rules (such as applicant limits and deadlines) are enforced by both the API and database triggers. See the [data dictionary](docs/db/data-dictionary.md) and [relational schema](docs/db/relational-schema.md).
 
 Failed event publications are retried. A consumer whose handler fails retries the event after 5 s, 30 s and 120 s (through RabbitMQ retry queues) before moving it to its dead-letter queue. A transactional outbox is considered future work.
 
@@ -120,7 +120,7 @@ Failed event publications are retried. A consumer whose handler fails retries th
 | Database | MySQL 8.4 |
 | Event Broker | RabbitMQ |
 | File Storage | Docker volume |
-| Testing | pytest (about 400 automated API and consumer tests against a real MySQL), Postman/Newman end-to-end collection, manual testing, execution reports |
+| Testing | pytest (API and consumer suites, including real-MySQL integration tests), Postman/Newman API end-to-end collection, manual testing, execution reports |
 | Version Control | GitHub |
 | Deployment | Docker Compose |
 
@@ -178,16 +178,17 @@ The following features may be considered as future enhancements, subject to proj
 
 ## 8. Project Status
 
-GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole stack runs locally with Docker Compose.
+GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The backend services run with Docker Compose; start the Vite frontend separately as described in [docs.md](docs.md).
 
 **Implemented (backend):**
 
+- Self-service registration for contributor and creator accounts, with automatic sign-in; admin accounts remain provisioned separately.
 - Sign-in with JWT, role-based access (creator, contributor, admin), password change, and changing your name.
 - Creator organizations: creators edit their organization's name, type, description, website and city, and every one of their opportunities shows the change.
 - Contributor profiles: contributors edit their headline, bio, institution, city and listed skills, and see every skill approved work has verified, including ones they never listed; new skills change which opportunities they're notified about.
 - Opportunities: drafts, validation of mandatory disclosures, publishing, public browse with search, filters and sorting, closing and cancelling.
-- Applications: apply, review, accept or reject, withdraw, and the creator's view of applications received, with applicant limits and deadlines enforced.
-- Optional PDF resume upload for contributors, visible to creators they applied to.
+- Applications: apply with contributor details and an optional application-specific resume, review, accept or reject, withdraw, and creator review of received applications; applicant limits and deadlines are enforced.
+- Resume files selected on an application are saved with that application; the contributor's profile resume changes only from the profile page.
 - Work submission: accepted contributors submit their work once, with up to 5 files, for the creator to verify.
 - Work verification: creators review submitted work and approve it with verified hours or reject it with a comment; approved work counts toward the contributor's verified hours and skills.
 - Feedback and admin review: after verified work, the contributor and the creator rate each other; admins approve or reject each feedback (discrepancy reports first), and public ratings count approved feedback only.
@@ -195,8 +196,6 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole st
 - Event-driven notifications for publishing, applications, decisions, withdrawals, cancellations, work submissions, verification decisions and feedback review, with delayed retries and dead-letter queues.
 
 **Frontend:** contributor, creator and admin screens are connected to the backend for every feature above.
-
-**Known limitation:** self-service sign-up is not implemented; accounts come from the development seed data (see [docs.md](docs.md)).
 
 **Planned:** the future enhancements in section 7.
 
@@ -206,8 +205,6 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The whole st
 
 ## 9. Useful Links
 
-- [ENSF 607 Submission]()
-- [ENSF 607 Submission]()
 - [Developer guide: setup and usage](docs.md)
 - [User Stories](https://docs.google.com/document/d/1muAfw88L-geIDE3aOM3-dn9aTc-V78F9JkT1dOCExAI/edit?usp=sharing "Google Doc File")
 
@@ -241,5 +238,6 @@ As required by the course policy on generative AI, the team discloses the tools 
 
 - **Claude (Anthropic)**: used to learn and break down hard concepts (for example normalization, triggers and event-driven messaging), to draft answers and documentation, and to help draft and debug parts of the code and tests.
 - **GitHub Copilot**: code completion and suggestions in the editor.
+- **OpenAI Codex**: used to implement and review the self-service registration flow and to check project documentation and automated workflows.
 
 All tool-assisted output was reviewed, tested, changed where needed and committed by the team member responsible for that part. Each member understands and can explain the work they submitted.

@@ -4,7 +4,78 @@ import bcrypt
 from fastapi.testclient import TestClient
 
 LOGIN = "/api/v1/auth/login"
+REGISTER = "/api/v1/auth/register"
 DEV_PASSWORD = "Grow8Dev!2026"  # seeded dev accounts, see db/init/002_seed.sql
+
+
+def test_register_contributor_creates_profile_and_signs_them_in(client: TestClient) -> None:
+    response = client.post(
+        REGISTER,
+        json={
+            "email": "  new.contributor@example.com ",
+            "full_name": "New Contributor",
+            "password": "Strong-pass-2026",
+            "role": "contributor",
+        },
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["user"]["email"] == "new.contributor@example.com"
+    assert body["user"]["role"] == "contributor"
+    headers = {"Authorization": f"Bearer {body['access_token']}"}
+    assert client.get("/api/v1/auth/me", headers=headers).json()["full_name"] == "New Contributor"
+    profile = client.get("/api/v1/contributors/me/profile", headers=headers)
+    assert profile.status_code == 200
+    assert profile.json()["user_id"] == body["user"]["user_id"]
+
+
+def test_register_creator_and_sign_them_in(client: TestClient) -> None:
+    response = client.post(
+        REGISTER,
+        json={
+            "email": "new.creator@example.com",
+            "full_name": "New Creator",
+            "password": "Strong-pass-2026",
+            "role": "creator",
+        },
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["user"]["role"] == "creator"
+    headers = {"Authorization": f"Bearer {body['access_token']}"}
+    assert client.get("/api/v1/opportunities/mine", headers=headers).status_code == 200
+
+
+def test_register_rejects_duplicate_email(client: TestClient) -> None:
+    body = {
+        "email": "new.user@example.com",
+        "full_name": "New User",
+        "password": "Strong-pass-2026",
+        "role": "contributor",
+    }
+    assert client.post(REGISTER, json=body).status_code == 201
+
+    duplicate = client.post(REGISTER, json=body)
+    assert duplicate.status_code == 409
+    assert duplicate.json()["error"]["code"] == "EMAIL_ALREADY_REGISTERED"
+
+
+def test_register_rejects_admin_self_registration_and_short_password(
+    client: TestClient,
+) -> None:
+    body = {
+        "email": "admin.signup@example.com",
+        "full_name": "Not An Admin",
+        "password": "Strong-pass-2026",
+        "role": "admin",
+    }
+    assert client.post(REGISTER, json=body).status_code == 422
+
+    body["role"] = "contributor"
+    body["password"] = "short"
+    assert client.post(REGISTER, json=body).status_code == 422
 
 
 def test_login_returns_token_and_user(client: TestClient) -> None:

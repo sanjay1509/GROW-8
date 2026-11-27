@@ -20,12 +20,13 @@ Base path: `/api/v1`. JSON bodies, `snake_case` fields. Interactive docs: <http:
 
 | Method | Path | Who | Notes |
 | --- | --- | --- | --- |
+| POST | `/auth/register` | anyone | Body `{full_name, email, password, role}`. `role` is `contributor` or `creator` (admin registration is disabled). Email is trimmed and lowercased; password: 8–128 characters and at most 72 UTF-8 bytes. Returns the same token response as login and signs the user in. Contributor registration creates its profile. Duplicate email → 409 `EMAIL_ALREADY_REGISTERED`. |
 | POST | `/auth/login` | anyone | Body `{email, password}`. Returns `{access_token, token_type, expires_in, user}`. Wrong email or password → 401 `INVALID_CREDENTIALS`. |
 | GET | `/auth/me` | any signed-in user | The caller's `{user_id, email, full_name, role}`. |
 | PATCH | `/auth/me` | any signed-in user | Body `{full_name}` (1–150 characters, trimmed). Changes your name and returns the same body as `GET /auth/me`. Email can't be changed: sending it is a 422 `VALIDATION_ERROR` ([ADR 0017](adr/0017-contributor-profile.md)). |
 | POST | `/auth/change-password` | any signed-in user | Body `{current_password, new_password}` (new: 8 characters to 72 bytes in UTF-8, bcrypt's limit). Wrong current password → 401 `INVALID_CURRENT_PASSWORD`; same as current → 422 `PASSWORD_UNCHANGED`. Tokens already issued stay valid until they expire ([ADR 0005](adr/0005-password-change.md)). |
 
-There is no sign-up endpoint yet; use the seeded dev accounts (see [docs.md](../../docs.md)).
+Seeded development accounts and startup instructions are in [docs.md](../../docs.md).
 
 ## Reference data
 

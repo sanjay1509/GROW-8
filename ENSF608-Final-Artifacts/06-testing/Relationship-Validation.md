@@ -105,17 +105,15 @@ Each Feedback row has an author and a recipient, so it needs two FKs to UserAcco
 
 Storing totals that can be calculated creates redundancy; if an event fails or is retried, the stored total drifts from the real records.
 
-**Fix (recommended):** no stored totals. Create views:
+**Final decision (implemented):** do not store totals; calculate them with views:
 
 - `v_contributor_verified_hours` — `SUM(approved_hours)` over approved verifications
-- `v_creator_rating` — `AVG(rating)` over Admin-approved feedback only
+- `v_user_rating` — `AVG(rating)` over Admin-approved feedback only
 - `v_leaderboard` — `SUM(amount)` from PointTransaction for a given period
 
 The consumer services keep sending notifications, and read totals from these views. If performance later needs a cache, document it as deliberate denormalization and recompute it in the same transaction.
 
 **Related accepted redundancy:** `PointTransaction.contributor_id` can be derived through the point's source (verification → submission → application → contributor, or badge → contributor). It is kept on purpose so leaderboard queries don't need four joins; the backend must set it consistently.
-
-**Needs a team decision.**
 
 ### I4 — Is the rating for the Creator account or the organization? (R2, R13)
 
@@ -124,7 +122,7 @@ Feedback's recipient is a UserAccount, but one Creator can manage several organi
 - **Option A — rate the Creator account:** works with the current design.
 - **Option B — rate the organization:** the organization is derivable through application → opportunity → organization, so no extra column is needed.
 
-**Recommendation:** Option B, since Contributors see the organization on each listing. **Needs a team decision.**
+**Final decision (implemented):** rate the Creator account (`subject_user_id`). In the MVP, each creator owns one organization, so the creator and organization rating targets are the same; `v_user_rating` calculates the public rating from approved feedback.
 
 ### I5 — PointTransaction has two possible sources (R17–R19)
 
@@ -182,14 +180,14 @@ Without it, the database would accept a second profile, submission, verification
 - **Once only:** add `UNIQUE (contributor_id, badge_id)`.
 - **Repeatable:** leave it out; each earning gets its own row and its own point entry.
 
-## 5. Open decisions for the team
+## 5. Final design decisions
 
-> Outcomes are in section 5 of `functional-dependencies.md`. All decisions are closed as of Nov 7 (4: applicant limit, 7: verified skills).
+> The initial proposal questions below are resolved in the committed schema and summarized in section 5 of `functional-dependencies.md`.
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
-| 1 | Stored vs. calculated totals (I3) | Stored totals updated by events / calculated views | Calculated views |
-| 2 | Rating target (I4) | Creator account / organization | Organization |
+| 1 | Stored vs. calculated totals (I3) | Stored totals updated by events / calculated views | Calculated views (`v_contributor_verified_hours`, `v_user_rating`, `v_leaderboard`) |
+| 2 | Rating target (I4) | Creator account / organization | Creator account; one organization per creator in the MVP |
 | 3 | One role per account (I6) | Single role / multiple roles | Single role for MVP |
 | 4 | Applicant limit (I7) | Counts all applications / accepted only | **Active (pending + accepted)**, enforced by `trg_application_bi/bu` |
 | 5 | Badge repeatable? (I9) | Once only / repeatable | Once only |
@@ -197,7 +195,7 @@ Without it, the database would accept a second profile, submission, verification
 
 ## 6. Next steps
 
-- ~~Formal 1NF → BCNF analysis after the Oct 16 normalization lecture~~: done in `functional-dependencies.md` (all 19 tables in BCNF, `contributor_resume` added Nov 15).
+- ~~Formal 1NF → BCNF analysis after the Oct 16 normalization lecture~~: done in `functional-dependencies.md` (all 21 tables in BCNF, including `contributor_resume`, `notification`, `opportunity_report` and `report_review`).
 - ~~Data dictionary~~: done in `data-dictionary.md`, generated from the loaded schema.
 - ~~Apply the agreed constraints in the shared schema DDL~~: done; see section 7.
 - ~~Turn each rule in I5–I8 into a test case for database testing~~: done in `grow8-backend/api/tests/integration/test_db_integrity.py`.
