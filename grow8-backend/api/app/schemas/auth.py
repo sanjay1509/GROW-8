@@ -1,7 +1,34 @@
+import re
+from typing import Literal
+
 from grow8_common.models import UserRole
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.core.security import BCRYPT_MAX_BYTES, password_fits_bcrypt
+
+
+class SignUpRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    email: str = Field(min_length=3, max_length=255)
+    full_name: str = Field(min_length=1, max_length=150)
+    password: str = Field(min_length=8, max_length=128)
+    role: Literal["contributor", "creator"]
+
+    @field_validator("email")
+    @classmethod
+    def _normalize_email(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", normalized):
+            raise ValueError("must be a valid email address")
+        return normalized
+
+    @field_validator("password")
+    @classmethod
+    def _fits_bcrypt(cls, value: str) -> str:
+        if not password_fits_bcrypt(value):
+            raise ValueError(f"must be at most {BCRYPT_MAX_BYTES} bytes when UTF-8 encoded")
+        return value
 
 
 class LoginRequest(BaseModel):

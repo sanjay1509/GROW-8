@@ -1,7 +1,8 @@
-from grow8_common.models import UserAccount
+from grow8_common.models import ContributorProfile, UserAccount, UserRole
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import UnauthorizedError, UnprocessableError
+from app.core.exceptions import ConflictError, UnauthorizedError, UnprocessableError
 from app.core.security import (
     create_access_token,
     hash_password,
@@ -9,7 +10,8 @@ from app.core.security import (
     verify_password,
 )
 from app.repositories import user_repository
-from app.schemas.auth import TokenResponse, UserRead
+from app.repositories.db_errors import duplicate_key
+from app.schemas.auth import SignUpRequest, TokenResponse, UserRead
 
 # Compared against when the email is unknown, so both failure paths cost a bcrypt check.
 _DUMMY_HASH = hash_password("grow8-timing-equalizer")
@@ -20,6 +22,34 @@ def login(session: Session, email: str, password: str) -> TokenResponse:
     password_ok = verify_password(password, user.password_hash if user else _DUMMY_HASH)
     if user is None or not password_ok or not user.is_active:
         raise UnauthorizedError("Incorrect email or password", code="INVALID_CREDENTIALS")
+    token, expires_in = create_access_token(user.user_id, user.role)
+    return TokenResponse(
+        access_token=token, expires_in=expires_in, user=UserRead.model_validate(user)
+    )
+
+
+def register(session: Session, data: SignUpRequest) -> TokenResponse:
+    """Create a contributor or creator account and sign the new user in."""
+    user = UserAccount(
+        email=data.email,
+        password_hash=hash_password(data.password),
+        role=UserRole(data.role),
+        full_name=data.full_name,
+    )
+    session.add(user)
+    try:
+        session.flush()
+        if user.role == UserRole.CONTRIBUTOR:
+            session.add(ContributorProfile(user_id=user.user_id))
+        session.commit()
+    except DBAPIError as exc:
+        session.rollback()
+        if duplicate_key(exc, "uq_user_account_email"):
+            raise ConflictError(
+                "An account with this email already exists", code="EMAIL_ALREADY_REGISTERED"
+            ) from exc
+        raise
+
     token, expires_in = create_access_token(user.user_id, user.role)
     return TokenResponse(
         access_token=token, expires_in=expires_in, user=UserRead.model_validate(user)
