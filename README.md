@@ -120,7 +120,7 @@ Failed event publications are retried. A consumer whose handler fails retries th
 | Database | MySQL 8.4 |
 | Event Broker | RabbitMQ |
 | File Storage | Docker volume |
-| Testing | pytest (API and consumer suites, including real-MySQL integration tests), Postman/Newman API end-to-end collection, manual testing, execution reports |
+| Testing | Playwright UI and HTTP API automation, pytest API and consumer suites, Postman/Newman API end-to-end collection, MySQL verification, manual testing, execution reports |
 | Version Control | GitHub |
 | Deployment | Docker Compose |
 
@@ -203,10 +203,74 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The backend 
 
 ---
 
-## 9. Useful Links
+## 9. Testing and QA verification
+
+### ENSF 607 UI and API automation
+
+The [QA suite](grow8-qa/ens607_qa/) contains 108 UI and 301 API case IDs. The UI suite includes live browser workflows and fixture-based regression cases. The API suite includes live HTTP checks and in-process pytest checks against an isolated MySQL database.
+
+Run the following commands from the repository root. Install Node.js 22.12 or newer and start Docker Desktop with Docker Compose v2. The runner installs the test dependencies and Chromium when needed, starts its own Compose project, and writes reports before cleaning up that project. It uses ports `18000`, `13307`, and `15673`, plus `15173` for UI runs.
+
+1. **Verify the test inventory.** This checks that the implemented case IDs match the catalog and detects missing or duplicate IDs.
+
+   ```powershell
+   node grow8-qa/ens607_qa/verify-inventory.mjs
+   ```
+
+   Expected output is **108 UI IDs**, **301 API IDs**, and **409 total IDs**. A test run is required to obtain pass and fail results.
+
+2. **Run the suite.** Choose one of these commands.
+
+   | Scope | Command |
+   | --- | --- |
+   | UI and API | `node grow8-qa/ens607_qa/run-local.mjs all` |
+   | UI only | `node grow8-qa/ens607_qa/run-local.mjs ui` |
+   | API only | `node grow8-qa/ens607_qa/run-local.mjs api` |
+
+3. **Review the run.** Use the `Evidence folder` path printed by the runner. Under `grow8-qa/ens607_qa/reports/<run-id>/`, open `html/index.html` for Playwright results and `case-results.csv` for case outcomes and evidence references. Runs that include the in-process API cases also produce `legacy-api.html`. Use `run-meta.json` to identify the commit tested.
+
+For the application's own pytest suites and Postman/Newman collection, see the [developer testing commands](docs.md#15-everyday-commands).
+
+### ENSF 608 SQL verification
+
+The [SQL QA scripts and catalogs](grow8-qa/ENSF608_SQL_QA/) include offline unit tests for the runner. From the repository root, run:
+
+```powershell
+python -B -m unittest discover -s grow8-qa/ENSF608_SQL_QA -p test_runner_logic.py
+```
+
+For a live baseline replay, use the [matching ENSF 608 source artifacts](ENSF608-Final-Artifacts/README.md), install the Python dependencies, and supply `Supplemental_Queries.sql` alongside the runner from the SQL QA submission package. The runner checks the source file hashes before executing against a disposable MySQL container.
+
+```powershell
+python -m pip install -r grow8-qa/ENSF608_SQL_QA/requirements.txt
+python grow8-qa/ENSF608_SQL_QA/run_sql_tests.py --repo . --check-only
+python grow8-qa/ENSF608_SQL_QA/run_sql_tests.py --repo .
+```
+
+Review the CSV and per-case evidence under `grow8-qa/ENSF608_SQL_QA/reports/`. Excel export uses `ENSF608_SQL_Test_Suite.xlsx`. The extended runner also requires `baseline_76.zip` and `baseline_rtm.xlsx` from the SQL QA submission package.
+
+---
+
+## 10. Useful Links
 
 - [Developer guide: setup and usage](docs.md)
 - [User Stories](https://docs.google.com/document/d/1muAfw88L-geIDE3aOM3-dn9aTc-V78F9JkT1dOCExAI/edit?usp=sharing "Google Doc File")
+
+### ENSF 607 final artifacts
+
+| Artifact | File |
+| --- | --- |
+| Architecture | [Architecture artifact (PDF)](ENSF607_GROW8_Group2_Artifacts_Final/ENSF_607_Group2_GROW8_Architecture_Artifact.pdf) |
+| Requirements analysis | [Requirements and use cases (PDF)](ENSF607_GROW8_Group2_Artifacts_Final/ENSF_607_Group2_GROW8_Requirements.pdf) |
+| Testing | [Test suite (Excel)](ENSF607_GROW8_Group2_Artifacts_Final/ENSF607_GROW8_Test_Suite.xlsx) · [Test execution results and traceability (Excel)](ENSF607_GROW8_Group2_Artifacts_Final/ENSF607_GROW8_Test_Execution_Results.xlsx) · [Test evidence (ZIP)](ENSF607_GROW8_Group2_Artifacts_Final/Evidence.zip) |
+
+**Before verifying the test execution results, unzip `Evidence.zip` next to the workbooks.** This creates the `Evidence/` folder that the execution results workbook links to. From the repository root in PowerShell:
+
+```powershell
+Expand-Archive -LiteralPath './ENSF607_GROW8_Group2_Artifacts_Final/Evidence.zip' -DestinationPath './ENSF607_GROW8_Group2_Artifacts_Final'
+```
+
+Then open the test execution results workbook and follow the evidence links for the cases you want to verify.
 
 ### Design and diagrams
 
@@ -232,7 +296,7 @@ GROW8 is being developed as a team project for ENSF 607 / ENSF 608. The backend 
 - [Error codes](grow8-backend/docs/error-codes.md)
 - [Architecture decision records](grow8-backend/docs/adr/)
 
-## 10. Use of Generative AI Tools
+## 11. Use of Generative AI Tools
 
 As required by the course policy on generative AI, the team discloses the tools it used and how:
 
