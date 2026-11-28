@@ -1,0 +1,227 @@
+[
+  {
+    "category": "INSERT",
+    "minimum": 2,
+    "ref": "OP-1",
+    "id": "SQL-032",
+    "statement": "INSERT INTO user_account",
+    "purpose": "Insert contributor account, profile and listed skills.",
+    "execution_id": "SQL-032"
+  },
+  {
+    "category": "INSERT",
+    "minimum": 2,
+    "ref": "OP-2",
+    "id": "SQL-033",
+    "statement": "INSERT INTO opportunity",
+    "purpose": "Insert draft spreadsheet opportunity and required skills.",
+    "execution_id": "SQL-033"
+  },
+  {
+    "category": "UPDATE",
+    "minimum": 2,
+    "ref": "OP-7",
+    "id": "SQL-038",
+    "statement": "UPDATE application",
+    "purpose": "Withdraw Jordan’s application and count active places.",
+    "execution_id": "SQL-038"
+  },
+  {
+    "category": "UPDATE",
+    "minimum": 2,
+    "ref": "OP-19",
+    "id": "SQL-050",
+    "statement": "UPDATE notification",
+    "purpose": "Mark Jordan’s unread notifications as read.",
+    "execution_id": "SQL-050"
+  },
+  {
+    "category": "DELETE",
+    "minimum": 2,
+    "ref": "OP-20",
+    "id": "SQL-051",
+    "statement": "DELETE FROM opportunity",
+    "purpose": "Delete the eligible draft and verify cascading skill deletion.",
+    "execution_id": "SQL-051"
+  },
+  {
+    "category": "DELETE",
+    "minimum": 2,
+    "ref": "OP-21",
+    "id": "SQL-052",
+    "statement": "DELETE FROM contributor_skill",
+    "purpose": "Remove a listed skill already earned through verified work.",
+    "execution_id": "SQL-052"
+  },
+  {
+    "category": "Basic SELECT with filtering",
+    "minimum": 4,
+    "ref": "S-1",
+    "id": "SQL-072",
+    "statement": "WHERE status AND work_mode",
+    "purpose": "Retrieve open remote opportunities.",
+    "execution_id": "SQL-072"
+  },
+  {
+    "category": "Basic SELECT with filtering",
+    "minimum": 4,
+    "ref": "S-2",
+    "id": "SQL-073",
+    "statement": "WHERE status",
+    "purpose": "Retrieve applications waiting for a decision.",
+    "execution_id": "SQL-073"
+  },
+  {
+    "category": "Basic SELECT with filtering",
+    "minimum": 4,
+    "ref": "S-3",
+    "id": "SQL-074",
+    "statement": "WHERE institution LIKE",
+    "purpose": "Retrieve contributor profiles associated with a university.",
+    "execution_id": "SQL-074"
+  },
+  {
+    "category": "Basic SELECT with filtering",
+    "minimum": 4,
+    "ref": "S-4",
+    "id": "SQL-075",
+    "statement": "WHERE code IN",
+    "purpose": "Retrieve selected skills relevant to digital and customer-facing work.",
+    "execution_id": "SQL-075"
+  },
+  {
+    "category": "ORDER BY / DISTINCT / LIMIT",
+    "minimum": 2,
+    "ref": "V-2",
+    "id": "SQL-026",
+    "statement": "SELECT leaderboard ORDER BY rank",
+    "purpose": "Read the points leaderboard and ranking.",
+    "execution_id": "SQL-026"
+  },
+  {
+    "category": "ORDER BY / DISTINCT / LIMIT",
+    "minimum": 2,
+    "ref": "V-5",
+    "id": "SQL-029",
+    "statement": "SELECT skill view ORDER BY contributor, skill",
+    "purpose": "Read listed and earned contributor skills with verification flags.",
+    "execution_id": "SQL-029"
+  },
+  {
+    "category": "Aggregate functions",
+    "minimum": 3,
+    "ref": "Q-4",
+    "id": "SQL-013",
+    "statement": "SUM(verified_hours)",
+    "purpose": "Calculate verified experience hours and completed opportunities for every contributor.",
+    "execution_id": "SQL-013"
+  },
+  {
+    "category": "Aggregate functions",
+    "minimum": 3,
+    "ref": "Q-8",
+    "id": "SQL-017",
+    "statement": "AVG(f.rating)",
+    "purpose": "Calculate creator ratings using only approved feedback.",
+    "execution_id": "SQL-017"
+  },
+  {
+    "category": "Aggregate functions",
+    "minimum": 3,
+    "ref": "Q-13",
+    "id": "SQL-022",
+    "statement": "Second SELECT: COUNT(*) unread",
+    "purpose": "Retrieve Jordan’s notifications and unread count.",
+    "execution_id": "SQL-022"
+  },
+  {
+    "category": "GROUP BY (one HAVING)",
+    "minimum": 2,
+    "ref": "Q-6",
+    "id": "SQL-015",
+    "statement": "GROUP BY badge; counts include zero earners",
+    "purpose": "Count earners for each badge, including badges with no earners.",
+    "execution_id": "SQL-015"
+  },
+  {
+    "category": "GROUP BY (one HAVING)",
+    "minimum": 2,
+    "ref": "S-5",
+    "id": "SQL-076",
+    "statement": "GROUP BY opportunity HAVING COUNT(*) >= 2",
+    "purpose": "Identify opportunities with at least two active applications.",
+    "execution_id": "SQL-076"
+  },
+  {
+    "category": "INNER JOIN",
+    "minimum": 3,
+    "ref": "Q-1",
+    "id": "SQL-010",
+    "statement": "Opportunity + category + organization (three tables)",
+    "purpose": "Retrieve open community opportunities, deadlines, hours, compensation and safety disclosures.",
+    "execution_id": "SQL-010"
+  },
+  {
+    "category": "INNER JOIN",
+    "minimum": 3,
+    "ref": "Q-2",
+    "id": "SQL-011",
+    "statement": "Application + opportunity + account",
+    "purpose": "Retrieve each application with the opportunity, contributor, status and active capacity use.",
+    "execution_id": "SQL-011"
+  },
+  {
+    "category": "INNER JOIN",
+    "minimum": 3,
+    "ref": "Q-10",
+    "id": "SQL-019",
+    "statement": "Skill view + account + skill",
+    "purpose": "Retrieve skills verified through approved work, including earned unlisted skills.",
+    "execution_id": "SQL-019"
+  },
+  {
+    "category": "LEFT / RIGHT JOIN",
+    "minimum": 2,
+    "ref": "Q-3",
+    "id": "SQL-012",
+    "statement": "LEFT JOIN work_verification",
+    "purpose": "Find accepted work submissions still awaiting verification.",
+    "execution_id": "SQL-012"
+  },
+  {
+    "category": "LEFT / RIGHT JOIN",
+    "minimum": 2,
+    "ref": "Q-12",
+    "id": "SQL-021",
+    "statement": "LEFT JOIN report_review",
+    "purpose": "Retrieve opportunity reports and their derived moderation status.",
+    "execution_id": "SQL-021"
+  },
+  {
+    "category": "Combined JOIN and aggregation",
+    "minimum": 1,
+    "ref": "Q-14",
+    "id": "SQL-023",
+    "statement": "Five-table JOIN, COUNT, SUM, GROUP BY",
+    "purpose": "Report SDG 8 impact by organization using approved verifications.",
+    "execution_id": "SQL-023"
+  },
+  {
+    "category": "Stored procedures",
+    "minimum": 2,
+    "ref": "SP-8",
+    "id": "SQL-008",
+    "statement": "sp_contributor_summary(IN p_contributor_id)",
+    "purpose": "Retrieve contributor totals and skill history.",
+    "execution_id": "SQL-031"
+  },
+  {
+    "category": "Stored procedures",
+    "minimum": 2,
+    "ref": "SP-9",
+    "id": "SQL-009",
+    "statement": "sp_find_open_opportunities(IN category, IN skill)",
+    "purpose": "Retrieve open opportunities by category and optional skill.",
+    "execution_id": "SQL-030"
+  }
+]

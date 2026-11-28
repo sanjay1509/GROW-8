@@ -1,0 +1,1866 @@
+[
+  {
+    "id": "SQL-077",
+    "ref": "EXT-01",
+    "category": "Schema and model",
+    "requirements": [
+      "DB-NFR-02",
+      "DB-NFR-07"
+    ],
+    "purpose": "Compare live base-table names with the 21 relations in the final relational model.",
+    "expected": "Exact sorted set of 21 names; no missing or extra base tables.",
+    "steps": [
+      {
+        "sql": "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_TYPE='BASE TABLE' ORDER BY TABLE_NAME",
+        "rows": [
+          [
+            "admin_review"
+          ],
+          [
+            "application"
+          ],
+          [
+            "badge"
+          ],
+          [
+            "contributor_badge"
+          ],
+          [
+            "contributor_profile"
+          ],
+          [
+            "contributor_resume"
+          ],
+          [
+            "contributor_skill"
+          ],
+          [
+            "creator_organization"
+          ],
+          [
+            "feedback"
+          ],
+          [
+            "notification"
+          ],
+          [
+            "opportunity"
+          ],
+          [
+            "opportunity_category"
+          ],
+          [
+            "opportunity_report"
+          ],
+          [
+            "opportunity_skill"
+          ],
+          [
+            "point_transaction"
+          ],
+          [
+            "report_review"
+          ],
+          [
+            "skill"
+          ],
+          [
+            "submission_attachment"
+          ],
+          [
+            "user_account"
+          ],
+          [
+            "work_submission"
+          ],
+          [
+            "work_verification"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-078",
+    "ref": "EXT-02",
+    "category": "Schema and model",
+    "requirements": [
+      "DB-NFR-02",
+      "DB-NFR-03",
+      "DB-NFR-08"
+    ],
+    "purpose": "Verify all five derived views are installed.",
+    "expected": "Exact view names match the documented design.",
+    "steps": [
+      {
+        "sql": "SELECT TABLE_NAME FROM information_schema.VIEWS WHERE TABLE_SCHEMA=DATABASE() ORDER BY TABLE_NAME",
+        "rows": [
+          [
+            "v_contributor_skill"
+          ],
+          [
+            "v_contributor_verified_hours"
+          ],
+          [
+            "v_feedback_status"
+          ],
+          [
+            "v_leaderboard"
+          ],
+          [
+            "v_user_rating"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-079",
+    "ref": "EXT-03",
+    "category": "Schema and model",
+    "requirements": [
+      "DB-NFR-01",
+      "DB-NFR-02"
+    ],
+    "purpose": "Check that each relation has its documented primary key, including composite junction keys.",
+    "expected": "All 21 primary-key column sequences match the reviewed schema.",
+    "steps": [
+      {
+        "sql": "SELECT TABLE_NAME,GROUP_CONCAT(COLUMN_NAME ORDER BY ORDINAL_POSITION SEPARATOR ',') FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND CONSTRAINT_NAME='PRIMARY' GROUP BY TABLE_NAME ORDER BY TABLE_NAME",
+        "rows": [
+          [
+            "admin_review",
+            "review_id"
+          ],
+          [
+            "application",
+            "application_id"
+          ],
+          [
+            "badge",
+            "badge_id"
+          ],
+          [
+            "contributor_badge",
+            "contributor_id,badge_id"
+          ],
+          [
+            "contributor_profile",
+            "user_id"
+          ],
+          [
+            "contributor_resume",
+            "user_id"
+          ],
+          [
+            "contributor_skill",
+            "contributor_id,skill_id"
+          ],
+          [
+            "creator_organization",
+            "organization_id"
+          ],
+          [
+            "feedback",
+            "feedback_id"
+          ],
+          [
+            "notification",
+            "notification_id"
+          ],
+          [
+            "opportunity",
+            "opportunity_id"
+          ],
+          [
+            "opportunity_category",
+            "category_id"
+          ],
+          [
+            "opportunity_report",
+            "report_id"
+          ],
+          [
+            "opportunity_skill",
+            "opportunity_id,skill_id"
+          ],
+          [
+            "point_transaction",
+            "transaction_id"
+          ],
+          [
+            "report_review",
+            "review_id"
+          ],
+          [
+            "skill",
+            "skill_id"
+          ],
+          [
+            "submission_attachment",
+            "attachment_id"
+          ],
+          [
+            "user_account",
+            "user_id"
+          ],
+          [
+            "work_submission",
+            "submission_id"
+          ],
+          [
+            "work_verification",
+            "verification_id"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-080",
+    "ref": "EXT-04",
+    "category": "Schema and model",
+    "requirements": [
+      "DB-NFR-01",
+      "DB-NFR-02"
+    ],
+    "purpose": "Verify referential integrity declarations and enforcement are active.",
+    "expected": "31 foreign keys, FOREIGN_KEY_CHECKS=1, and all referencing/referenced column pairs match the reviewed DDL.",
+    "steps": [
+      {
+        "sql": "SELECT (COUNT(*)=31 AND @@foreign_key_checks=1) FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE()",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT TABLE_NAME,CONSTRAINT_NAME,ORDINAL_POSITION,COLUMN_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL ORDER BY TABLE_NAME,CONSTRAINT_NAME,ORDINAL_POSITION",
+        "rows": [
+          [
+            "admin_review",
+            "fk_admin_review_admin",
+            "1",
+            "admin_user_id",
+            "user_account",
+            "user_id"
+          ],
+          [
+            "admin_review",
+            "fk_admin_review_feedback",
+            "1",
+            "feedback_id",
+            "feedback",
+            "feedback_id"
+          ],
+          [
+            "application",
+            "fk_application_contributor",
+            "1",
+            "contributor_id",
+            "contributor_profile",
+            "user_id"
+          ],
+          [
+            "application",
+            "fk_application_opportunity",
+            "1",
+            "opportunity_id",
+            "opportunity",
+            "opportunity_id"
+          ],
+          [
+            "contributor_badge",
+            "fk_contributor_badge_badge",
+            "1",
+            "badge_id",
+            "badge",
+            "badge_id"
+          ],
+          [
+            "contributor_badge",
+            "fk_contributor_badge_contributor",
+            "1",
+            "contributor_id",
+            "contributor_profile",
+            "user_id"
+          ],
+          [
+            "contributor_profile",
+            "fk_contributor_profile_user",
+            "1",
+            "user_id",
+            "user_account",
+            "user_id"
+          ],
+          [
+            "contributor_resume",
+            "fk_contributor_resume_contributor",
+            "1",
+            "user_id",
+            "contributor_profile",
+            "user_id"
+          ],
+          [
+            "contributor_skill",
+            "fk_contributor_skill_contributor",
+            "1",
+            "contributor_id",
+            "contributor_profile",
+            "user_id"
+          ],
+          [
+            "contributor_skill",
+            "fk_contributor_skill_skill",
+            "1",
+            "skill_id",
+            "skill",
+            "skill_id"
+          ],
+          [
+            "creator_organization",
+            "fk_creator_organization_owner",
+            "1",
+            "owner_user_id",
+            "user_account",
+            "user_id"
+          ],
+          [
+            "feedback",
+            "fk_feedback_application",
+            "1",
+            "application_id",
+            "application",
+            "application_id"
+          ],
+          [
+            "feedback",
+            "fk_feedback_author",
+            "1",
+            "author_user_id",
+            "user_account",
+            "user_id"
+          ],
+          [
+            "feedback",
+            "fk_feedback_subject",
+            "1",
+            "subject_user_id",
+            "user_account",
+            "user_id"
+          ],
+          [
+            "notification",
+            "fk_notification_opportunity",
+            "1",
+            "opportunity_id",
+            "opportunity",
+            "opportunity_id"
+          ],
+          [
+            "notification",
+            "fk_notification_user",
+            "1",
+            "user_id",
+            "user_account",
+            "user_id"
+          ],
+          [
+            "opportunity",
+            "fk_opportunity_category",
+            "1",
+            "category_id",
+            "opportunity_category",
+            "category_id"
+          ],
+          [
+            "opportunity",
+            "fk_opportunity_organization",
+            "1",
+            "organization_id",
+            "creator_organization",
+            "organization_id"
+          ],
+          [
+            "opportunity_report",
+            "fk_opportunity_report_opportunity",
+            "1",
+            "opportunity_id",
+            "opportunity",
+            "opportunity_id"
+          ],
+          [
+            "opportunity_report",
+            "fk_opportunity_report_reporter",
+            "1",
+            "reporter_user_id",
+            "user_account",
+            "user_id"
+          ],
+          [
+            "opportunity_skill",
+            "fk_opportunity_skill_opportunity",
+            "1",
+            "opportunity_id",
+            "opportunity",
+            "opportunity_id"
+          ],
+          [
+            "opportunity_skill",
+            "fk_opportunity_skill_skill",
+            "1",
+            "skill_id",
+            "skill",
+            "skill_id"
+          ],
+          [
+            "point_transaction",
+            "fk_point_transaction_contributor",
+            "1",
+            "contributor_id",
+            "contributor_profile",
+            "user_id"
+          ],
+          [
+            "point_transaction",
+            "fk_point_transaction_contributor_badge",
+            "1",
+            "contributor_id",
+            "contributor_badge",
+            "contributor_id"
+          ],
+          [
+            "point_transaction",
+            "fk_point_transaction_contributor_badge",
+            "2",
+            "badge_id",
+            "contributor_badge",
+            "badge_id"
+          ],
+          [
+            "point_transaction",
+            "fk_point_transaction_verification",
+            "1",
+            "verification_id",
+            "work_verification",
+            "verification_id"
+          ],
+          [
+            "report_review",
+            "fk_report_review_admin",
+            "1",
+            "admin_user_id",
+            "user_account",
+            "user_id"
+          ],
+          [
+            "report_review",
+            "fk_report_review_report",
+            "1",
+            "report_id",
+            "opportunity_report",
+            "report_id"
+          ],
+          [
+            "submission_attachment",
+            "fk_submission_attachment_submission",
+            "1",
+            "submission_id",
+            "work_submission",
+            "submission_id"
+          ],
+          [
+            "work_submission",
+            "fk_work_submission_application",
+            "1",
+            "application_id",
+            "application",
+            "application_id"
+          ],
+          [
+            "work_verification",
+            "fk_work_verification_submission",
+            "1",
+            "submission_id",
+            "work_submission",
+            "submission_id"
+          ],
+          [
+            "work_verification",
+            "fk_work_verification_verified_by",
+            "1",
+            "verified_by_user_id",
+            "user_account",
+            "user_id"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-081",
+    "ref": "EXT-05",
+    "category": "Schema and model",
+    "requirements": [
+      "DB-NFR-01",
+      "DB-NFR-08"
+    ],
+    "purpose": "Check integrity triggers, checks and transaction-capable tables.",
+    "expected": "21 triggers, 13 CHECK constraints, all 21 base tables InnoDB.",
+    "steps": [
+      {
+        "sql": "SELECT ((SELECT COUNT(*) FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=DATABASE())=21 AND (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_TYPE='CHECK')=13 AND (SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND ENGINE='InnoDB')=21)",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-082",
+    "ref": "EXT-06",
+    "category": "Foreign keys and relationships",
+    "requirements": [
+      "DB-FR-04",
+      "DB-NFR-01"
+    ],
+    "purpose": "Reject an opportunity with an unknown organization.",
+    "expected": "MySQL 1452 identifies organization foreign key.",
+    "steps": [
+      {
+        "sql": "INSERT INTO opportunity(organization_id,category_id,title,description) VALUES(999999,1,'QA draft','test')",
+        "error": [
+          1452,
+          "fk_opportunity_organization"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-083",
+    "ref": "EXT-07",
+    "category": "Foreign keys and relationships",
+    "requirements": [
+      "DB-FR-04",
+      "DB-NFR-01"
+    ],
+    "purpose": "Reject an opportunity with an unknown category.",
+    "expected": "MySQL 1452 identifies category foreign key.",
+    "steps": [
+      {
+        "sql": "INSERT INTO opportunity(organization_id,category_id,title,description) VALUES(1,999999,'QA draft','test')",
+        "error": [
+          1452,
+          "fk_opportunity_category"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-084",
+    "ref": "EXT-08",
+    "category": "Foreign keys and relationships",
+    "requirements": [
+      "DB-FR-06",
+      "DB-NFR-01"
+    ],
+    "purpose": "Reject an application referencing a missing contributor profile.",
+    "expected": "MySQL 1452 identifies contributor FK.",
+    "steps": [
+      {
+        "sql": "INSERT INTO application(opportunity_id,contributor_id,status) VALUES(6,999999,'withdrawn')",
+        "error": [
+          1452,
+          "fk_application_contributor"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-085",
+    "ref": "EXT-09",
+    "category": "Foreign keys and relationships",
+    "requirements": [
+      "DB-FR-09",
+      "DB-NFR-01"
+    ],
+    "purpose": "Reject attachment metadata for a nonexistent submission.",
+    "expected": "MySQL 1452 identifies attachment FK.",
+    "steps": [
+      {
+        "sql": "INSERT INTO submission_attachment(submission_id,file_name,content_type,size_bytes,storage_key) VALUES(999999,'qa.pdf','application/pdf',50,'qa/missing')",
+        "error": [
+          1452,
+          "fk_submission_attachment_submission"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-086",
+    "ref": "EXT-10",
+    "category": "Foreign keys and relationships",
+    "requirements": [
+      "DB-FR-17",
+      "DB-NFR-01"
+    ],
+    "purpose": "Reject a contributor skill referencing an unknown skill.",
+    "expected": "MySQL 1452 identifies skill FK.",
+    "steps": [
+      {
+        "sql": "INSERT INTO contributor_skill(contributor_id,skill_id) VALUES(5,999999)",
+        "error": [
+          1452,
+          "fk_contributor_skill_skill"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-087",
+    "ref": "EXT-11",
+    "category": "Unique and domain constraints",
+    "requirements": [
+      "DB-FR-01",
+      "DB-NFR-01"
+    ],
+    "purpose": "Reject duplicate email while preserving the original account.",
+    "expected": "1062 on unique email; one matching record remains.",
+    "steps": [
+      {
+        "sql": "INSERT INTO user_account(email,password_hash,role,full_name) SELECT email,password_hash,'contributor','Duplicate QA' FROM user_account WHERE user_id=5",
+        "error": [
+          1062,
+          "uq_user_account_email"
+        ]
+      },
+      {
+        "sql": "SELECT COUNT(*)=1 FROM user_account WHERE email='alex.chen@grow8.dev'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-088",
+    "ref": "EXT-12",
+    "category": "Unique and domain constraints",
+    "requirements": [
+      "DB-FR-06",
+      "DB-NFR-01"
+    ],
+    "purpose": "Reject duplicate contributor-opportunity pair even for an inactive application.",
+    "expected": "1062 on composite unique key.",
+    "steps": [
+      {
+        "sql": "INSERT INTO application(opportunity_id,contributor_id,status) VALUES(3,5,'withdrawn')",
+        "error": [
+          1062,
+          "uq_application_contributor_opportunity"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-089",
+    "ref": "EXT-13",
+    "category": "Unique and domain constraints",
+    "requirements": [
+      "DB-FR-04",
+      "DB-NFR-01"
+    ],
+    "purpose": "Check hours, compensation, applicant capacity and date domains in a draft.",
+    "expected": "Each of four invalid changes is rejected with its named CHECK.",
+    "steps": [
+      {
+        "sql": "UPDATE opportunity SET expected_hours=0 WHERE opportunity_id=14",
+        "error": [
+          3819,
+          "chk_opportunity_expected_hours"
+        ]
+      },
+      {
+        "sql": "UPDATE opportunity SET compensation_amount=-1 WHERE opportunity_id=14",
+        "error": [
+          3819,
+          "chk_opportunity_compensation_amount"
+        ]
+      },
+      {
+        "sql": "UPDATE opportunity SET applicant_limit=0 WHERE opportunity_id=14",
+        "error": [
+          3819,
+          "chk_opportunity_applicant_limit"
+        ]
+      },
+      {
+        "sql": "UPDATE opportunity SET start_date='2027-02-01',end_date='2027-01-01' WHERE opportunity_id=14",
+        "error": [
+          3819,
+          "chk_opportunity_dates"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-090",
+    "ref": "EXT-14",
+    "category": "Unique and domain constraints",
+    "requirements": [
+      "DB-FR-19",
+      "DB-FR-20",
+      "DB-NFR-01"
+    ],
+    "purpose": "Reject a repeated verification award, repeated badge award and repeated badge association.",
+    "expected": "Each duplicate rejected by its unique key or primary key.",
+    "steps": [
+      {
+        "sql": "INSERT INTO point_transaction(contributor_id,points,source,verification_id) VALUES(6,60,'work_verified',1)",
+        "error": [
+          1062,
+          "uq_point_transaction_verification"
+        ]
+      },
+      {
+        "sql": "INSERT INTO point_transaction(contributor_id,points,source,badge_id) VALUES(6,10,'badge_awarded',1)",
+        "error": [
+          1062,
+          "uq_point_transaction_contributor_badge"
+        ]
+      },
+      {
+        "sql": "INSERT INTO contributor_badge(contributor_id,badge_id) VALUES(6,1)",
+        "error": [
+          1062,
+          "PRIMARY"
+        ]
+      },
+      {
+        "sql": "SELECT (awarded_at IS NOT NULL) FROM contributor_badge WHERE contributor_id=6 AND badge_id=1",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-091",
+    "ref": "EXT-15",
+    "category": "Unique and domain constraints",
+    "requirements": [
+      "DB-FR-12",
+      "DB-NFR-01"
+    ],
+    "purpose": "Reject self-feedback and invalid low rating; accept rating boundary 1 and 5.",
+    "expected": "Self and rating zero rejected; boundary updates persist.",
+    "steps": [
+      {
+        "sql": "UPDATE feedback SET subject_user_id=author_user_id WHERE feedback_id=1",
+        "error": [
+          3819,
+          "chk_feedback_not_self"
+        ]
+      },
+      {
+        "sql": "UPDATE feedback SET rating=0 WHERE feedback_id=1",
+        "error": [
+          3819,
+          "chk_feedback_rating"
+        ]
+      },
+      {
+        "sql": "UPDATE feedback SET rating=1 WHERE feedback_id=1",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT rating=1 FROM feedback WHERE feedback_id=1",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "UPDATE feedback SET rating=5 WHERE feedback_id=1",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT rating=5 FROM feedback WHERE feedback_id=1",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-092",
+    "ref": "EXT-16",
+    "category": "Accounts and organizations",
+    "requirements": [
+      "DB-FR-01",
+      "DB-NFR-05"
+    ],
+    "purpose": "Retrieve an active account by email and inspect the shape of the stored development bcrypt hash without exposing it.",
+    "expected": "Identity/role/active status and 60-character bcrypt-format hash; not authentication or cryptographic proof.",
+    "steps": [
+      {
+        "sql": "SELECT (user_id=5 AND role='contributor' AND is_active=1 AND full_name='Alex Chen' AND LENGTH(password_hash)=60 AND LEFT(password_hash,4)='$2b$' AND password_hash<>'Grow8Dev!2026') FROM user_account WHERE email='alex.chen@grow8.dev'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-093",
+    "ref": "EXT-17",
+    "category": "Accounts and organizations",
+    "requirements": [
+      "DB-FR-02",
+      "DB-NFR-05"
+    ],
+    "purpose": "Update the name and hash of an existing account, preserving email, key and application relationships.",
+    "expected": "Updated values read back; related application count unchanged.",
+    "steps": [
+      {
+        "sql": "SET @apps=(SELECT COUNT(*) FROM application WHERE contributor_id=5)"
+      },
+      {
+        "sql": "UPDATE user_account SET full_name='QA Alex',password_hash=CONCAT('$2b$12$',REPEAT('A',53)) WHERE user_id=5",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT (full_name='QA Alex' AND LENGTH(password_hash)=60 AND RIGHT(password_hash,53)=REPEAT('A',53) AND email='alex.chen@grow8.dev' AND (SELECT COUNT(*) FROM application WHERE contributor_id=5)=@apps) FROM user_account WHERE user_id=5",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-094",
+    "ref": "EXT-18",
+    "category": "Accounts and organizations",
+    "requirements": [
+      "DB-FR-03",
+      "DB-FR-22"
+    ],
+    "purpose": "Reject a second organization for the same creator.",
+    "expected": "1062 on owner uniqueness, original organization remains.",
+    "steps": [
+      {
+        "sql": "INSERT INTO creator_organization(owner_user_id,name,organization_type) VALUES(2,'QA duplicate','other')",
+        "error": [
+          1062,
+          "uq_creator_organization_owner"
+        ]
+      },
+      {
+        "sql": "SELECT COUNT(*)=1 FROM creator_organization WHERE owner_user_id=2",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-095",
+    "ref": "EXT-19",
+    "category": "Accounts and organizations",
+    "requirements": [
+      "DB-FR-03"
+    ],
+    "purpose": "Reject organization ownership by a contributor.",
+    "expected": "1644 organization_owner_role.",
+    "steps": [
+      {
+        "sql": "INSERT INTO creator_organization(owner_user_id,name,organization_type) VALUES(5,'QA invalid owner','other')",
+        "error": [
+          1644,
+          "organization_owner_role"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-096",
+    "ref": "EXT-20",
+    "category": "Accounts and organizations",
+    "requirements": [
+      "DB-FR-03",
+      "DB-FR-23",
+      "DB-FR-04"
+    ],
+    "purpose": "Create and update a creator organization and retrieve/edit an incomplete draft.",
+    "expected": "New organization and draft linked correctly; draft stays unpublished after editing.",
+    "steps": [
+      {
+        "sql": "INSERT INTO user_account(email,password_hash,role,full_name) SELECT 'qa.creator@grow8.dev',password_hash,'creator','QA Creator' FROM user_account WHERE user_id=2",
+        "affected": 1
+      },
+      {
+        "sql": "SET @u=LAST_INSERT_ID()"
+      },
+      {
+        "sql": "INSERT INTO creator_organization(owner_user_id,name,organization_type) VALUES(@u,'QA Organization','other')",
+        "affected": 1
+      },
+      {
+        "sql": "SET @org=LAST_INSERT_ID()"
+      },
+      {
+        "sql": "UPDATE creator_organization SET name='QA Updated',city='Calgary' WHERE organization_id=@org",
+        "affected": 1
+      },
+      {
+        "sql": "INSERT INTO opportunity(organization_id,category_id,title,description) VALUES(@org,1,'QA Draft','Incomplete')",
+        "affected": 1
+      },
+      {
+        "sql": "SET @draft=LAST_INSERT_ID()"
+      },
+      {
+        "sql": "UPDATE opportunity SET title='QA Edited' WHERE opportunity_id=@draft",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT (o.title='QA Edited' AND o.status='draft' AND o.published_at IS NULL AND o.application_deadline IS NULL AND org.owner_user_id=@u AND org.name='QA Updated' AND org.city='Calgary') FROM opportunity o JOIN creator_organization org ON org.organization_id=o.organization_id WHERE o.opportunity_id=@draft",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-097",
+    "ref": "EXT-21",
+    "category": "Application lifecycle",
+    "requirements": [
+      "DB-FR-06",
+      "DB-FR-07"
+    ],
+    "purpose": "Persist application details, optional motivation and resume metadata; retrieve through contributor join.",
+    "expected": "JSON, resume metadata and contributor name match inserted values.",
+    "steps": [
+      {
+        "sql": "INSERT INTO application(opportunity_id,contributor_id,motivation,application_details,resume_file_name,resume_content_type,resume_size_bytes,resume_storage_key) VALUES(6,5,'QA motivation',JSON_OBJECT('experience','QA'),'cv.pdf','application/pdf',123,'qa/application-cv')",
+        "affected": 1
+      },
+      {
+        "sql": "SET @a=LAST_INSERT_ID()"
+      },
+      {
+        "sql": "SELECT (a.status='pending' AND a.motivation='QA motivation' AND JSON_UNQUOTE(JSON_EXTRACT(a.application_details,'$.experience'))='QA' AND a.resume_file_name='cv.pdf' AND a.resume_content_type='application/pdf' AND a.resume_size_bytes=123 AND a.resume_storage_key='qa/application-cv' AND u.full_name='Alex Chen') FROM application a JOIN contributor_profile p ON p.user_id=a.contributor_id JOIN user_account u ON u.user_id=p.user_id WHERE a.application_id=@a",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-098",
+    "ref": "EXT-22",
+    "category": "Application lifecycle",
+    "requirements": [
+      "DB-FR-06",
+      "DB-FR-07"
+    ],
+    "purpose": "Reject an accepted application without a decision timestamp.",
+    "expected": "3819 chk_application_decided.",
+    "steps": [
+      {
+        "sql": "UPDATE application SET status='accepted',decided_at=NULL WHERE application_id=9",
+        "error": [
+          3819,
+          "chk_application_decided"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-099",
+    "ref": "EXT-23",
+    "category": "Application lifecycle",
+    "requirements": [
+      "DB-FR-06",
+      "DB-FR-08"
+    ],
+    "purpose": "Reject a changed application identity or a future submission timestamp.",
+    "expected": "Both named trigger rejections observed.",
+    "steps": [
+      {
+        "sql": "UPDATE application SET opportunity_id=6 WHERE application_id=9",
+        "error": [
+          1644,
+          "application_immutable"
+        ]
+      },
+      {
+        "sql": "INSERT INTO application(opportunity_id,contributor_id,status,submitted_at) VALUES(6,5,'withdrawn',NOW()+INTERVAL 1 DAY)",
+        "error": [
+          1644,
+          "application_future_dated"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-100",
+    "ref": "EXT-24",
+    "category": "Application lifecycle",
+    "requirements": [
+      "DB-FR-08"
+    ],
+    "purpose": "Reject withdrawal of an accepted application with submitted work.",
+    "expected": "1644 submission_requires_accepted; accepted status preserved.",
+    "steps": [
+      {
+        "sql": "UPDATE application SET status='withdrawn' WHERE application_id=1",
+        "error": [
+          1644,
+          "submission_requires_accepted"
+        ]
+      },
+      {
+        "sql": "SELECT status='accepted' FROM application WHERE application_id=1",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-101",
+    "ref": "EXT-25",
+    "category": "Application lifecycle",
+    "requirements": [
+      "DB-FR-08",
+      "DB-FR-18"
+    ],
+    "purpose": "Reapply using a withdrawn row with a new timestamp; verify closure prevents a new active application.",
+    "expected": "Same row restored pending; closed opportunity refuses new application.",
+    "steps": [
+      {
+        "sql": "UPDATE opportunity SET application_deadline=NOW()+INTERVAL 2 DAY WHERE opportunity_id=3",
+        "affected": 1
+      },
+      {
+        "sql": "UPDATE application SET status='pending',submitted_at=NOW() WHERE application_id=10",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT (status='pending' AND submitted_at=NOW() AND contributor_id=5 AND opportunity_id=3) FROM application WHERE application_id=10",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "UPDATE opportunity SET status='closed' WHERE opportunity_id=6",
+        "affected": 1
+      },
+      {
+        "sql": "INSERT INTO application(opportunity_id,contributor_id) VALUES(6,5)",
+        "error": [
+          1644,
+          "application_closed"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-102",
+    "ref": "EXT-26",
+    "category": "Work submission and verification",
+    "requirements": [
+      "DB-FR-09"
+    ],
+    "purpose": "Reject duplicate work submission for an accepted application.",
+    "expected": "1062 uq_work_submission_application.",
+    "steps": [
+      {
+        "sql": "INSERT INTO work_submission(application_id,description,hours_claimed) VALUES(1,'QA duplicate',1)",
+        "error": [
+          1062,
+          "uq_work_submission_application"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-103",
+    "ref": "EXT-27",
+    "category": "Work submission and verification",
+    "requirements": [
+      "DB-FR-09"
+    ],
+    "purpose": "Reject zero hours claimed for a valid accepted application without prior submission.",
+    "expected": "3819 chk_work_submission_hours.",
+    "steps": [
+      {
+        "sql": "INSERT INTO work_submission(application_id,description,hours_claimed) VALUES(8,'QA invalid',0)",
+        "error": [
+          3819,
+          "chk_work_submission_hours"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-104",
+    "ref": "EXT-28",
+    "category": "Work submission and verification",
+    "requirements": [
+      "DB-FR-09"
+    ],
+    "purpose": "Store attachment metadata for one submission and ensure the submission-specific query does not return another submission\u2019s attachment.",
+    "expected": "Correct file and storage key only; unique key prevents duplication.",
+    "steps": [
+      {
+        "sql": "INSERT INTO submission_attachment(submission_id,file_name,content_type,size_bytes,storage_key) VALUES(1,'qa.pdf','application/pdf',100,'qa/attachment')",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT (COUNT(*)=1 AND MAX(file_name)='qa.pdf' AND MAX(size_bytes)=100) FROM submission_attachment WHERE submission_id=1",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT COUNT(*)=0 FROM submission_attachment WHERE submission_id=3 AND storage_key='qa/attachment'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "INSERT INTO submission_attachment(submission_id,file_name,content_type,size_bytes,storage_key) VALUES(3,'dup.pdf','application/pdf',100,'qa/attachment')",
+        "error": [
+          1062,
+          "uq_submission_attachment_storage_key"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-105",
+    "ref": "EXT-29",
+    "category": "Work submission and verification",
+    "requirements": [
+      "DB-FR-10"
+    ],
+    "purpose": "Reject duplicate verification and approved verification with zero hours.",
+    "expected": "1062 unique submission; 3819 positive-hour CHECK.",
+    "steps": [
+      {
+        "sql": "INSERT INTO work_verification(submission_id,verified_by_user_id,decision,verified_hours) VALUES(1,3,'approved',1)",
+        "error": [
+          1062,
+          "uq_work_verification_submission"
+        ]
+      },
+      {
+        "sql": "INSERT INTO work_verification(submission_id,verified_by_user_id,decision,verified_hours) VALUES(5,3,'approved',0)",
+        "error": [
+          3819,
+          "chk_work_verification_hours"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-106",
+    "ref": "EXT-30",
+    "category": "Work submission and verification",
+    "requirements": [
+      "DB-FR-11",
+      "DB-NFR-03"
+    ],
+    "purpose": "Retrieve distinct organizations associated with approved work and cross-check derived verified hours.",
+    "expected": "Jordan has 14 hours from two approvals at organization 2; rejected work adds no hours.",
+    "steps": [
+      {
+        "sql": "SELECT (COUNT(DISTINCT o.organization_id)=1 AND MIN(o.organization_id)=2 AND SUM(wv.verified_hours)=14 AND COUNT(*)=2) FROM application a JOIN opportunity o ON o.opportunity_id=a.opportunity_id JOIN work_submission ws ON ws.application_id=a.application_id JOIN work_verification wv ON wv.submission_id=ws.submission_id WHERE a.contributor_id=6 AND wv.decision='approved'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT verified_hours=14 AND completed_opportunities=2 FROM v_contributor_verified_hours WHERE contributor_id=6",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-107",
+    "ref": "EXT-31",
+    "category": "Moderation and reports",
+    "requirements": [
+      "DB-FR-13"
+    ],
+    "purpose": "Reject duplicate review and a non-admin review of pending feedback.",
+    "expected": "1062 unique feedback review and 1644 reviewer_role.",
+    "steps": [
+      {
+        "sql": "INSERT INTO admin_review(feedback_id,admin_user_id,decision) VALUES(1,1,'approved')",
+        "error": [
+          1062,
+          "uq_admin_review_feedback"
+        ]
+      },
+      {
+        "sql": "INSERT INTO admin_review(feedback_id,admin_user_id,decision) VALUES(5,2,'approved')",
+        "error": [
+          1644,
+          "reviewer_role"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-108",
+    "ref": "EXT-32",
+    "category": "Moderation and reports",
+    "requirements": [
+      "DB-FR-14"
+    ],
+    "purpose": "Reject duplicate opportunity report and report by noncontributor.",
+    "expected": "1062 report uniqueness; 1644 reporter_role.",
+    "steps": [
+      {
+        "sql": "INSERT INTO opportunity_report(opportunity_id,reporter_user_id,reason) VALUES(4,6,'other')",
+        "error": [
+          1062,
+          "uq_opportunity_report_reporter"
+        ]
+      },
+      {
+        "sql": "INSERT INTO opportunity_report(opportunity_id,reporter_user_id,reason) VALUES(4,2,'other')",
+        "error": [
+          1644,
+          "reporter_role"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-109",
+    "ref": "EXT-33",
+    "category": "Moderation and reports",
+    "requirements": [
+      "DB-FR-14"
+    ],
+    "purpose": "Permit contributor report on a closed opportunity.",
+    "expected": "Report linked to opportunity 11, contributor 7 and supplied reason/details.",
+    "steps": [
+      {
+        "sql": "INSERT INTO opportunity_report(opportunity_id,reporter_user_id,reason,details) VALUES(11,7,'other','QA closed report')",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT COUNT(*)=1 FROM opportunity_report WHERE opportunity_id=11 AND reporter_user_id=7 AND reason='other' AND details='QA closed report' AND created_at IS NOT NULL",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-110",
+    "ref": "EXT-34",
+    "category": "Moderation and reports",
+    "requirements": [
+      "DB-FR-15"
+    ],
+    "purpose": "Reject repeated report review, non-admin review and upheld review missing reason.",
+    "expected": "Unique key, role trigger and reason CHECK each reject their targeted statement.",
+    "steps": [
+      {
+        "sql": "INSERT INTO report_review(report_id,admin_user_id,decision) VALUES(1,1,'dismissed')",
+        "error": [
+          1062,
+          "uq_report_review_report"
+        ]
+      },
+      {
+        "sql": "INSERT INTO report_review(report_id,admin_user_id,decision) VALUES(2,2,'dismissed')",
+        "error": [
+          1644,
+          "report_reviewer_role"
+        ]
+      },
+      {
+        "sql": "INSERT INTO report_review(report_id,admin_user_id,decision) VALUES(2,1,'upheld')",
+        "error": [
+          3819,
+          "chk_report_review_reason"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-111",
+    "ref": "EXT-35",
+    "category": "Moderation and reports",
+    "requirements": [
+      "DB-FR-15",
+      "DB-FR-18"
+    ],
+    "purpose": "Persist administrative takedown reason and retrieve it with the cancelled opportunity.",
+    "expected": "Cancellation and associated upheld review reason readable; new application refused.",
+    "steps": [
+      {
+        "sql": "UPDATE opportunity SET status='cancelled' WHERE opportunity_id=4",
+        "affected": 1
+      },
+      {
+        "sql": "INSERT INTO report_review(report_id,admin_user_id,decision,reason) VALUES(2,1,'upheld','QA reason')",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT (o.status='cancelled' AND rr.decision='upheld' AND rr.reason='QA reason') FROM opportunity o JOIN opportunity_report r ON r.opportunity_id=o.opportunity_id JOIN report_review rr ON rr.report_id=r.report_id WHERE r.report_id=2",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "INSERT INTO application(opportunity_id,contributor_id) VALUES(4,5)",
+        "error": [
+          1644,
+          "application_closed"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-112",
+    "ref": "EXT-36",
+    "category": "Notification integrity",
+    "requirements": [
+      "DB-FR-16",
+      "DB-NFR-09"
+    ],
+    "purpose": "Reject a second notification for the same recipient/event.",
+    "expected": "1062 event-user uniqueness; exactly one notification remains.",
+    "steps": [
+      {
+        "sql": "INSERT INTO notification(user_id,event_id,notification_type,title,message,opportunity_id) VALUES(5,'12345678-1234-4000-8000-000000000077','opportunity_created','QA','Message',6)",
+        "affected": 1
+      },
+      {
+        "sql": "INSERT INTO notification(user_id,event_id,notification_type,title,message,opportunity_id) VALUES(5,'12345678-1234-4000-8000-000000000077','opportunity_created','QA duplicate','Message',6)",
+        "error": [
+          1062,
+          "uq_notification_event_user"
+        ]
+      },
+      {
+        "sql": "SELECT COUNT(*)=1 FROM notification WHERE user_id=5 AND event_id='12345678-1234-4000-8000-000000000077'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-113",
+    "ref": "EXT-37",
+    "category": "Notification integrity",
+    "requirements": [
+      "DB-FR-16",
+      "DB-NFR-09"
+    ],
+    "purpose": "Permit same event for two different recipients and verify recipient isolation.",
+    "expected": "Two notifications, two recipients; recipient 5 receives only its own row.",
+    "steps": [
+      {
+        "sql": "INSERT INTO notification(user_id,event_id,notification_type,title,message,opportunity_id) VALUES(5,'12345678-1234-4000-8000-000000000077','opportunity_created','QA5','Message',6),(6,'12345678-1234-4000-8000-000000000077','opportunity_created','QA6','Message',6)",
+        "affected": 2
+      },
+      {
+        "sql": "SELECT COUNT(*)=2 AND COUNT(DISTINCT user_id)=2 FROM notification WHERE event_id='12345678-1234-4000-8000-000000000077'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT COUNT(*)=1 AND MAX(title)='QA5' FROM notification WHERE user_id=5 AND event_id='12345678-1234-4000-8000-000000000077'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-114",
+    "ref": "EXT-38",
+    "category": "Notification integrity",
+    "requirements": [
+      "DB-FR-16"
+    ],
+    "purpose": "Reject an invalid notification recipient and permit null opportunity reference.",
+    "expected": "1452 user FK; valid optional reference stores NULL.",
+    "steps": [
+      {
+        "sql": "INSERT INTO notification(user_id,event_id,notification_type,title,message,opportunity_id) VALUES(999999,'12345678-1234-4000-8000-000000000077','opportunity_created','QA','Message',NULL)",
+        "error": [
+          1452,
+          "fk_notification_user"
+        ]
+      },
+      {
+        "sql": "INSERT INTO notification(user_id,event_id,notification_type,title,message,opportunity_id) VALUES(5,'12345678-1234-4000-8000-000000000077','opportunity_created','QA','Message',NULL)",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT opportunity_id IS NULL FROM notification WHERE user_id=5 AND event_id='12345678-1234-4000-8000-000000000077'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-115",
+    "ref": "EXT-39",
+    "category": "Notification integrity",
+    "requirements": [
+      "DB-FR-16"
+    ],
+    "purpose": "Preserve notification when its referenced draft is deleted.",
+    "expected": "ON DELETE SET NULL clears reference but keeps notification.",
+    "steps": [
+      {
+        "sql": "INSERT INTO notification(user_id,event_id,notification_type,title,message,opportunity_id) VALUES(5,'12345678-1234-4000-8000-000000000077','opportunity_created','QA','Message',15)",
+        "affected": 1
+      },
+      {
+        "sql": "DELETE FROM opportunity WHERE opportunity_id=15",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT COUNT(*)=1 AND MAX(opportunity_id) IS NULL FROM notification WHERE user_id=5 AND event_id='12345678-1234-4000-8000-000000000077'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-116",
+    "ref": "EXT-40",
+    "category": "Profile and resume",
+    "requirements": [
+      "DB-FR-17"
+    ],
+    "purpose": "Reject a second profile for an existing contributor; update and retrieve profile fields.",
+    "expected": "1062 primary key; updated headline and city read back.",
+    "steps": [
+      {
+        "sql": "INSERT INTO contributor_profile(user_id,headline) VALUES(5,'Duplicate')",
+        "error": [
+          1062,
+          "PRIMARY"
+        ]
+      },
+      {
+        "sql": "UPDATE contributor_profile SET headline='QA headline',city='QA city' WHERE user_id=5",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT headline='QA headline' AND city='QA city' FROM contributor_profile WHERE user_id=5",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-117",
+    "ref": "EXT-41",
+    "category": "Profile and resume",
+    "requirements": [
+      "DB-FR-17"
+    ],
+    "purpose": "Reject zero-size resume and resume for a missing contributor profile.",
+    "expected": "3819 size CHECK and 1452 profile FK.",
+    "steps": [
+      {
+        "sql": "INSERT INTO contributor_resume(user_id,file_name,content_type,size_bytes,storage_key) VALUES(5,'qa.pdf','application/pdf',0,'qa/zero')",
+        "error": [
+          3819,
+          "chk_contributor_resume_size"
+        ]
+      },
+      {
+        "sql": "INSERT INTO contributor_resume(user_id,file_name,content_type,size_bytes,storage_key) VALUES(999999,'qa.pdf','application/pdf',1,'qa/absent')",
+        "error": [
+          1452,
+          "fk_contributor_resume_contributor"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-118",
+    "ref": "EXT-42",
+    "category": "Profile and resume",
+    "requirements": [
+      "DB-FR-17"
+    ],
+    "purpose": "Enforce one current resume per contributor and unique storage key across contributors.",
+    "expected": "Two targeted duplicate attempts refused.",
+    "steps": [
+      {
+        "sql": "INSERT INTO contributor_resume(user_id,file_name,content_type,size_bytes,storage_key) VALUES(5,'qa.pdf','application/pdf',100,'qa/resume')",
+        "affected": 1
+      },
+      {
+        "sql": "INSERT INTO contributor_resume(user_id,file_name,content_type,size_bytes,storage_key) VALUES(5,'qa2.pdf','application/pdf',120,'qa/resume2')",
+        "error": [
+          1062,
+          "PRIMARY"
+        ]
+      },
+      {
+        "sql": "INSERT INTO contributor_resume(user_id,file_name,content_type,size_bytes,storage_key) VALUES(6,'qa.pdf','application/pdf',100,'qa/resume')",
+        "error": [
+          1062,
+          "uq_contributor_resume_storage_key"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-119",
+    "ref": "EXT-43",
+    "category": "Profile and resume",
+    "requirements": [
+      "DB-FR-17"
+    ],
+    "purpose": "Replace current resume metadata without creating another row.",
+    "expected": "Exactly one record with updated filename, size and storage key.",
+    "steps": [
+      {
+        "sql": "INSERT INTO contributor_resume(user_id,file_name,content_type,size_bytes,storage_key) VALUES(5,'qa.pdf','application/pdf',100,'qa/resume')",
+        "affected": 1
+      },
+      {
+        "sql": "UPDATE contributor_resume SET file_name='qa2.pdf',size_bytes=200,storage_key='qa/resume2' WHERE user_id=5",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT COUNT(*)=1 AND MAX(file_name)='qa2.pdf' AND MAX(size_bytes)=200 AND MAX(storage_key)='qa/resume2' FROM contributor_resume WHERE user_id=5",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-120",
+    "ref": "EXT-44",
+    "category": "Profile and resume",
+    "requirements": [
+      "DB-FR-17"
+    ],
+    "purpose": "Verify skill uniqueness and retain a verified skill after removing its listing.",
+    "expected": "1062 duplicate listed skill; derived skill remains verified with is_listed=0.",
+    "steps": [
+      {
+        "sql": "INSERT INTO contributor_skill(contributor_id,skill_id) VALUES(6,7)",
+        "error": [
+          1062,
+          "PRIMARY"
+        ]
+      },
+      {
+        "sql": "DELETE FROM contributor_skill WHERE contributor_id=6 AND skill_id=7",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT is_listed=0 AND is_verified=1 FROM v_contributor_skill WHERE contributor_id=6 AND skill_id=7",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-121",
+    "ref": "EXT-45",
+    "category": "Indexed retrieval and ranking",
+    "requirements": [
+      "DB-NFR-06"
+    ],
+    "purpose": "Check composite index column order for opportunities, applications and notifications.",
+    "expected": "Three named index definitions match expected leading columns.",
+    "steps": [
+      {
+        "sql": "SELECT TABLE_NAME,INDEX_NAME,GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX SEPARATOR ',') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND INDEX_NAME IN ('ix_opportunity_status_deadline','ix_application_opportunity_status','ix_notification_user_read_created') GROUP BY TABLE_NAME,INDEX_NAME ORDER BY TABLE_NAME",
+        "rows": [
+          [
+            "application",
+            "ix_application_opportunity_status",
+            "opportunity_id,status"
+          ],
+          [
+            "notification",
+            "ix_notification_user_read_created",
+            "user_id,read_at,created_at"
+          ],
+          [
+            "opportunity",
+            "ix_opportunity_status_deadline",
+            "status,application_deadline"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-122",
+    "ref": "EXT-46",
+    "category": "Indexed retrieval and ranking",
+    "requirements": [
+      "DB-FR-05"
+    ],
+    "purpose": "Retrieve open opportunities by keyword, category, mode, hours and required skill; order by title.",
+    "expected": "Combined filter returns opportunity 6; separate remote retrieval returns 6 and 7 in ascending title order.",
+    "steps": [
+      {
+        "sql": "SELECT o.opportunity_id,o.title FROM opportunity o JOIN opportunity_category c ON c.category_id=o.category_id JOIN opportunity_skill os ON os.opportunity_id=o.opportunity_id JOIN skill s ON s.skill_id=os.skill_id WHERE o.status='open' AND o.application_deadline>=NOW() AND o.title LIKE '%database%' AND c.code='knowledge' AND o.work_mode='remote' AND o.expected_hours BETWEEN 20 AND 40 AND s.code='spreadsheets' ORDER BY o.title,o.opportunity_id",
+        "rows": [
+          [
+            "6",
+            "Donor database deduplication"
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT opportunity_id,title FROM opportunity WHERE status='open' AND application_deadline>=NOW() AND work_mode='remote' ORDER BY title,opportunity_id",
+        "rows": [
+          [
+            "6",
+            "Donor database deduplication"
+          ],
+          [
+            "7",
+            "Translate client intake forms (Spanish, Punjabi)"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-123",
+    "ref": "EXT-47",
+    "category": "Indexed retrieval and ranking",
+    "requirements": [
+      "DB-FR-21",
+      "DB-NFR-03"
+    ],
+    "purpose": "Verify tied ranks and exclude inactive contributors from recalculated leaderboard.",
+    "expected": "Alex and Jordan tie at rank 1 with 195 points; Sam ranks 3. Restore points, deactivate Jordan; Alex ranks first with 80 points.",
+    "steps": [
+      {
+        "sql": "UPDATE point_transaction SET points=165 WHERE transaction_id=4",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT contributor_id,total_points,leaderboard_rank FROM v_leaderboard ORDER BY leaderboard_rank,contributor_id",
+        "rows": [
+          [
+            "5",
+            "195",
+            "1"
+          ],
+          [
+            "6",
+            "195",
+            "1"
+          ],
+          [
+            "7",
+            "0",
+            "3"
+          ]
+        ]
+      },
+      {
+        "sql": "UPDATE point_transaction SET points=50 WHERE transaction_id=4",
+        "affected": 1
+      },
+      {
+        "sql": "UPDATE user_account SET is_active=0 WHERE user_id=6",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT COUNT(*)=0 FROM v_leaderboard WHERE contributor_id=6",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT leaderboard_rank=1 AND total_points=80 FROM v_leaderboard WHERE contributor_id=5",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-124",
+    "ref": "EXT-48",
+    "category": "Transactions and concurrency",
+    "requirements": [
+      "DB-NFR-04",
+      "DB-NFR-10"
+    ],
+    "purpose": "Confirm SAVEPOINT rollback reverses a successful write and leaves original row unchanged.",
+    "expected": "Temporary change observed then original value restored.",
+    "steps": [
+      {
+        "sql": "SAVEPOINT qa_save"
+      },
+      {
+        "sql": "UPDATE user_account SET full_name='QA rollback' WHERE user_id=5",
+        "affected": 1
+      },
+      {
+        "sql": "SELECT full_name='QA rollback' FROM user_account WHERE user_id=5",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "ROLLBACK TO SAVEPOINT qa_save"
+      },
+      {
+        "sql": "SELECT full_name='Alex Chen' FROM user_account WHERE user_id=5",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-125",
+    "ref": "EXT-49",
+    "category": "Transactions and concurrency",
+    "requirements": [
+      "DB-NFR-04",
+      "DB-NFR-01"
+    ],
+    "purpose": "Confirm an expected constraint failure does not leave partial data; explicit rollback to savepoint restores earlier write.",
+    "expected": "Duplicate error, one valid row visible, then both writes absent after rollback.",
+    "steps": [
+      {
+        "sql": "SAVEPOINT qa_save"
+      },
+      {
+        "sql": "INSERT INTO skill(code,name) VALUES('qa-rollback','QA Rollback')",
+        "affected": 1
+      },
+      {
+        "sql": "INSERT INTO skill(code,name) VALUES('qa-rollback','QA Duplicate')",
+        "error": [
+          1062,
+          "uq_skill_code"
+        ]
+      },
+      {
+        "sql": "SELECT COUNT(*)=1 FROM skill WHERE code='qa-rollback'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      },
+      {
+        "sql": "ROLLBACK TO SAVEPOINT qa_save"
+      },
+      {
+        "sql": "SELECT COUNT(*)=0 FROM skill WHERE code='qa-rollback'",
+        "rows": [
+          [
+            "1"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SQL-126",
+    "ref": "EXT-50",
+    "category": "Transactions and concurrency",
+    "requirements": [
+      "DB-FR-06",
+      "DB-NFR-04"
+    ],
+    "purpose": "Race two independent MySQL connections for the last place in a seeded two-place opportunity with one committed fixture.",
+    "expected": "First transaction commits; second waits then receives applicant_limit_reached; exactly one active row; cleanup restores base-table contents.",
+    "steps": [],
+    "special": "capacity_race"
+  }
+]

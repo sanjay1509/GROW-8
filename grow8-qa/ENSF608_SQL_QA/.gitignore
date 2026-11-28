@@ -1,0 +1,9 @@
+/ENSF608_QA_Final_Submission/
+/ENSF608-GROW8-Final-Submission/
+reports/
+prepared/
+__pycache__/
+*.pyc
+.venv/
+*.bak
+*.zip

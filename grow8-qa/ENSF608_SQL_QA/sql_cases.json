@@ -1,0 +1,710 @@
+[
+  {
+    "id": "SQL-001",
+    "ref": "SP-1",
+    "category": "Stored procedure definition",
+    "purpose": "Publish an owned draft after required disclosures are provided.",
+    "expected": "sp_publish_opportunity is created successfully and is present in INFORMATION_SCHEMA.ROUTINES. Behavior is exercised by the corresponding workflow/call cases.",
+    "routine": "sp_publish_opportunity"
+  },
+  {
+    "id": "SQL-002",
+    "ref": "SP-2",
+    "category": "Stored procedure definition",
+    "purpose": "Submit an application or reuse a withdrawn application.",
+    "expected": "sp_apply_to_opportunity is created successfully and is present in INFORMATION_SCHEMA.ROUTINES. Behavior is exercised by the corresponding workflow/call cases.",
+    "routine": "sp_apply_to_opportunity"
+  },
+  {
+    "id": "SQL-003",
+    "ref": "SP-3",
+    "category": "Stored procedure definition",
+    "purpose": "Accept or reject an application as its organization owner.",
+    "expected": "sp_decide_application is created successfully and is present in INFORMATION_SCHEMA.ROUTINES. Behavior is exercised by the corresponding workflow/call cases.",
+    "routine": "sp_decide_application"
+  },
+  {
+    "id": "SQL-004",
+    "ref": "SP-4",
+    "category": "Stored procedure definition",
+    "purpose": "Approve or reject a work submission; record verified hours and points when approved.",
+    "expected": "sp_verify_work is created successfully and is present in INFORMATION_SCHEMA.ROUTINES. Behavior is exercised by the corresponding workflow/call cases.",
+    "routine": "sp_verify_work"
+  },
+  {
+    "id": "SQL-005",
+    "ref": "SP-5",
+    "category": "Stored procedure definition",
+    "purpose": "Award an eligible contributor badge and record its points.",
+    "expected": "sp_award_badge is created successfully and is present in INFORMATION_SCHEMA.ROUTINES. Behavior is exercised by the corresponding workflow/call cases.",
+    "routine": "sp_award_badge"
+  },
+  {
+    "id": "SQL-006",
+    "ref": "SP-6",
+    "category": "Stored procedure definition",
+    "purpose": "Record an admin decision on feedback.",
+    "expected": "sp_review_feedback is created successfully and is present in INFORMATION_SCHEMA.ROUTINES. Behavior is exercised by the corresponding workflow/call cases.",
+    "routine": "sp_review_feedback"
+  },
+  {
+    "id": "SQL-007",
+    "ref": "SP-7",
+    "category": "Stored procedure definition",
+    "purpose": "Dismiss or uphold an opportunity report and cancel the opportunity when applicable.",
+    "expected": "sp_review_report is created successfully and is present in INFORMATION_SCHEMA.ROUTINES. Behavior is exercised by the corresponding workflow/call cases.",
+    "routine": "sp_review_report"
+  },
+  {
+    "id": "SQL-008",
+    "ref": "SP-8",
+    "category": "Stored procedure definition",
+    "purpose": "Retrieve contributor totals and skill history.",
+    "expected": "sp_contributor_summary is created successfully and is present in INFORMATION_SCHEMA.ROUTINES. Behavior is exercised by the corresponding workflow/call cases.",
+    "routine": "sp_contributor_summary"
+  },
+  {
+    "id": "SQL-009",
+    "ref": "SP-9",
+    "category": "Stored procedure definition",
+    "purpose": "Retrieve open opportunities by category and optional skill.",
+    "expected": "sp_find_open_opportunities is created successfully and is present in INFORMATION_SCHEMA.ROUTINES. Behavior is exercised by the corresponding workflow/call cases.",
+    "routine": "sp_find_open_opportunities"
+  },
+  {
+    "id": "SQL-010",
+    "ref": "Q-1",
+    "category": "Retrieval query",
+    "purpose": "Retrieve open community opportunities, deadlines, hours, compensation and safety disclosures.",
+    "expected": "Five rows: opportunity IDs 12, 5, 4, 8, 13 in deadline order as of the fixed query date. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-011",
+    "ref": "Q-2",
+    "category": "Retrieval query",
+    "purpose": "Retrieve each application with the opportunity, contributor, status and active capacity use.",
+    "expected": "14 application rows; pending/accepted places taken match each opportunity and capacity. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-012",
+    "ref": "Q-3",
+    "category": "Retrieval query",
+    "purpose": "Find accepted work submissions still awaiting verification.",
+    "expected": "Exactly submission 5: Alex Chen, Warehouse inventory count, 8.00 claimed hours. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-013",
+    "ref": "Q-4",
+    "category": "Retrieval query",
+    "purpose": "Calculate verified experience hours and completed opportunities for every contributor.",
+    "expected": "Jordan 14.00/2; Alex 5.00/1; Sam 0.00/0. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-014",
+    "ref": "Q-5",
+    "category": "Retrieval query",
+    "purpose": "Rank active contributors by points during the selected period.",
+    "expected": "Jordan Lee: 105 October points, rank 1. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-015",
+    "ref": "Q-6",
+    "category": "Retrieval query",
+    "purpose": "Count earners for each badge, including badges with no earners.",
+    "expected": "Badge IDs 1, 4, 2, 3 have counts 2, 2, 1, 0 respectively. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-016",
+    "ref": "Q-7",
+    "category": "Retrieval query",
+    "purpose": "Retrieve feedback discrepancy reports awaiting admin review.",
+    "expected": "Exactly feedback 5 from Sam Patel concerning Warehouse inventory count. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-017",
+    "ref": "Q-8",
+    "category": "Retrieval query",
+    "purpose": "Calculate creator ratings using only approved feedback.",
+    "expected": "Daniel Okafor: average 4.50 from two approved ratings. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-018",
+    "ref": "Q-9",
+    "category": "Retrieval query",
+    "purpose": "Retrieve contributor dashboard totals, rank and public rating.",
+    "expected": "Three contributors: Jordan 14 hours/195 points; Alex 5/80; Sam 0/0. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-019",
+    "ref": "Q-10",
+    "category": "Retrieval query",
+    "purpose": "Retrieve skills verified through approved work, including earned unlisted skills.",
+    "expected": "Five verified contributor-skill rows, including Alex’s two earned unlisted skills. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-020",
+    "ref": "Q-11",
+    "category": "Retrieval query",
+    "purpose": "Retrieve pending feedback moderation queue, prioritizing discrepancy reports.",
+    "expected": "Feedback 5 then 6, both pending. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-021",
+    "ref": "Q-12",
+    "category": "Retrieval query",
+    "purpose": "Retrieve opportunity reports and their derived moderation status.",
+    "expected": "Report 1 dismissed; report 2 pending. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-022",
+    "ref": "Q-13",
+    "category": "Retrieval query",
+    "purpose": "Retrieve Jordan’s notifications and unread count.",
+    "expected": "Three notifications ordered unread first; unread count 1. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-023",
+    "ref": "Q-14",
+    "category": "Retrieval query",
+    "purpose": "Report SDG 8 impact by organization using approved verifications.",
+    "expected": "Bow River Community Food Bank: 2 contributors, 19.00 hours, 3 approved submissions. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-024",
+    "ref": "Q-15",
+    "category": "Retrieval query",
+    "purpose": "Compare skill demand in open opportunities with contributors listing each skill.",
+    "expected": "12 skill rows; counts match the seeded associations and open statuses. All report-visible result cells match the reference dataset."
+  },
+  {
+    "id": "SQL-025",
+    "ref": "V-1",
+    "category": "Derived view",
+    "purpose": "Read verified hours and completed opportunity totals.",
+    "expected": "Alex 5.00/1, Jordan 14.00/2, Sam 0.00/0."
+  },
+  {
+    "id": "SQL-026",
+    "ref": "V-2",
+    "category": "Derived view",
+    "purpose": "Read the points leaderboard and ranking.",
+    "expected": "Jordan 195/rank 1, Alex 80/rank 2, Sam 0/rank 3."
+  },
+  {
+    "id": "SQL-027",
+    "ref": "V-3",
+    "category": "Derived view",
+    "purpose": "Read approved-feedback public ratings.",
+    "expected": "User 3: 4.50/2; user 6: 5.00/1."
+  },
+  {
+    "id": "SQL-028",
+    "ref": "V-4",
+    "category": "Derived view",
+    "purpose": "Read derived feedback status for all feedback records.",
+    "expected": "Seven rows: 3 approved, 2 rejected, 2 pending."
+  },
+  {
+    "id": "SQL-029",
+    "ref": "V-5",
+    "category": "Derived view",
+    "purpose": "Read listed and earned contributor skills with verification flags.",
+    "expected": "12 rows; listed rows have a creation timestamp, unlisted earned rows have NULL; all remaining report-visible cells match."
+  },
+  {
+    "id": "SQL-030",
+    "ref": "SP-9 run",
+    "category": "Stored procedure execution",
+    "purpose": "Call opportunity search with community/customer-service and knowledge/any skill filters.",
+    "expected": "At the fixed November 26 reference time, first result has IDs 4, 8, 13; second has 6, 7. Match all report-visible cells."
+  },
+  {
+    "id": "SQL-031",
+    "ref": "SP-8 run",
+    "category": "Stored procedure execution",
+    "purpose": "Call the contributor summary for Jordan Lee (user 6).",
+    "expected": "Two result sets: dashboard (14.00 hours, 2 completed, 195 points, rank 1, rating 5.00) and four skill rows."
+  },
+  {
+    "id": "SQL-032",
+    "ref": "OP-1",
+    "category": "Data operation",
+    "purpose": "Insert contributor account, profile and listed skills.",
+    "expected": "Riley Brooks is stored as contributor with two listed skills."
+  },
+  {
+    "id": "SQL-033",
+    "ref": "OP-2",
+    "category": "Data operation",
+    "purpose": "Insert draft spreadsheet opportunity and required skills.",
+    "expected": "New opportunity 16 is draft, applicant limit 2, published_at NULL."
+  },
+  {
+    "id": "SQL-034",
+    "ref": "OP-3",
+    "category": "Data operation",
+    "purpose": "Publish the draft through the owner’s stored procedure.",
+    "expected": "Opportunity 16 is open and has a publication timestamp."
+  },
+  {
+    "id": "SQL-035",
+    "ref": "OP-4",
+    "category": "Data operation",
+    "purpose": "Insert Alex’s application through the application procedure.",
+    "expected": "New application ID 15 is returned."
+  },
+  {
+    "id": "SQL-036",
+    "ref": "OP-5",
+    "category": "Data operation",
+    "purpose": "Insert Jordan’s application and inspect active applications.",
+    "expected": "IDs 15 and 16, both pending."
+  },
+  {
+    "id": "SQL-037",
+    "ref": "OP-6",
+    "category": "Expected rejection",
+    "purpose": "Attempt a third application against the full opportunity.",
+    "expected": "Exactly MySQL error 1644 containing applicant_limit_reached.",
+    "error": [
+      1644,
+      "applicant_limit_reached"
+    ]
+  },
+  {
+    "id": "SQL-038",
+    "ref": "OP-7",
+    "category": "Data operation",
+    "purpose": "Withdraw Jordan’s application and count active places.",
+    "expected": "Active application count drops to 1."
+  },
+  {
+    "id": "SQL-039",
+    "ref": "OP-8",
+    "category": "Data operation",
+    "purpose": "Apply as Sam after a place becomes available.",
+    "expected": "New application ID 17 is returned."
+  },
+  {
+    "id": "SQL-040",
+    "ref": "OP-9",
+    "category": "Data operation",
+    "purpose": "Accept Alex and reject Sam as the owner.",
+    "expected": "Alex accepted and decided; Jordan withdrawn and undecided; Sam rejected and decided."
+  },
+  {
+    "id": "SQL-041",
+    "ref": "OP-10",
+    "category": "Data operation",
+    "purpose": "Reapply as Jordan using the same withdrawn row.",
+    "expected": "Original and returned application IDs both 16, status pending."
+  },
+  {
+    "id": "SQL-042",
+    "ref": "OP-11",
+    "category": "Data operation",
+    "purpose": "Insert accepted contributor’s work submission and attachment.",
+    "expected": "Submission 6 has 5.00 hours and one attachment."
+  },
+  {
+    "id": "SQL-043",
+    "ref": "OP-12",
+    "category": "Data operation",
+    "purpose": "Retrieve Sam’s totals before work verification.",
+    "expected": "0.00 verified hours, zero completed opportunities and zero points."
+  },
+  {
+    "id": "SQL-044",
+    "ref": "OP-13",
+    "category": "Data operation",
+    "purpose": "Approve Sam’s work and read updated totals and skill.",
+    "expected": "5.00 verified hours, one completion, 50 points, Photography verified."
+  },
+  {
+    "id": "SQL-045",
+    "ref": "OP-14",
+    "category": "Data operation",
+    "purpose": "Award the first verified task badge.",
+    "expected": "Two ledger entries: 50 work points and 10 badge points."
+  },
+  {
+    "id": "SQL-046",
+    "ref": "OP-15",
+    "category": "Data operation",
+    "purpose": "Insert reciprocal feedback for the completed application.",
+    "expected": "Two feedback rows with rating 5 and pending status."
+  },
+  {
+    "id": "SQL-047",
+    "ref": "OP-16",
+    "category": "Data operation",
+    "purpose": "Approve both feedback records as admin.",
+    "expected": "Users 4 and 7 each have a 5.00 rating from one approved item."
+  },
+  {
+    "id": "SQL-048",
+    "ref": "OP-17",
+    "category": "Data operation",
+    "purpose": "Insert a second report against opportunity 4.",
+    "expected": "Reports 2 and 3 are pending."
+  },
+  {
+    "id": "SQL-049",
+    "ref": "OP-18",
+    "category": "Data operation",
+    "purpose": "Uphold the report and cancel the opportunity.",
+    "expected": "Reports 2 and 3 upheld; opportunity 4 cancelled."
+  },
+  {
+    "id": "SQL-050",
+    "ref": "OP-19",
+    "category": "Data operation",
+    "purpose": "Mark Jordan’s unread notifications as read.",
+    "expected": "Unread count changes from 1 to 0."
+  },
+  {
+    "id": "SQL-051",
+    "ref": "OP-20",
+    "category": "Data operation",
+    "purpose": "Delete the eligible draft and verify cascading skill deletion.",
+    "expected": "Two skill links before deletion; zero opportunity rows and zero links after."
+  },
+  {
+    "id": "SQL-052",
+    "ref": "OP-21",
+    "category": "Data operation",
+    "purpose": "Remove a listed skill already earned through verified work.",
+    "expected": "Customer service remains verified, is_listed = 0."
+  },
+  {
+    "id": "SQL-053",
+    "ref": "OP-22",
+    "category": "Transaction check",
+    "purpose": "Check the database after the workflow transaction rolls back.",
+    "expected": "15 opportunities, 14 applications, 5 submissions, 8 ledger rows, 2 reports, opportunity 4 open; every base-table row matches the initial snapshot."
+  },
+  {
+    "id": "SQL-054",
+    "ref": "IC-1",
+    "category": "Expected rejection",
+    "purpose": "Duplicate primary key for skill 1.",
+    "expected": "Exactly MySQL error 1062, containing PRIMARY.",
+    "error": [
+      1062,
+      "PRIMARY"
+    ]
+  },
+  {
+    "id": "SQL-055",
+    "ref": "IC-2",
+    "category": "Expected rejection",
+    "purpose": "Application referencing missing opportunity.",
+    "expected": "Exactly MySQL error 1452, containing fk_application_opportunity.",
+    "error": [
+      1452,
+      "fk_application_opportunity"
+    ]
+  },
+  {
+    "id": "SQL-056",
+    "ref": "IC-3",
+    "category": "Expected rejection",
+    "purpose": "Duplicate feedback by same author/application.",
+    "expected": "Exactly MySQL error 1062, containing uq_feedback_application_author.",
+    "error": [
+      1062,
+      "uq_feedback_application_author"
+    ]
+  },
+  {
+    "id": "SQL-057",
+    "ref": "IC-4",
+    "category": "Expected rejection",
+    "purpose": "Feedback rating outside 1–5.",
+    "expected": "Exactly MySQL error 3819, containing chk_feedback_rating.",
+    "error": [
+      3819,
+      "chk_feedback_rating"
+    ]
+  },
+  {
+    "id": "SQL-058",
+    "ref": "IC-5",
+    "category": "Expected rejection",
+    "purpose": "Publish draft missing mandatory disclosures.",
+    "expected": "Exactly MySQL error 3819, containing chk_opportunity_published_complete.",
+    "error": [
+      3819,
+      "chk_opportunity_published_complete"
+    ]
+  },
+  {
+    "id": "SQL-059",
+    "ref": "IC-6",
+    "category": "Expected rejection",
+    "purpose": "Rejected work verification with hours.",
+    "expected": "Exactly MySQL error 3819, containing chk_work_verification_hours.",
+    "error": [
+      3819,
+      "chk_work_verification_hours"
+    ]
+  },
+  {
+    "id": "SQL-060",
+    "ref": "IC-7",
+    "category": "Expected rejection",
+    "purpose": "Contributor profile assigned to a creator.",
+    "expected": "Exactly MySQL error 1644, containing contributor_profile_role.",
+    "error": [
+      1644,
+      "contributor_profile_role"
+    ]
+  },
+  {
+    "id": "SQL-061",
+    "ref": "IC-8",
+    "category": "Expected rejection",
+    "purpose": "Application for closed opportunity.",
+    "expected": "Exactly MySQL error 1644, containing application_closed.",
+    "error": [
+      1644,
+      "application_closed"
+    ]
+  },
+  {
+    "id": "SQL-062",
+    "ref": "IC-9",
+    "category": "Expected rejection",
+    "purpose": "Application after deadline.",
+    "expected": "Exactly MySQL error 1644, containing application_deadline_passed.",
+    "error": [
+      1644,
+      "application_deadline_passed"
+    ]
+  },
+  {
+    "id": "SQL-063",
+    "ref": "IC-10",
+    "category": "Expected rejection",
+    "purpose": "Work submitted for pending application.",
+    "expected": "Exactly MySQL error 1644, containing submission_requires_accepted.",
+    "error": [
+      1644,
+      "submission_requires_accepted"
+    ]
+  },
+  {
+    "id": "SQL-064",
+    "ref": "IC-11",
+    "category": "Expected rejection",
+    "purpose": "Verification by non-owner.",
+    "expected": "Exactly MySQL error 1644, containing verifier_not_owner.",
+    "error": [
+      1644,
+      "verifier_not_owner"
+    ]
+  },
+  {
+    "id": "SQL-065",
+    "ref": "IC-12",
+    "category": "Expected rejection",
+    "purpose": "Feedback from unrelated participant.",
+    "expected": "Exactly MySQL error 1644, containing feedback_participants.",
+    "error": [
+      1644,
+      "feedback_participants"
+    ]
+  },
+  {
+    "id": "SQL-066",
+    "ref": "IC-13",
+    "category": "Expected rejection",
+    "purpose": "Points for rejected verification.",
+    "expected": "Exactly MySQL error 1644, containing points_require_approval.",
+    "error": [
+      1644,
+      "points_require_approval"
+    ]
+  },
+  {
+    "id": "SQL-067",
+    "ref": "IC-14",
+    "category": "Expected rejection",
+    "purpose": "Points for badge not earned.",
+    "expected": "Exactly MySQL error 1452, containing fk_point_transaction_contributor_badge.",
+    "error": [
+      1452,
+      "fk_point_transaction_contributor_badge"
+    ]
+  },
+  {
+    "id": "SQL-068",
+    "ref": "IC-15",
+    "category": "Expected rejection",
+    "purpose": "Role change with dependent rows.",
+    "expected": "Exactly MySQL error 1644, containing role_locked.",
+    "error": [
+      1644,
+      "role_locked"
+    ]
+  },
+  {
+    "id": "SQL-069",
+    "ref": "IC-16",
+    "category": "Expected rejection",
+    "purpose": "Report against draft opportunity.",
+    "expected": "Exactly MySQL error 1644, containing report_requires_published.",
+    "error": [
+      1644,
+      "report_requires_published"
+    ]
+  },
+  {
+    "id": "SQL-070",
+    "ref": "IC-17",
+    "category": "Expected rejection",
+    "purpose": "Application decision by non-owner.",
+    "expected": "Exactly MySQL error 1644, containing not_owner.",
+    "error": [
+      1644,
+      "not_owner"
+    ]
+  },
+  {
+    "id": "SQL-071",
+    "ref": "IC-18",
+    "category": "Expected rejection",
+    "purpose": "Badge awarded below required hours.",
+    "expected": "Exactly MySQL error 1644, containing badge_requirement_not_met.",
+    "error": [
+      1644,
+      "badge_requirement_not_met"
+    ]
+  },
+  {
+    "id": "SQL-072",
+    "ref": "S-1",
+    "category": "Basic SELECT / WHERE",
+    "purpose": "Retrieve open remote opportunities.",
+    "expected": "Exact result: 2 | Inventory spreadsheet cleanup; 6 | Donor database deduplication; 7 | Translate client intake forms (Spanish, Punjabi).",
+    "sql": "SELECT opportunity_id, title FROM opportunity WHERE status = 'open' AND work_mode = 'remote' ORDER BY opportunity_id;",
+    "columns": [
+      "opportunity_id",
+      "title"
+    ],
+    "rows": [
+      [
+        "2",
+        "Inventory spreadsheet cleanup"
+      ],
+      [
+        "6",
+        "Donor database deduplication"
+      ],
+      [
+        "7",
+        "Translate client intake forms (Spanish, Punjabi)"
+      ]
+    ]
+  },
+  {
+    "id": "SQL-073",
+    "ref": "S-2",
+    "category": "Basic SELECT / WHERE",
+    "purpose": "Retrieve applications waiting for a decision.",
+    "expected": "Exact result: 9 | pending; 13 | pending; 14 | pending.",
+    "sql": "SELECT application_id, status FROM application WHERE status = 'pending' ORDER BY application_id;",
+    "columns": [
+      "application_id",
+      "status"
+    ],
+    "rows": [
+      [
+        "9",
+        "pending"
+      ],
+      [
+        "13",
+        "pending"
+      ],
+      [
+        "14",
+        "pending"
+      ]
+    ]
+  },
+  {
+    "id": "SQL-074",
+    "ref": "S-3",
+    "category": "Basic SELECT / LIKE",
+    "purpose": "Retrieve contributor profiles associated with a university.",
+    "expected": "Exact result: 5 | University of Calgary; 6 | Mount Royal University.",
+    "sql": "SELECT user_id, institution FROM contributor_profile WHERE institution LIKE '%University%' ORDER BY user_id;",
+    "columns": [
+      "user_id",
+      "institution"
+    ],
+    "rows": [
+      [
+        "5",
+        "University of Calgary"
+      ],
+      [
+        "6",
+        "Mount Royal University"
+      ]
+    ]
+  },
+  {
+    "id": "SQL-075",
+    "ref": "S-4",
+    "category": "Basic SELECT / IN",
+    "purpose": "Retrieve selected skills relevant to digital and customer-facing work.",
+    "expected": "Exact result: 2 | spreadsheets; 3 | data-cleaning; 7 | customer-service.",
+    "sql": "SELECT skill_id, code FROM skill WHERE code IN ('spreadsheets','data-cleaning','customer-service') ORDER BY skill_id;",
+    "columns": [
+      "skill_id",
+      "code"
+    ],
+    "rows": [
+      [
+        "2",
+        "spreadsheets"
+      ],
+      [
+        "3",
+        "data-cleaning"
+      ],
+      [
+        "7",
+        "customer-service"
+      ]
+    ]
+  },
+  {
+    "id": "SQL-076",
+    "ref": "S-5",
+    "category": "GROUP BY / HAVING",
+    "purpose": "Identify opportunities with at least two active applications.",
+    "expected": "Exact result: 1 | 2; 10 | 3; 11 | 2.",
+    "sql": "SELECT opportunity_id, COUNT(*) AS active_applications FROM application WHERE status IN ('pending','accepted') GROUP BY opportunity_id HAVING COUNT(*) >= 2 ORDER BY opportunity_id;",
+    "columns": [
+      "opportunity_id",
+      "active_applications"
+    ],
+    "rows": [
+      [
+        "1",
+        "2"
+      ],
+      [
+        "10",
+        "3"
+      ],
+      [
+        "11",
+        "2"
+      ]
+    ]
+  }
+]
