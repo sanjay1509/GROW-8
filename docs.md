@@ -56,6 +56,16 @@ This builds the images and starts all six containers in the background. The firs
 
 MySQL and RabbitMQ start first. The API and consumers wait until both report healthy.
 
+In a second terminal, start the React frontend:
+
+```bash
+cd grow8-
+npm ci
+npm run dev
+```
+
+Open the local URL Vite prints (normally <http://localhost:5173>). The frontend uses the API at <http://localhost:8000/api/v1> by default.
+
 ### 1.4 Check that it works
 
 ```bash
@@ -167,13 +177,14 @@ Your data is kept in Docker volumes and will be there next time you run `make up
 
 ### 2.1 Everyone gets the same database
 
-The database is defined by three files in [`grow8-backend/db/init/`](grow8-backend/db/init/), which are committed to Git:
+The database setup is defined by four files in [`grow8-backend/db/init/`](grow8-backend/db/init/), which are committed to Git:
 
 | File | What it does |
 | --- | --- |
-| `001_schema.sql` | Creates all 19 tables (the 17 from the ENSF 608 proposal plus `notification`, see [ADR 0003](grow8-backend/docs/adr/0003-persisted-notifications.md), and `contributor_resume`, see [ADR 0008](grow8-backend/docs/adr/0008-contributor-resume.md)), the integrity triggers and the derived-value views. It is the single source of truth for the schema. |
+| `001_schema.sql` | Creates all 21 tables (the 17 from the ENSF 608 proposal plus notifications, contributor resumes, opportunity reports and report reviews), the integrity triggers and the derived-value views. It is the single source of truth for the schema. |
 | `002_seed.sql` | Fills them with **development-only** placeholder data. It uses fixed IDs and dates, so every developer gets identical rows. |
 | `003_test_database.sh` | Creates an empty `grow8_test` database that `make test` uses, so tests never change your dev data. |
+| `004_seed_workflow.sql` | Adds development workflow examples: applications, submissions, verifications, feedback, reports and notifications. |
 
 MySQL runs these files automatically **the first time** it starts with an empty data volume. Anything you create later through Swagger, Postman or the frontend exists only on your machine.
 
@@ -234,11 +245,11 @@ Seeded application deadlines are fixed dates, so as the term goes on some opport
 
 Full reference: [`grow8-backend/docs/api-contract.md`](grow8-backend/docs/api-contract.md). Try everything interactively at <http://localhost:8000/docs>.
 
-### 3.1 Signing in
+### 3.1 Creating an account and signing in
 
-1. `POST /api/v1/auth/login` with `{"email": "maple.bakery@grow8.dev", "password": "Grow8Dev!2026"}`.
-2. Copy `access_token` from the response.
-3. Send it as `Authorization: Bearer <token>`. In Swagger, click **Authorize** and paste the token.
+The signup page calls `POST /api/v1/auth/register` with `full_name`, `email`, `password` and `role` (`contributor` or `creator`). A successful registration creates the account, creates a contributor profile when applicable, and returns an access token so the user is signed in. Admin registration is not public. Email addresses are normalized to lowercase; passwords must be at least 8 characters and no more than 72 UTF-8 bytes. An existing email returns `409 EMAIL_ALREADY_REGISTERED`.
+
+For seeded development accounts, `POST /api/v1/auth/login` with `{"email": "maple.bakery@grow8.dev", "password": "Grow8Dev!2026"}`. Copy `access_token` from the response and send it as `Authorization: Bearer <token>`. In Swagger, click **Authorize** and paste the token.
 
 ### 3.2 Opportunities at a glance
 

@@ -62,14 +62,50 @@ export default function SignUpLogin() {
     setSuccess("");
 
     if (mode === "signup") {
+      if (!fullName.trim()) {
+        setError("Please enter your full name.");
+        return;
+      }
       if (password !== confirmPassword) {
         setError("Passwords do not match.");
         return;
       }
 
-      setError(
-        "Account registration is not connected yet. Please use an existing account to log in."
-      );
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            full_name: fullName.trim(),
+            email: email.trim(),
+            password,
+            role,
+          }),
+        });
+        const data: LoginResponse = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(
+            data.error?.message || data.detail || data.message || "Account creation failed."
+          );
+        }
+        if (!data.access_token) {
+          throw new Error("Account was created, but the server did not return a login token.");
+        }
+
+        localStorage.setItem("access_token", data.access_token);
+        if (data.user?.full_name) {
+          localStorage.setItem("user_name", data.user.full_name);
+        }
+        setSuccess("Account created! Redirecting...");
+        window.setTimeout(() => {
+          navigate(role === "creator" ? "/creator/dashboard" : "/contributor-dashboard");
+        }, 500);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong while creating your account.");
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 

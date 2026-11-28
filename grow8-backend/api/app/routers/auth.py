@@ -4,6 +4,7 @@ from app.dependencies.auth import CurrentUser, DbSession
 from app.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
+    SignUpRequest,
     TokenResponse,
     UserRead,
     UserUpdate,
@@ -11,6 +12,12 @@ from app.schemas.auth import (
 from app.services import auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+@router.post("/register", response_model=TokenResponse, status_code=201)
+def register(body: SignUpRequest, session: DbSession) -> TokenResponse:
+    """Create a contributor or creator account, then return its access token."""
+    return auth_service.register(session, body)
 
 
 @router.post("/login", response_model=TokenResponse)

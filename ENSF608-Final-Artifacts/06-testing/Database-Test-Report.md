@@ -6,22 +6,22 @@ This report covers the tests that check the database itself: the integrity rules
 
 ## Result
 
-**Run on Nov 26, 2026: 831 passed, 0 failed, 0 skipped.**
+**Run on Nov 27, 2026: 835 passed, 0 failed, 0 skipped across the API and consumer suites.**
 
 | Suite | Tests | Result |
 |---|---|---|
-| API and database tests (`grow8-backend/api/tests`) | 736 | all passed |
+| API and database tests (`grow8-backend/api/tests`) | 740 | all passed |
 | Consumer service tests (`grow8-backend/services/*/tests`) | 95 | all passed |
 
-Environment: MySQL 8.0, RabbitMQ 3.12, Python 3.
+Environment: Docker Compose, MySQL 8.4, RabbitMQ 4.1, Python 3.12.16.
 
 The ENSF 608 operations file (`ENSF608-Final-Artifacts/05-operations/grow8_operations.sql`) was also run against a database built from the submitted scripts: 117 statements, all 18 integrity checks refused as expected, no unexpected errors. Its output is in `Operations-Evidence.md` next to it. Each API test starts from a fresh copy of `002_seed.sql` in a separate `grow8_test` database, so tests never touch the dev data and don't depend on each other. Applications in the tests use fixed dates, so the results don't change as real dates pass the seeded deadlines.
 
-How to run: `make test` and `make test-services` from `grow8-backend/` with the stack up.
+How to run: `make test` and `make test-services` from `grow8-backend/` with the stack up. On Nov 27, the Postman/Newman end-to-end collection also passed all 171 requests and assertions (`make postman`); it adds a few workflow rows to the development database.
 
 ## Database tests by area
 
-77 of the 736 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
+77 of the 740 API tests are database tests. The other API tests (endpoints, file uploads, auth) also run against the real database, but they test the API's behaviour rather than a database rule.
 
 | File | Tests | What it proves |
 |---|---|---|

@@ -1,6 +1,6 @@
 # Grow8 — ENSF 608 Final Project Artifacts (Group 2)
 
-This folder is the complete ENSF 608 submission package. Each required artifact has its own numbered folder.
+This folder contains the ENSF 608 submission artifacts. Each required artifact has its own numbered folder. **Before submission, each member must verify their row in `08-individual-contributions/Individual-Contributions.md`, add any unrecorded work, and check the confirmation box; that file is currently marked DRAFT.**
 
 **To build the database:**
 

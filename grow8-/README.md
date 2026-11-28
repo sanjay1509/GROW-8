@@ -1,16 +1,23 @@
-# React + Vite
+# GROW8 Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19, TypeScript and Vite frontend for the GROW8 contributor, creator and admin workflows.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Start the backend stack first by following [`../docs.md`](../docs.md). Then:
 
-## React Compiler
+```bash
+npm ci
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Vite prints the local URL (normally <http://localhost:5173>). The frontend uses `http://localhost:8000/api/v1` by default. Set `VITE_API_BASE_URL` in a local `.env` file if the API runs elsewhere.
 
-## Expanding the ESLint configuration
+## Checks
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm run lint
+npm run build
+```
+
+The end-to-end API collection is maintained in [`../grow8-backend/tests/postman/grow8.postman_collection.json`](../grow8-backend/tests/postman/grow8.postman_collection.json) and runs with `make postman` from `grow8-backend/`.
