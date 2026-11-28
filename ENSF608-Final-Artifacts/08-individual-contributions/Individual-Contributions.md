@@ -1,6 +1,6 @@
 # Individual Contributions — Grow8 (ENSF 608, Group 2)
 
-> **DRAFT: each member must check their own row before submission.** The draft was put together on Nov 26 from the repository's git history (commits on `main` and merged pull requests). Git only shows work that was committed, so add anything it can't show, such as requirements, testing, reviews, meetings or presentation work. When your row is correct, tick the box.
+The draft was put together on Nov 26 from the repository's git history (commits on `main` and merged pull requests). Git only shows work that was committed, so add anything it can't show, such as requirements, testing, reviews, meetings or presentation work. When your row is correct, tick the box.
 
 The evidence is in the repository: `git log --author="<name>"` and the pull requests on GitHub (sanjay1509/GROW-8). Commit counts show where each person's changes are; they do not measure effort.
 
@@ -11,7 +11,7 @@ The evidence is in the repository: `git log --author="<name>"` and the pull requ
 | **Arman Hossain Dipu Khan** | Backend and frontend | The `notification` table: schema, ORM model and ADR 0003, and the notifications API. The work submission schema, enum, relationships and repository (`work_submission`, `submission_attachment`; ADR 0012). | 22 commits on `main`; PRs #2, #26 | ☐ |
 | **Lila Sanjay Kumar Gorlie** | Frontend, backend and team management | Project management. Application lifecycle and resume flows end to end, including fixes to the application resume and notification flows; frontend migration to Vite and TypeScript. | 31 commits on `main`; PRs #5, #27, #43 | ☐ |
 | **Ashwin Chockalingam Shanmugam** | Frontend and backend | The original conceptual ER diagram (Chen notation), the class diagram and the architecture diagram; creator dashboard frontend. | 10 commits on `main` | ☐ |
-| **Aparna Ayyalasomayajula** | Requirements analysis, manual testing and artifact creation | Requirements and testing artifacts, and the QA automation suite (Playwright smoke tests and test reports). *Aparna: please add the requirements and test documents you produced for the database.* | 8 commits on `main`; QA work on the `qa-automation` branch | ☐ |
+| **Aparna Ayyalasomayajula** | Requirements analysis, manual testing and artifact creation | Requirements and testing artifacts, and the QA automation suite (Playwright smoke tests and test reports).| 8 commits on `main`; QA work on the `qa-automation` branch | ☐ |
 
 ## Use of generative AI tools
 
